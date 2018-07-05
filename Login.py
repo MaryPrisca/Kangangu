@@ -174,11 +174,13 @@ class LoginFrame(wx.Frame):
                 "password": password
             }
 
-            if not login(data):
+            loggedInUser = login(data)
+
+            if not loggedInUser:
                 dlg = wx.MessageDialog(None, "Login failed. Check your credentials and try again.", 'Login Failed.', wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
             else:
-                hp = HomePage(None)
+                hp = HomePage(None, loggedInUser)
                 hp.Show()
                 self.Hide()
 

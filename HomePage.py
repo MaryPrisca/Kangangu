@@ -8,7 +8,7 @@ from SubjectsPanel import SubjectsPanel
 from ExamsPanel import ExamsPanel
 from ProfilePanel import ProfilePanel
 
-from db.get_logged_user import get_logged_in_user
+# from db.get_logged_user import get_logged_in_user
 # import sys
 #
 # sys.path.insert(0, r'../Kangangu')
@@ -55,7 +55,7 @@ appIcon = PyEmbeddedImage(
 
 class HomePage(wx.Frame):
 
-    def __init__(self, parent):
+    def __init__(self, parent, userdata):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title="KANGANGU SECONDARY SCHOOL MANAGEMENT SYSTEM", pos=wx.DefaultPosition,
                           size=wx.Size(651, 475), style=wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE | wx.TAB_TRAVERSAL)
 
@@ -63,8 +63,9 @@ class HomePage(wx.Frame):
         self.SetIcon(ico)
 
         # Get the logged in user if any
-        user = get_logged_in_user()
-        self.userdata = user[0]
+        # user = get_logged_in_user()
+        # self.userdata = user[0]
+        self.userdata = userdata[0]
 
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
@@ -239,9 +240,9 @@ class HomePage(wx.Frame):
             self.Layout()
 
 
-# Run the program
-if __name__ == "__main__":
-    app = wx.App()
-    frame = HomePage(None)
-    frame.Show()
-    app.MainLoop()
+# # Run the program
+# if __name__ == "__main__":
+#     app = wx.App()
+#     frame = HomePage(None)
+#     frame.Show()
+#     app.MainLoop()
