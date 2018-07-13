@@ -4,6 +4,7 @@ from datetime import datetime
 import re  # Regex
 from db.save_teacher import saveTeacher
 from db.get_classes import getClassNames
+from db.get_subjects import getActiveSubjectAliases
 # import sys
 # sys.path.insert(0, r'/F:/PythonApps/Kangangu')
 
@@ -21,7 +22,7 @@ class AddTeacher(wx.Panel):
         self.m_staticText17.Wrap(-1)
         self.m_staticText17.SetFont(wx.Font(14, 70, 90, 92, False, wx.EmptyString))
 
-        container.Add(self.m_staticText17, 0, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 25)
+        container.Add(self.m_staticText17, 0, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 30)
 
         bSizer27 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -37,181 +38,192 @@ class AddTeacher(wx.Panel):
 
         sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Add Teacher Form"), wx.VERTICAL)
 
+        wrapper_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        left_controls_sizer = wx.BoxSizer(wx.VERTICAL)
+
         fname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText29 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"First Name", wx.DefaultPosition,
-                                            wx.DefaultSize, 0)
-        self.m_staticText29.Wrap(-1)
-        fname_sizer.Add(self.m_staticText29, 1, wx.ALL, 8)
+        self.fname_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"First Name", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.fname_label.Wrap(-1)
+        fname_sizer.Add(self.fname_label, 1, wx.ALL, 8)
 
         self.first_name = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                       wx.DefaultSize, 0)
         fname_sizer.Add(self.first_name, 3, wx.ALL, 5)
 
-        sbSizer2.Add(fname_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 7)
+        left_controls_sizer.Add(fname_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 10)
 
         lname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText292 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Last Name", wx.DefaultPosition,
-                                             wx.DefaultSize, 0)
-        self.m_staticText292.Wrap(-1)
-        lname_sizer.Add(self.m_staticText292, 1, wx.ALL, 8)
+        self.lname_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Last Name", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.lname_label.Wrap(-1)
+        lname_sizer.Add(self.lname_label, 1, wx.ALL, 8)
 
         self.last_name = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                      wx.DefaultSize, 0)
         lname_sizer.Add(self.last_name, 3, wx.ALL, 5)
 
-        sbSizer2.Add(lname_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        left_controls_sizer.Add(lname_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         surname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText293 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Surname", wx.DefaultPosition,
-                                             wx.DefaultSize, 0)
-        self.m_staticText293.Wrap(-1)
-        surname_sizer.Add(self.m_staticText293, 1, wx.ALL, 8)
+        self.surname_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Surname", wx.DefaultPosition,
+                                           wx.DefaultSize, 0)
+        self.surname_label.Wrap(-1)
+        surname_sizer.Add(self.surname_label, 1, wx.ALL, 8)
 
         self.surname = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                    wx.DefaultSize, 0)
         surname_sizer.Add(self.surname, 3, wx.ALL, 5)
 
-        sbSizer2.Add(surname_sizer, 1, wx.ALL | wx.EXPAND, 7)
-
-        email_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Email Address", wx.DefaultPosition,
-                                          wx.DefaultSize, 0)
-        self.m_staticText.Wrap(-1)
-        email_sizer.Add(self.m_staticText, 1, wx.ALL, 8)
-
-        self.email = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                 0)
-        email_sizer.Add(self.email, 3, wx.ALL, 5)
-
-        sbSizer2.Add(email_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        left_controls_sizer.Add(surname_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         username_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText1 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Username", wx.DefaultPosition,
-                                           wx.DefaultSize, 0)
-        self.m_staticText1.Wrap(-1)
-        username_sizer.Add(self.m_staticText1, 1, wx.ALL, 8)
+        self.username_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Username", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.username_label.Wrap(-1)
+        username_sizer.Add(self.username_label, 1, wx.ALL, 8)
 
         self.username = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                     wx.DefaultSize, 0)
         username_sizer.Add(self.username, 3, wx.ALL, 5)
 
-        sbSizer2.Add(username_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        left_controls_sizer.Add(username_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         password_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText2 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Password", wx.DefaultPosition,
-                                           wx.DefaultSize, 0)
-        self.m_staticText2.Wrap(-1)
-        password_sizer.Add(self.m_staticText2, 1, wx.ALL, 8)
+        self.password_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Password", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.password_label.Wrap(-1)
+        password_sizer.Add(self.password_label, 1, wx.ALL, 8)
 
         self.password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                    wx.DefaultSize,  wx.TE_PASSWORD )
+                                    wx.DefaultSize, wx.TE_PASSWORD)
         password_sizer.Add(self.password, 3, wx.ALL, 5)
 
-        sbSizer2.Add(password_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        left_controls_sizer.Add(password_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         conf_pwd_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText21 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Confirm Password", wx.DefaultPosition,
+        self.conf_pwd_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Confirm Password", wx.DefaultPosition,
                                             wx.DefaultSize, 0)
-        self.m_staticText21.Wrap(-1)
-        conf_pwd_sizer.Add(self.m_staticText21, 1, wx.ALL, 8)
+        self.conf_pwd_label.Wrap(-1)
+        conf_pwd_sizer.Add(self.conf_pwd_label, 1, wx.ALL, 8)
 
         self.conf_password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                         wx.DefaultSize,  wx.TE_PASSWORD )
+                                         wx.DefaultSize, wx.TE_PASSWORD)
         conf_pwd_sizer.Add(self.conf_password, 3, wx.ALL, 5)
 
-        sbSizer2.Add(conf_pwd_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        left_controls_sizer.Add(conf_pwd_sizer, 1, wx.ALL | wx.EXPAND, 10)
+
+        wrapper_sizer.Add(left_controls_sizer, 1, wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 10)
+
+        right_controls_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        email_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.email_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Email Address", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.email_label.Wrap(-1)
+        email_sizer.Add(self.email_label, 1, wx.ALL, 8)
+
+        self.email = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                 0)
+        email_sizer.Add(self.email, 3, wx.ALL, 5)
+
+        right_controls_sizer.Add(email_sizer, 1, wx.ALL | wx.EXPAND, 10)
+
+        gender_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.gender_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Gender", wx.DefaultPosition,
+                                          wx.DefaultSize, 0)
+        self.gender_label.Wrap(-1)
+        gender_sizer.Add(self.gender_label, 1, wx.ALL, 8)
+
+        genderChoices = [u"Male", u"Female"]
+        self.gender = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Female", wx.DefaultPosition, wx.DefaultSize,
+                                  genderChoices, wx.CB_READONLY)
+        self.gender.SetSelection(-1)
+        gender_sizer.Add(self.gender, 3, wx.ALL, 5)
+
+        right_controls_sizer.Add(gender_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         dob_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText291 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Date of Birth", wx.DefaultPosition,
-                                             wx.DefaultSize, 0)
-        self.m_staticText291.Wrap(-1)
-        dob_sizer.Add(self.m_staticText291, 1, wx.ALL, 8)
+        self.dob_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Date of Birth", wx.DefaultPosition,
+                                       wx.DefaultSize, 0)
+        self.dob_label.Wrap(-1)
+        dob_sizer.Add(self.dob_label, 1, wx.ALL, 8)
 
         self.dob = wx.DatePickerCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultDateTime, wx.DefaultPosition,
                                      wx.DefaultSize, wx.DP_DEFAULT | wx.DP_DROPDOWN)
         dob_sizer.Add(self.dob, 3, wx.ALL, 5)
 
-        sbSizer2.Add(dob_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        right_controls_sizer.Add(dob_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
-        gender_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        subject_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText294 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Gender", wx.DefaultPosition,
-                                             wx.DefaultSize, 0)
-        self.m_staticText294.Wrap(-1)
-        gender_sizer.Add(self.m_staticText294, 1, wx.ALL, 8)
+        self.subject_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Subject 1", wx.DefaultPosition,
+                                           wx.DefaultSize, 0)
+        self.subject_label.Wrap(-1)
+        subject_sizer.Add(self.subject_label, 1, wx.ALL, 8)
 
-        genderChoices = [u"Male", u"Female"]
-        self.gender = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Female", wx.DefaultPosition, wx.DefaultSize,
-                                  genderChoices, wx.CB_READONLY)
-        self.gender.SetSelection(1)
-        gender_sizer.Add(self.gender, 3, wx.ALL, 5)
+        subjects = getActiveSubjectAliases()
+        subjectChoices = subjects['names']
+        self.subject = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                   wx.DefaultSize, subjectChoices, wx.CB_READONLY)
+        self.subject.SetSelection(-1)
+        subject_sizer.Add(self.subject, 3, wx.ALL, 5)
 
-        sbSizer2.Add(gender_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        right_controls_sizer.Add(subject_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
-        # class_id_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        # self.m_staticText295 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Class", wx.DefaultPosition,
-        #                                      wx.DefaultSize, 0)
-        # self.m_staticText295.Wrap(-1)
-        # class_id_sizer.Add(self.m_staticText295, 1, wx.ALL, 8)
-        #
-        # class_idChoices = []
-        # self.class_id = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-        #                             wx.DefaultSize, class_idChoices, wx.CB_READONLY)
-        # self.class_id.SetSelection(0)
-        # class_id_sizer.Add(self.class_id, 3, wx.ALL, 5)
-        #
-        # sbSizer2.Add(class_id_sizer, 1, wx.ALL | wx.EXPAND, 7)
-        #
-        # subject_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        # self.m_staticText2951 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Subjects", wx.DefaultPosition,
-        #                                       wx.DefaultSize, 0)
-        # self.m_staticText2951.Wrap(-1)
-        # subject_sizer.Add(self.m_staticText2951, 1, wx.ALL, 8)
-        #
-        # subjectChoices = [u"English", u"Kiswahili"]
-        # self.subject = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, u"English", wx.DefaultPosition, wx.DefaultSize,
-        #                            subjectChoices, wx.CB_READONLY)
-        # self.subject.SetSelection(0)
-        # subject_sizer.Add(self.subject, 3, wx.ALL, 5)
-        #
-        # sbSizer2.Add(subject_sizer, 1, wx.ALL | wx.EXPAND, 7)
+        subject2_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.subject2_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Subject 2", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.subject2_label.Wrap(-1)
+        subject2_sizer.Add(self.subject2_label, 1, wx.ALL, 8)
+
+        subject2Choices = subjects['names']
+        self.subject2 = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                    wx.DefaultSize, subject2Choices, wx.CB_READONLY)
+        self.subject2.SetSelection(-1)
+        subject2_sizer.Add(self.subject2, 3, wx.ALL, 5)
+
+        right_controls_sizer.Add(subject2_sizer, 1, wx.ALL | wx.EXPAND, 10)
+
+        wrapper_sizer.Add(right_controls_sizer, 1, wx.BOTTOM | wx.EXPAND | wx.RIGHT | wx.TOP, 10)
+
+        sbSizer2.Add(wrapper_sizer, 1, wx.EXPAND, 5)
 
         btns_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText22 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                            wx.DefaultSize, 0)
-        self.m_staticText22.Wrap(-1)
-        btns_sizer.Add(self.m_staticText22, 1, wx.ALL, 5)
+        self.btn_spacer = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                        wx.DefaultSize, 0)
+        self.btn_spacer.Wrap(-1)
+        btns_sizer.Add(self.btn_spacer, 1, wx.ALL, 5)
 
         self.cancel_btn = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Cancel", wx.DefaultPosition, wx.DefaultSize,
                                     0)
-        btns_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
+        btns_sizer.Add(self.cancel_btn, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT, 15)
 
         self.save_teacher = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Save", wx.DefaultPosition, wx.DefaultSize,
                                       0)
-        btns_sizer.Add(self.save_teacher, 0, wx.ALL, 5)
+        btns_sizer.Add(self.save_teacher, 0, wx.RIGHT, 25)
 
-        sbSizer2.Add(btns_sizer, 3, wx.ALL | wx.EXPAND, 7)
+        sbSizer2.Add(btns_sizer, 0, wx.BOTTOM | wx.EXPAND, 25)
 
-        bSizer36.Add(sbSizer2, 1, wx.EXPAND, 5)
+        bSizer36.Add(sbSizer2, 1, wx.ALL | wx.EXPAND, 10)
 
-        self.m_staticText301 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText301.Wrap(-1)
-        self.m_staticText301.SetFont(wx.Font(30, 70, 90, 90, False, wx.EmptyString))
+        self.below_form_spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.below_form_spacer.Wrap(-1)
+        bSizer36.Add(self.below_form_spacer, 0, wx.ALL, 5)
 
-        bSizer36.Add(self.m_staticText301, 0, wx.ALL | wx.EXPAND, 5)
-
-        bSizer27.Add(bSizer36, 3, wx.EXPAND, 5)
+        bSizer27.Add(bSizer36, 2, wx.EXPAND, 5)
 
         bSizer281 = wx.BoxSizer(wx.VERTICAL)
 
@@ -235,7 +247,29 @@ class AddTeacher(wx.Panel):
 
     # Virtual event handlers, overide them in your derived class
     def cancelAddTeacher(self, event):
-        event.Skip()
+        self.first_name.SetValue("")
+        self.last_name.SetValue("")
+        self.surname.SetValue("")
+        self.username.SetValue("")
+        self.password.SetValue("")
+        self.conf_password.SetValue("")
+        self.email.SetValue("")
+        self.gender.SetSelection(-1)
+        self.subject.SetSelection(-1)
+        self.subject2.SetSelection(-1)
+
+        td = datetime.today()
+
+        # get wxPython datetime format
+        day = td.day
+        month = td.month
+        year = td.year
+
+        # -1 because the month counts from 0, whereas people count January as month #1.
+        tdFormatted = wx.DateTimeFromDMY(day, month - 1, year)
+
+        self.dob.SetValue(tdFormatted)
+
 
     def hasNumbers(self, inputString):  # checks for numbers in string, returns true if there is a number
         return any(char.isdigit() for char in inputString)
@@ -250,7 +284,8 @@ class AddTeacher(wx.Panel):
         conf_password = self.conf_password.GetLineText(0)
         dob = self.dob.GetValue()
         genderIndex = self.gender.GetCurrentSelection()
-        # classIndex = self.class_id.GetCurrentSelection()
+        subjectOneIndex = self.subject.GetCurrentSelection()
+        subjectTwoIndex = self.subject2.GetCurrentSelection()
 
         # Remove white spaces
         first_name = first_name.replace(" ", "")
@@ -305,16 +340,15 @@ class AddTeacher(wx.Panel):
         if genderIndex == -1:
             error = error + "The Gender field is required.\n"
 
-        # if classIndex == -1:
-        #     error = error + "The Class field is required.\n"
+        if subjectOneIndex == -1:
+            error = error + "The Subject 1 field is required.\n"
+        else:
+            if subjectOneIndex == subjectTwoIndex:
+                error = error + "The Subject 2 field must be different from Subject 1 field .\n"
 
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
-            retCode = dlg.ShowModal()
-            if retCode == wx.ID_OK:
-                ''''''
-                # print "yes"
-                # dlg.Destroy()
+            dlg.ShowModal()
 
         else:
             gen = self.gender.GetString(genderIndex)
@@ -324,7 +358,14 @@ class AddTeacher(wx.Panel):
             else:
                 gender = "F"
 
-            # class_id = classIndex + 1
+            subjects = getActiveSubjectAliases()
+            subject_ids = subjects['ids']
+            subjectOneid = subject_ids[subjectOneIndex]
+
+            if subjectTwoIndex == -1:
+                subjectTwoid = None
+            else:
+                subjectTwoid = subject_ids[subjectTwoIndex]
 
             data = {
                 "first_name": first_name,
@@ -335,7 +376,8 @@ class AddTeacher(wx.Panel):
                 "password": password,
                 "dob": dob,
                 "gender": gender,
-                # "class_id": class_id
+                "subjectOneID": subjectOneid,
+                "subjectTwoID": subjectTwoid
             }
 
             if saveTeacher(data):

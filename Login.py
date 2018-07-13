@@ -230,7 +230,7 @@ class MyApp(wx.App):
 
 
 # app = MyApp(redirect=True, filename = "demo.log")
-app = MyApp(redirect=True)
+app = MyApp(False)
 app.MainLoop()
 
 

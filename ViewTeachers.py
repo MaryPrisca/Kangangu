@@ -2,6 +2,7 @@ import wx
 from ObjectListView import ObjectListView, ColumnDefn
 from db.get_teachers import getTeachers
 from db.save_teacher import editTeacher, deleteTeacher
+from db.get_subjects import getActiveSubjectAliases
 from datetime import datetime
 import re
 # import sys
@@ -34,6 +35,13 @@ class ViewTeachers(wx.Panel):
         #
 
         search_container = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.refresh_btn = wx.BitmapButton(self, wx.ID_ANY,
+                                           wx.Bitmap(u"images/reload_16x16.bmp", wx.BITMAP_TYPE_ANY),
+                                           wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW)
+
+        self.refresh_btn.SetBitmapHover(wx.Bitmap(u"images/reload_16x16_rotated.bmp", wx.BITMAP_TYPE_ANY))
+        search_container.Add(self.refresh_btn, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 5)
 
         self.m_staticText53 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText53.Wrap(-1)
@@ -173,32 +181,6 @@ class ViewTeachers(wx.Panel):
 
         sbSizer2.Add(username_sizer, 1, wx.ALL | wx.EXPAND, 7)
 
-        # password_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        # self.m_staticText2 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Password", wx.DefaultPosition,
-        #                                    wx.DefaultSize, 0)
-        # self.m_staticText2.Wrap(-1)
-        # password_sizer.Add(self.m_staticText2, 1, wx.ALL, 8)
-        #
-        # self.password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-        #                             wx.DefaultSize, 0)
-        # password_sizer.Add(self.password, 3, wx.ALL, 5)
-        #
-        # sbSizer2.Add(password_sizer, 1, wx.ALL | wx.EXPAND, 7)
-        #
-        # conf_pwd_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        # self.m_staticText21 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Confirm Password", wx.DefaultPosition,
-        #                                     wx.DefaultSize, 0)
-        # self.m_staticText21.Wrap(-1)
-        # conf_pwd_sizer.Add(self.m_staticText21, 1, wx.ALL, 8)
-        #
-        # self.conf_password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-        #                                  wx.DefaultSize, 0)
-        # conf_pwd_sizer.Add(self.conf_password, 3, wx.ALL, 5)
-        #
-        # sbSizer2.Add(conf_pwd_sizer, 1, wx.ALL | wx.EXPAND, 7)
-
         dob_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticText291 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Date of Birth", wx.DefaultPosition,
@@ -222,40 +204,48 @@ class ViewTeachers(wx.Panel):
         genderChoices = [u"Male", u"Female"]
         self.gender = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Female", wx.DefaultPosition, wx.DefaultSize,
                                   genderChoices, wx.CB_READONLY)
-        self.gender.SetSelection(1)
+        self.gender.SetSelection(-1)
         gender_sizer.Add(self.gender, 3, wx.ALL, 5)
 
         sbSizer2.Add(gender_sizer, 1, wx.ALL | wx.EXPAND, 7)
 
-        # class_id_sizer = wx.BoxSizer(wx.HORIZONTAL)
         #
-        # self.m_staticText295 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Class", wx.DefaultPosition,
-        #                                      wx.DefaultSize, 0)
-        # self.m_staticText295.Wrap(-1)
-        # class_id_sizer.Add(self.m_staticText295, 1, wx.ALL, 8)
         #
-        # class_idChoices = []
-        # self.class_id = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-        #                             wx.DefaultSize, class_idChoices, wx.CB_READONLY)
-        # self.class_id.SetSelection(0)
-        # class_id_sizer.Add(self.class_id, 3, wx.ALL, 5)
         #
-        # sbSizer2.Add(class_id_sizer, 1, wx.ALL | wx.EXPAND, 7)
+
+        subject_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText2951 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Subject 1", wx.DefaultPosition,
+                                              wx.DefaultSize, 0)
+        self.m_staticText2951.Wrap(-1)
+        subject_sizer.Add(self.m_staticText2951, 1, wx.ALL, 8)
+
+        subjects = getActiveSubjectAliases()
+
+        subjectChoices = subjects['aliases']
+        self.subject = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                   subjectChoices, wx.CB_READONLY)
+        self.subject.SetSelection(-1)
+        subject_sizer.Add(self.subject, 3, wx.ALL, 5)
+
+        sbSizer2.Add(subject_sizer, 1, wx.ALL | wx.EXPAND, 7)
+
         #
-        # subject_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        # self.m_staticText2951 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Subjects", wx.DefaultPosition,
-        #                                       wx.DefaultSize, 0)
-        # self.m_staticText2951.Wrap(-1)
-        # subject_sizer.Add(self.m_staticText2951, 1, wx.ALL, 8)
-        #
-        # subjectChoices = [u"English", u"Kiswahili"]
-        # self.subject = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, u"English", wx.DefaultPosition, wx.DefaultSize,
-        #                            subjectChoices, wx.CB_READONLY)
-        # self.subject.SetSelection(0)
-        # subject_sizer.Add(self.subject, 3, wx.ALL, 5)
-        #
-        # sbSizer2.Add(subject_sizer, 1, wx.ALL | wx.EXPAND, 7)
+
+        subject2_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.subject2_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Subject 2", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.subject2_label.Wrap(-1)
+        subject2_sizer.Add(self.subject2_label, 1, wx.ALL, 8)
+
+        subject2Choices = subjects['aliases']
+        self.subject2 = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                    wx.DefaultSize, subject2Choices, wx.CB_READONLY)
+        self.subject2.SetSelection(-1)
+        subject2_sizer.Add(self.subject2, 3, wx.ALL, 5)
+
+        sbSizer2.Add(subject2_sizer, 1, wx.ALL | wx.EXPAND, 7)
 
         btns_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -290,7 +280,12 @@ class ViewTeachers(wx.Panel):
 
         self.SetSizer(container)
 
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.refreshTable)
+
     # ----------------------------------------------------------------------
+    def refreshTable(self, event):
+        self.updateControl("")
+
     def updateControl(self, event):
         """"""
         data = getTeachers()
@@ -300,10 +295,12 @@ class ViewTeachers(wx.Panel):
     def setBooks(self, data=None):
         self.dataOlv.SetColumns([
             ColumnDefn("ID", "center", 45, "user_id"),
-            ColumnDefn("Full Name", "left", 150, "full_names"),
-            ColumnDefn("Email", "left", 140, "email"),
-            ColumnDefn("Username", "left", 60, "username"),
-            ColumnDefn("Date of Birth", "center", 100, "dob"),
+            ColumnDefn("Full Name", "left", 140, "full_names"),
+            ColumnDefn("Email", "left", 125, "email"),
+            # ColumnDefn("Username", "left", 60, "username"),
+            ColumnDefn("Subject1", "center", 55, "subject1"),
+            ColumnDefn("Subject2", "center", 55, "subject2"),
+            ColumnDefn("Date of Birth", "center", 90, "dob"),
             ColumnDefn("Gender", "left", 50, "gender")
         ])
 
@@ -344,6 +341,11 @@ class ViewTeachers(wx.Panel):
             self.dob.SetValue(dateFormatted)
             self.gender.SetValue(rowObj['gender'])
 
+            self.subject.SetValue(rowObj['subject1'])
+
+            if rowObj['subject2'] != "--":
+                self.subject2.SetValue(rowObj['subject2'])
+
     def cancelEdit(self, event):
         self.user_id.SetValue("")
         self.first_name.SetValue("")
@@ -365,6 +367,8 @@ class ViewTeachers(wx.Panel):
         self.dob.SetValue(tdFormatted)
 
         self.gender.SetSelection(-1)
+        self.subject.SetSelection(-1)
+        self.subject2.SetSelection(-1)
 
     def hasNumbers(self, inputString):  # checks for numbers in string, returns true if there is a number
         return any(char.isdigit() for char in inputString)
@@ -378,6 +382,8 @@ class ViewTeachers(wx.Panel):
         username = self.username.GetLineText(0)
         dob = self.dob.GetValue()
         genderIndex = self.gender.GetCurrentSelection()
+        subjectOneIndex = self.subject.GetCurrentSelection()
+        subjectTwoIndex = self.subject2.GetCurrentSelection()
 
         # Remove white spaces
         first_name = first_name.replace(" ", "")
@@ -426,13 +432,15 @@ class ViewTeachers(wx.Panel):
             if genderIndex == -1:
                 error = error + "The Gender field is required.\n"
 
+            if subjectOneIndex == -1:
+                error = error + "The Subject 1 field is required.\n"
+            else:
+                if subjectOneIndex == subjectTwoIndex:
+                    error = error + "The Subject 2 field must be different from Subject 1 field .\n"
+
             if error:
                 dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
-                retCode = dlg.ShowModal()
-                if retCode == wx.ID_OK:
-                    ''''''
-                    # print "yes"
-                    # dlg.Destroy()
+                dlg.ShowModal()
 
             else:
                 dob = str(dob)[:-9]
@@ -445,6 +453,15 @@ class ViewTeachers(wx.Panel):
                 else:
                     gender = "F"
 
+                subjects = getActiveSubjectAliases()
+                subject_ids = subjects['ids']
+                subjectOneid = subject_ids[subjectOneIndex]
+
+                if subjectTwoIndex == -1:
+                    subjectTwoid = None
+                else:
+                    subjectTwoid = subject_ids[subjectTwoIndex]
+
                 data = {
                     "user_id": user_id,
                     "first_name": first_name,
@@ -454,6 +471,8 @@ class ViewTeachers(wx.Panel):
                     "username": username,
                     "dob": dob,
                     "gender": gender,
+                    "subjectOneID": subjectOneid,
+                    "subjectTwoID": subjectTwoid
                 }
 
                 if editTeacher(data):

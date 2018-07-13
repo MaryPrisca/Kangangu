@@ -27,7 +27,7 @@ def getAllExams(search=""):
         ret = data
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        ret = e
-        # ret = False
+        # ret = e
+        ret = False
 
     return ret

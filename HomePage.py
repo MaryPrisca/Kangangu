@@ -173,7 +173,7 @@ class HomePage(wx.Frame):
         self.teachers_panel = TeachersPanel(self)
         self.classes_panel = ClassesPanel(self)
         self.subjects_panel = SubjectsPanel(self)
-        self.exams_panel = ExamsPanel(self)
+        self.exams_panel = ExamsPanel(self, self.userdata)
         self.profile_panel = ProfilePanel(self, self.userdata)
         self.teachers_panel.Hide()
         self.classes_panel.Hide()
@@ -220,25 +220,24 @@ class HomePage(wx.Frame):
             obj = event.GetEventObject()
             label = obj.GetLabel()
             if label == "Students":
-                self.SetTitle("KANGANGU SECONDARY SCHOOL STUDENTS")
+                self.SetTitle("KANGANGU SECONDARY SCHOOL - STUDENTS")
                 self.students_panel.Show()
             elif label == "Teachers":
-                self.SetTitle("KANGANGU SECONDARY SCHOOL TEACHERS")
+                self.SetTitle("KANGANGU SECONDARY SCHOOL - TEACHERS")
                 self.teachers_panel.Show()
             elif label == "Classes":
-                self.SetTitle("KANGANGU SECONDARY SCHOOL CLASSES")
+                self.SetTitle("KANGANGU SECONDARY SCHOOL - CLASSES")
                 self.classes_panel.Show()
             elif label == "Subjects":
-                self.SetTitle("KANGANGU SECONDARY SCHOOL SUBJECTS")
+                self.SetTitle("KANGANGU SECONDARY SCHOOL - SUBJECTS")
                 self.subjects_panel.Show()
             elif label == "Exams":
-                self.SetTitle("KANGANGU SECONDARY SCHOOL EXAMS")
+                self.SetTitle("KANGANGU SECONDARY SCHOOL - EXAMS")
                 self.exams_panel.Show()
             elif label == "My Profile":
-                self.SetTitle("KANGANGU SECONDARY SCHOOL MY PROFILE")
+                self.SetTitle("KANGANGU SECONDARY SCHOOL - MY PROFILE")
                 self.profile_panel.Show()
             self.Layout()
-
 
 # # Run the program
 # if __name__ == "__main__":

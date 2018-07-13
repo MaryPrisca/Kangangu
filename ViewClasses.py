@@ -41,6 +41,13 @@ class ViewClasses(wx.Panel):
         # ----------------------------------------------------------------
         search_container = wx.BoxSizer(wx.HORIZONTAL)
 
+        self.refresh_btn = wx.BitmapButton(self, wx.ID_ANY,
+                                           wx.Bitmap(u"images/reload_16x16.bmp", wx.BITMAP_TYPE_ANY),
+                                           wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW)
+
+        self.refresh_btn.SetBitmapHover(wx.Bitmap(u"images/reload_16x16_rotated.bmp", wx.BITMAP_TYPE_ANY))
+        search_container.Add(self.refresh_btn, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
+
         self.m_staticText53 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
@@ -118,6 +125,9 @@ class ViewClasses(wx.Panel):
         self.SetSizer(container)
         self.Layout()
 
+        # Connect Events
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.refreshTable)
+
     def setClassesData(self, data=None):
         self.classesOLV.SetColumns([
             ColumnDefn("ID", "left", 80, "class_id"),
@@ -132,6 +142,9 @@ class ViewClasses(wx.Panel):
         """"""
         data = getClassDets()
         self.classesOLV.SetObjects(data)
+
+    def refreshTable(self, event):
+        self.updateClassesOLV("")
 
     def searchClasses(self, event):
         search = self.search_classes.GetLineText(0)
@@ -162,7 +175,7 @@ class ViewClasses(wx.Panel):
             self.edit_class_panel.class_name.SetValue(rowObj['class_name'])
             self.edit_class_panel.form.SetValue(form)
 
-            self.show_students.Hide()
+            self.show_students.HideWithEffect(wx.SHOW_EFFECT_SLIDE_TO_TOP, 1000)
             self.edit_class_panel.Show()
 
     def getClassStudents(self, event):
@@ -175,8 +188,8 @@ class ViewClasses(wx.Panel):
             self.show_students.class_id = rowObj['class_id']
             self.show_students.updateStudentsOLV("")
 
-            self.show_students.Show()
-            self.edit_class_panel.Hide()
+            self.edit_class_panel.HideWithEffect(wx.SHOW_EFFECT_SLIDE_TO_TOP, 1000)
+            self.show_students.ShowWithEffect(wx.SHOW_EFFECT_SLIDE_TO_BOTTOM, 1000)
             self.Layout()
 
     def deleteClass(self, event):

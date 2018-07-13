@@ -51,6 +51,35 @@ def getClassNames():
     return ret
 
 
+def getClassNamesWithForm():
+    # prepare a cursor object using cursor() method
+    cursor = db.cursor()
+
+    sql = "SELECT class_id, class_name, form_name FROM classes WHERE deleted = 0 ORDER BY form_name"
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+
+        ids = []
+        names = []
+
+        for row in cursor:
+            ids.append(row[0])
+            names.append(str(row[2]) + " " + row[1])
+
+        data = {
+            "ids": ids,
+            "names": names
+        }
+
+        ret = data
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        ret = False
+
+    return ret
+
+
 def getClassDets(search=""):
     cursor = db.cursor()
     # search = "al"

@@ -19,7 +19,7 @@ def saveSubject(data):
         # Add subject as column to exam_results table
         data["subject_alias"] = data["subject_alias"].lower()
 
-        sql = "ALTER TABLE exam_results ADD COLUMN %s DOUBLE" % data["subject_alias"]
+        sql = "ALTER TABLE exam_results ADD COLUMN %s DOUBLE DEFAULT NULL" % data["subject_alias"]
 
         try:
             cursor.execute(sql)
@@ -28,6 +28,7 @@ def saveSubject(data):
             ret = True
 
         except(MySQLdb.Error, MySQLdb.Warning) as e:
+            ret = False
             print e
             db.rollback()
     except(MySQLdb.Error, MySQLdb.Warning) as e:

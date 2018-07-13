@@ -2,7 +2,7 @@ import wx
 from ObjectListView import ObjectListView, ColumnDefn
 from db.get_students import getStudents
 from db.save_student import editStudent, deleteStudent
-from db.get_classes import getClassNames
+from db.get_classes import getClassNamesWithForm
 from datetime import datetime
 
 # import sys
@@ -176,19 +176,19 @@ class ViewStudents(wx.Panel):
 
         sbSizer2.Add(bSizer264, 1, wx.ALL | wx.EXPAND, 10)
 
-        bSizer2651 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText2951 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Form", wx.DefaultPosition,
-                                              wx.DefaultSize, 0)
-        self.m_staticText2951.Wrap(-1)
-        bSizer2651.Add(self.m_staticText2951, 1, wx.ALL, 8)
-
-        formChoices = [u"One", u"Two", u"Three", u"Four"]
-        self.form = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                formChoices, wx.CB_READONLY)
-        bSizer2651.Add(self.form, 4, wx.ALL, 5)
-
-        sbSizer2.Add(bSizer2651, 1, wx.ALL | wx.EXPAND, 10)
+        # bSizer2651 = wx.BoxSizer(wx.HORIZONTAL)
+        #
+        # self.m_staticText2951 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Form", wx.DefaultPosition,
+        #                                       wx.DefaultSize, 0)
+        # self.m_staticText2951.Wrap(-1)
+        # bSizer2651.Add(self.m_staticText2951, 1, wx.ALL, 8)
+        #
+        # formChoices = [u"One", u"Two", u"Three", u"Four"]
+        # self.form = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+        #                         formChoices, wx.CB_READONLY)
+        # bSizer2651.Add(self.form, 4, wx.ALL, 5)
+        #
+        # sbSizer2.Add(bSizer2651, 1, wx.ALL | wx.EXPAND, 10)
 
         bSizer265 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -197,7 +197,10 @@ class ViewStudents(wx.Panel):
         self.m_staticText295.Wrap(-1)
         bSizer265.Add(self.m_staticText295, 1, wx.ALL, 8)
 
-        class_idChoices = getClassNames()
+        self.classes = getClassNamesWithForm()
+
+        class_idChoices = self.classes['names']
+
         self.class_id = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                     wx.DefaultSize, class_idChoices, wx.CB_READONLY)
         bSizer265.Add(self.class_id, 4, wx.ALL, 5)
@@ -294,9 +297,10 @@ class ViewStudents(wx.Panel):
                 form = "Three"
             elif rowObj['form'] == 4:
                 form = "Four"
-            self.class_id.SetValue(rowObj['class'])
+
+            self.class_id.SetValue(str(rowObj['form']) + " " + rowObj['class'])
             self.gender.SetValue(rowObj['gender'])
-            self.form.SetValue(form)
+            # self.form.SetValue(form)
 
     def cancelEdit(self, event):
         self.user_id.SetValue("")
@@ -318,7 +322,7 @@ class ViewStudents(wx.Panel):
 
         self.class_id.SetSelection(-1)
         self.gender.SetSelection(-1)
-        self.form.SetSelection(-1)
+        # self.form.SetSelection(-1)
 
     def hasNumbers(self, inputString):  # checks for numbers in string, returns true if there is a number
         return any(char.isdigit() for char in inputString)
@@ -384,7 +388,9 @@ class ViewStudents(wx.Panel):
                     gender = "M"
                 else:
                     gender = "F"
-                class_id = classIndex + 1
+
+                # use class Index to match with class ID's list
+                class_id = self.classes['ids'][classIndex]
 
                 student_data = {
                     "user_id": user_id,

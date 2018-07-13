@@ -45,6 +45,13 @@ class ViewSubjects(wx.Panel):
 
         search_container = wx.BoxSizer(wx.HORIZONTAL)
 
+        self.refresh_btn = wx.BitmapButton(self, wx.ID_ANY,
+                                           wx.Bitmap(u"images/reload_16x16.bmp", wx.BITMAP_TYPE_ANY),
+                                           wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW)
+
+        self.refresh_btn.SetBitmapHover(wx.Bitmap(u"images/reload_16x16_rotated.bmp", wx.BITMAP_TYPE_ANY))
+        search_container.Add(self.refresh_btn, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
+
         self.m_staticText53 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
@@ -107,6 +114,7 @@ class ViewSubjects(wx.Panel):
         self.Layout()
 
         # Connect Events
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.refreshTable)
         self.search_subjects.Bind(wx.EVT_TEXT, self.searchSubjects)
         self.search_subjects.Bind(wx.EVT_TEXT_ENTER, self.searchSubjects)
 
@@ -126,9 +134,13 @@ class ViewSubjects(wx.Panel):
     def updateSubjectsOLV(self, event):  # Refresh classes table
         """"""
         data = getSubjects()
+        print data
         self.subjectsOLV.SetObjects(data)
 
-    # Virtual event handlers, overide them in your derived class
+    def refreshTable(self, event):
+        self.updateSubjectsOLV("")
+
+
     def searchSubjects(self, event):
         search = self.search_subjects.GetLineText(0)
         data = getSubjects(search)

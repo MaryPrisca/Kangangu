@@ -5,6 +5,8 @@ from datetime import datetime
 
 from db.get_exams import getAllExams
 from db.save_exam import editExam, deleteExam
+from db.get_subjects import getActiveSubjectAliases
+from db.get_exam_results import getExamResults
 
 # import sys
 # sys.path.insert(0, r'/F:/PythonApps/Kangangu')
@@ -40,6 +42,12 @@ class ViewExams(wx.Panel):
         # Search
         # ----------------------------------------------------------------
         search_container = wx.BoxSizer(wx.HORIZONTAL)
+        self.refresh_btn = wx.BitmapButton(self, wx.ID_ANY,
+                                           wx.Bitmap(u"images/reload_16x16.bmp", wx.BITMAP_TYPE_ANY),
+                                           wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW)
+
+        self.refresh_btn.SetBitmapHover(wx.Bitmap(u"images/reload_16x16_rotated.bmp", wx.BITMAP_TYPE_ANY))
+        search_container.Add(self.refresh_btn, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
 
         self.m_staticText53 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText53.Wrap(-1)
@@ -115,6 +123,9 @@ class ViewExams(wx.Panel):
         self.SetSizer(container)
         self.Layout()
 
+        # Connect Events
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.refreshTable)
+
     def setExamData(self, data=None):
         self.examsOLV.SetColumns([
             ColumnDefn("ID", "left", 80, "exam_id"),
@@ -130,6 +141,9 @@ class ViewExams(wx.Panel):
         """"""
         data = getAllExams()
         self.examsOLV.SetObjects(data)
+
+    def refreshTable(self, event):
+        self.updateExamsOLV("")
 
     def searchExams(self, event):
         search = self.search_exams.GetLineText(0)
@@ -166,7 +180,7 @@ class ViewExams(wx.Panel):
 
             if retCode == wx.ID_YES:
                 if deleteExam(rowObj["exam_id"]):
-                    dlg = wx.MessageDialog(None, "Class deleted successfully.", 'Success Message.',
+                    dlg = wx.MessageDialog(None, "Exam deleted successfully.", 'Success Message.',
                                            wx.OK | wx.ICON_EXCLAMATION)
                     dlg.ShowModal()
 
@@ -384,3 +398,61 @@ class EditExam(wx.Panel):
                     dlg = wx.MessageDialog(None, "Exam Not Edited. Try Again.", 'Failed',
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
+
+
+class ViewResults(wx.Panel):
+    # ----------------------------------------------------------------------
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+
+        self.parent = parent
+
+        self.class_id = ""
+        subjects = getActiveSubjectAliases()
+        self.subjects = subjects['aliases']
+
+        self.results = getExamResults(self.parent.exam_data, self.subjects)
+
+        self.resultsOLV = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.setExamResults()
+
+        # Create some sizers
+        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        mainSizer.Add(self.resultsOLV, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizer(mainSizer)
+
+    # ----------------------------------------------------------------------
+    def updateResultsOLV(self, event):
+        """"""
+        data = getExamResults(self.parent.exam_data, self.subjects)
+        self.resultsOLV.SetObjects(data)
+
+    # ----------------------------------------------------------------------
+    def refreshTable(self, event):
+        self.updateResultsOLV("")
+
+    # ----------------------------------------------------------------------
+    def setExamResults(self, data=None):
+
+        columns_array = [
+            ColumnDefn("ID", "center", 100, "exam_result_id"),
+            ColumnDefn("Student", "left", 135, "names"),
+            ColumnDefn("Class", "left", 65, "form"),
+        ]
+
+        if self.parent.exam_data['subject_alias'] != "":
+            if self.parent.exam_data['subject_alias'] == "All":
+                subjects = getActiveSubjectAliases()
+                subjects = subjects['aliases']
+            else:
+                subjects = [self.parent.exam_data['subject_alias']]
+
+            for i, val in enumerate(subjects):  # adding columns dynamically
+                col = ColumnDefn(subjects[i].upper(), "left", 65, subjects[i])
+                columns_array.append(col)
+
+        self.resultsOLV.SetColumns(columns_array)
+
+        self.resultsOLV.SetObjects(self.results)

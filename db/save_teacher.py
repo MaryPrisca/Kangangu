@@ -23,13 +23,13 @@ def saveTeacher(data):
 
     sql = """
             INSERT INTO `users`(`user_id`, `first_name`, `last_name`, `surname`, `email`, `dob`, `gender`, `username`,
-                `password`, `role`, `status`, `created_at`, `deleted`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                `password`, `role`, `subject1`, `subject2`, `status`, `created_at`, `deleted`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
     try:
         cursor.execute(sql, (data["user_id"], data["first_name"], data["last_name"], data["surname"], data["email"], data["dob"], data["gender"],
-                             data["username"], data["password"], data["role"], data["status"], data["created_at"], data["deleted"]))
+                             data["username"], data["password"], data["role"], data["subjectOneID"], data["subjectTwoID"], data["status"], data["created_at"], data["deleted"]))
         db.commit()
 
         ret = True
@@ -56,10 +56,12 @@ def editTeacher(data):
                     email = %s,
                     username = %s,
                     dob = %s,
-                    gender = %s               
+                    gender = %s,
+                    subject1 = %s,               
+                    subject2 = %s               
                     WHERE user_id = %s """
 
-    data = (data["first_name"], data["last_name"], data["surname"], data["email"], data["username"], data["dob"], data["gender"], data["user_id"])
+    data = (data["first_name"], data["last_name"], data["surname"], data["email"], data["username"], data["dob"], data["gender"], data["subjectOneID"], data["subjectTwoID"], data["user_id"])
 
     try:
         cursor.execute(sql, data)
