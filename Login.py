@@ -11,7 +11,7 @@ from db.login import login
 from wx.lib.embeddedimage import PyEmbeddedImage
 
 appIcon = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAA3NCSVQICAjb4U/gAAAG9ElE"
+    "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAA3NCSV QICAjb4U/gAAAG9ElE"
     "QVRIia2WWWxcVxnHv7PdOzN37p2xPbbHHsd27PESL0mIs+KSkMgEiUIaJMSmSkEKoognHnhA"
     "qkBQBAjxUFVFooJGqpB4KSk0hDbQClJSh8SJSdI4TmzHicceb7N4ZjzL3e85PATSEHmqWOr3"
     "eI/O/6fz/b/7Pwd5niGETYgGH3Nx215jrIYKYY1fe0NiLd1d/YpSB0ABBAAHEAAyAHoCLdvz"

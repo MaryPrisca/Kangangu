@@ -5,18 +5,16 @@ from ObjectListView import ObjectListView, ColumnDefn
 from db.get_exam_results import *
 from db.get_classes import getFormClasses
 from db.get_subjects import getActiveSubjectAliases
-from db.get_exams import getPreviousExam
-from db.exam_statistics import getGradePlusMark, calculateDeviation
-from db.get_students import getStudentByID
-# import sys
-# sys.path.insert(0, r'/F:/PythonApps/Kangangu')
+from db.get_exams import getPreviousExam, getExamsInForm
+from db.exam_statistics import *
 
 
 ###########################################################################
-# Class ExamResults
+# Class ExamStatistics
 ###########################################################################
 
-class ExamResults(wx.Panel):
+
+class ExamStatistics(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(546, 435),
@@ -25,7 +23,7 @@ class ExamResults(wx.Panel):
 
         container = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_staticText98 = wx.StaticText(self, wx.ID_ANY, u"Exam Results", wx.DefaultPosition, wx.DefaultSize,
+        self.m_staticText98 = wx.StaticText(self, wx.ID_ANY, u"Exam Statistics", wx.DefaultPosition, wx.DefaultSize,
                                             wx.ALIGN_CENTRE)
         self.m_staticText98.Wrap(-1)
         self.m_staticText98.SetFont(wx.Font(16, 70, 90, 92, False, wx.EmptyString))
@@ -36,23 +34,23 @@ class ExamResults(wx.Panel):
 
         left_container = wx.BoxSizer(wx.VERTICAL)
 
-        self.sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Please fill in order to get mark sheet."), wx.VERTICAL)
+        self.sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Please fill in order to get statistics."), wx.VERTICAL)
 
         #
         #
         #
         self.year_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        year_sizer = wx.BoxSizer(wx.VERTICAL)
+        year_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.year_label = wx.StaticText(self.year_panel, wx.ID_ANY, u"Select Year", wx.DefaultPosition, wx.DefaultSize,
                                         0)
         self.year_label.Wrap(-1)
-        year_sizer.Add(self.year_label, 0, wx.ALL, 5)
+        year_sizer.Add(self.year_label, 1, wx.ALL, 5)
 
         yearChoices = getPresentYears()
         self.year = wx.ComboBox(self.year_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                 yearChoices, wx.CB_READONLY)
-        year_sizer.Add(self.year, 0, wx.ALL | wx.EXPAND, 5)
+        year_sizer.Add(self.year, 2, wx.ALL | wx.EXPAND, 5)
 
         self.year_panel.SetSizer(year_sizer)
         self.year_panel.Layout()
@@ -63,17 +61,17 @@ class ExamResults(wx.Panel):
         #
         #
         self.term_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        term_sizer = wx.BoxSizer(wx.VERTICAL)
+        term_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.term_label = wx.StaticText(self.term_panel, wx.ID_ANY, u"Select Term", wx.DefaultPosition, wx.DefaultSize,
                                         0)
         self.term_label.Wrap(-1)
-        term_sizer.Add(self.term_label, 0, wx.ALL, 5)
+        term_sizer.Add(self.term_label, 1, wx.ALL, 5)
 
         termChoices = [u"One", u"Two", u"Three"]
         self.term = wx.ComboBox(self.term_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                 termChoices, wx.CB_READONLY)
-        term_sizer.Add(self.term, 0, wx.ALL | wx.EXPAND, 5)
+        term_sizer.Add(self.term, 2, wx.ALL | wx.EXPAND, 5)
 
         self.term_panel.SetSizer(term_sizer)
         self.term_panel.Layout()
@@ -104,6 +102,11 @@ class ExamResults(wx.Panel):
         #
         #
         #
+        self.comparison_panel_created = 0
+
+        #
+        #
+        #
         self.buttons_panel_created = 0
 
         self.exam_data = {
@@ -117,10 +120,15 @@ class ExamResults(wx.Panel):
             "subject_alias": ""
         }
 
-        sample_most_improved_data = {
-            'student_id': [],
-            'mark': 0,
-            'nature': ""
+        self.prev_exam_data = {
+            "year":     0,
+            "term":     "",
+            "exam_id":  0,
+            "exam_name":  "",
+            "form":     "",
+            "class_id": 0,
+            "class_name": "",
+            "subject_alias": ""
         }
 
         #
@@ -138,7 +146,7 @@ class ExamResults(wx.Panel):
 
         self.right_container = wx.BoxSizer(wx.VERTICAL)
 
-        self.show_results = ViewResults(self, "", self.exam_data, "", sample_most_improved_data)
+        self.show_results = ViewResults(self, "", self.exam_data, "")
         self.show_results.Hide()
         self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
 
@@ -271,6 +279,12 @@ class ExamResults(wx.Panel):
     #
     # ---------------------------------------------------------
     def subjectSelected(self, event):
+        if not self.comparison_panel_created:
+            self.comparison_panel = SelectComparisonExam(self, str(self.exam_data['form']))
+            self.sbSizer2.Add(self.comparison_panel, 0, wx.EXPAND | wx.ALL, 5)
+            self.Layout()
+            self.comparison_panel_created = 1  # change to 1 so it's not created again
+
         if not self.buttons_panel_created:
             self.buttons_panel = ButtonsPanel(self)
             self.sbSizer2.Add(self.buttons_panel, 0, wx.EXPAND | wx.ALL, 5)
@@ -282,10 +296,26 @@ class ExamResults(wx.Panel):
         # Index starts at zero, if ind+ 1 is greater than length of classes picked from DB then option selected is "All"
         if subjectIndex + 1 > len(self.select_subject.subjects['aliases']):
             alias = "All"
+
         else:
             alias = self.select_subject.subjects['aliases'][subjectIndex]
 
         self.exam_data['subject_alias'] = alias
+
+    #
+    # ---------------------------------------------------------
+    def comparisonExamSelected(self, event):
+        comp_exam_index = self.comparison_panel.comparison_exam_name.GetCurrentSelection()
+
+        comp_exam_id = self.comparison_panel.comparisonExamDets['ids'][comp_exam_index]
+        comp_exam_name = self.comparison_panel.comparisonExamDets['exam_names'][comp_exam_index]
+        comp_exam_term = self.comparison_panel.comparisonExamDets['terms'][comp_exam_index]
+        comp_exam_year = self.comparison_panel.comparisonExamDets['years'][comp_exam_index]
+
+        self.prev_exam_data['exam_id'] = comp_exam_id
+        self.prev_exam_data['exam_name'] = comp_exam_name
+        self.prev_exam_data['term'] = comp_exam_term
+        self.prev_exam_data['year'] = comp_exam_year
 
     #
     # ---------------------------------------------------------
@@ -307,12 +337,14 @@ class ExamResults(wx.Panel):
         self.select_form.Hide()
         self.select_class.Hide()
         self.select_subject.Hide()
+        self.comparison_panel.Hide()
         self.buttons_panel.Hide()
 
         self.exam_panel_created = 0
         self.form_panel_created = 0
         self.class_panel_created = 0
         self.subjects_panel_created = 0
+        self.comparison_panel_created = 0
         self.buttons_panel_created = 0
 
         self.exam_data = {
@@ -335,15 +367,27 @@ class ExamResults(wx.Panel):
     # ---------------------------------------------------------
     def getResults(self, event):
         # To get mean of most previous exam
-        # 1. Get previous exam's exam_id
-        prev_exam_dets = getPreviousExam(self.exam_data)
+        # 1. Get previous exam's exam_id if comparison exam not selected
 
-        # Switch exam id
-        prev_exam_data = {
-            "year": prev_exam_dets['year'],
-            "term": prev_exam_dets['term'],
-            "exam_id": prev_exam_dets['exam_id'],
-            "exam_name": prev_exam_dets['exam_name'],
+        if self.comparison_panel.comparison_exam_name.GetCurrentSelection() == -1:  # Not selected
+            prev_exam_details = getPreviousExam(self.exam_data)
+
+            prev_exam_id = prev_exam_details['exam_id']
+            prev_exam_name = prev_exam_details['exam_name']
+            prev_exam_term = prev_exam_details['term']
+            prev_exam_year = prev_exam_details['year']
+        else:
+            prev_exam_id = self.prev_exam_data['exam_id']
+            prev_exam_name = self.prev_exam_data['exam_name']
+            prev_exam_term = self.prev_exam_data['term']
+            prev_exam_year = self.prev_exam_data['year']
+
+        # Set exam details of prev/comparison exam. Only exam id changes
+        self.prev_exam_data = {
+            "year": prev_exam_year,
+            "term": prev_exam_term,
+            "exam_id": prev_exam_id,
+            "exam_name": prev_exam_name,
             "form": self.exam_data['form'],
             "class_id": self.exam_data['class_id'],
             "class_name": self.exam_data['class_name'],
@@ -357,7 +401,7 @@ class ExamResults(wx.Panel):
 
             mean = getClassMean(self.exam_data, subjects)
 
-            prev_mean = getClassMean(prev_exam_data, subjects)
+            prev_mean = getClassMean(self.prev_exam_data, subjects)
 
             # get deviation before concatenating grade to mean
             deviation = calculateDeviation(prev_mean, mean)
@@ -369,7 +413,7 @@ class ExamResults(wx.Panel):
 
             mean = getSubjectMean(self.exam_data)
 
-            prev_mean = getSubjectMean(prev_exam_data)
+            prev_mean = getSubjectMean(self.prev_exam_data)
 
             # get deviation before concatenating grade to mean
             deviation = calculateDeviation(prev_mean, mean)
@@ -377,13 +421,10 @@ class ExamResults(wx.Panel):
             mean = getGradePlusMark(mean)
 
         exam_data = getExamResults(self.exam_data, subjects)
-        mostImproved = getMostImproved(prev_exam_data, self.exam_data, subjects)
-
-        # mostImprovedStud = getStudentByID(mostImproved['student_id'])
 
         if exam_data:
             if self.results_panel_created == 0:
-                self.show_results = ViewResults(self, mean, self.exam_data, deviation, mostImproved)
+                self.show_results = ViewResults(self, mean, self.exam_data, deviation)
                 self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
 
                 self.Layout()
@@ -391,7 +432,7 @@ class ExamResults(wx.Panel):
                 self.results_panel_created = 1
             else:
                 self.show_results.Destroy()
-                self.show_results = ViewResults(self, mean, self.exam_data, deviation, mostImproved)
+                self.show_results = ViewResults(self, mean, self.exam_data, deviation)
                 self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
 
                 self.Layout()
@@ -411,11 +452,11 @@ class SelectExam(wx.Panel):
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
 
-        exam_sizer = wx.BoxSizer(wx.VERTICAL)
+        exam_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.exam_label = wx.StaticText(self, wx.ID_ANY, u"Select Exam", wx.DefaultPosition, wx.DefaultSize, 0)
         self.exam_label.Wrap(-1)
-        exam_sizer.Add(self.exam_label, 0, wx.ALL, 5)
+        exam_sizer.Add(self.exam_label, 1, wx.ALL, 5)
 
         self.data = {
             "term": term,
@@ -428,7 +469,7 @@ class SelectExam(wx.Panel):
 
         self.exam_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                      self.exam_nameChoices, wx.CB_READONLY)
-        exam_sizer.Add(self.exam_name, 0, wx.ALL | wx.EXPAND, 5)
+        exam_sizer.Add(self.exam_name, 2, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(exam_sizer)
         self.Layout()
@@ -444,16 +485,16 @@ class SelectForm(wx.Panel):
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
 
-        form_sizer = wx.BoxSizer(wx.VERTICAL)
+        form_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.form_label = wx.StaticText(self, wx.ID_ANY, u"Select Form", wx.DefaultPosition, wx.DefaultSize, 0)
         self.form_label.Wrap(-1)
-        form_sizer.Add(self.form_label, 0, wx.ALL, 5)
+        form_sizer.Add(self.form_label, 1, wx.ALL, 5)
 
         formChoices = [u"One", u"Two", u"Three", u"Four"]
         self.form = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, formChoices,
                                 wx.CB_READONLY)
-        form_sizer.Add(self.form, 0, wx.ALL | wx.EXPAND, 5)
+        form_sizer.Add(self.form, 2, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(form_sizer)
         self.Layout()
@@ -469,11 +510,11 @@ class SelectClass(wx.Panel):
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
 
-        class_sizer = wx.BoxSizer(wx.VERTICAL)
+        class_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.class_label = wx.StaticText(self, wx.ID_ANY, u"Select Class", wx.DefaultPosition, wx.DefaultSize, 0)
         self.class_label.Wrap(-1)
-        class_sizer.Add(self.class_label, 0, wx.ALL, 5)
+        class_sizer.Add(self.class_label, 1, wx.ALL, 5)
 
         self.classes = getFormClasses(form)
 
@@ -482,7 +523,7 @@ class SelectClass(wx.Panel):
 
         self.class_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                       class_nameChoices, wx.CB_READONLY)
-        class_sizer.Add(self.class_name, 0, wx.ALL | wx.EXPAND, 5)
+        class_sizer.Add(self.class_name, 2, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(class_sizer)
         self.Layout()
@@ -498,11 +539,11 @@ class SelectSubject(wx.Panel):
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
 
-        subject_sizer = wx.BoxSizer(wx.VERTICAL)
+        subject_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.subject_label = wx.StaticText(self, wx.ID_ANY, u"Select Subject", wx.DefaultPosition, wx.DefaultSize, 0)
         self.subject_label.Wrap(-1)
-        subject_sizer.Add(self.subject_label, 0, wx.ALL, 5)
+        subject_sizer.Add(self.subject_label, 1, wx.ALL, 5)
 
         self.subjects = getActiveSubjectAliases()
 
@@ -511,13 +552,60 @@ class SelectSubject(wx.Panel):
 
         self.subject_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                       subject_choices, wx.CB_READONLY)
-        subject_sizer.Add(self.subject_name, 0, wx.ALL | wx.EXPAND, 5)
+        subject_sizer.Add(self.subject_name, 2, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(subject_sizer)
         self.Layout()
 
         # Connect Events
         self.subject_name.Bind(wx.EVT_COMBOBOX, self.parent.subjectSelected)
+
+
+class SelectComparisonExam(wx.Panel):
+
+    def __init__(self, parent, form):
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
+                          style=wx.TAB_TRAVERSAL)
+        self.parent = parent
+
+        panel_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.disclaimer_one = wx.StaticText(self, wx.ID_ANY, u"Select Exam to compare results with",
+                                            wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE)
+        self.disclaimer_one.Wrap(-1)
+        self.disclaimer_one.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+
+        panel_sizer.Add(self.disclaimer_one, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.disclaimer_two = wx.StaticText(self, wx.ID_ANY,
+                                            u"If empty, most previous exam in form will be used", wx.DefaultPosition,
+                                            wx.DefaultSize, wx.ALIGN_CENTRE)
+        self.disclaimer_two.Wrap(-1)
+        panel_sizer.Add(self.disclaimer_two, 0, wx.ALL | wx.EXPAND, 5)
+
+        #
+
+        comparison_exam_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.comparison_exam_label = wx.StaticText(self, wx.ID_ANY, u"Select Exam", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.comparison_exam_label.Wrap(-1)
+        comparison_exam_sizer.Add(self.comparison_exam_label, 1, wx.ALL, 5)
+
+        self.comparisonExamDets = getExamsInForm(form)
+
+        self.comparisonExamNames = self.comparisonExamDets['full_names']
+
+        self.comparison_exam_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                     self.comparisonExamNames, wx.CB_READONLY)
+        comparison_exam_sizer.Add(self.comparison_exam_name, 2, wx.ALL | wx.EXPAND, 5)
+
+        panel_sizer.Add(comparison_exam_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizer(panel_sizer)
+        self.Layout()
+
+        # Connect Events
+        self.comparison_exam_name.Bind(wx.EVT_COMBOBOX, self.parent.comparisonExamSelected)
 
 
 class ButtonsPanel(wx.Panel):
@@ -554,7 +642,7 @@ class ButtonsPanel(wx.Panel):
 
 class ViewResults(wx.Panel):
     # ----------------------------------------------------------------------
-    def __init__(self, parent, mean, exam_data, deviation, mostImprovedData):
+    def __init__(self, parent, mean, exam_data, deviation):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.parent = parent
@@ -562,25 +650,10 @@ class ViewResults(wx.Panel):
         self.exam_data = exam_data
         self.deviation = deviation
 
-        mostImprovedLabel = ""
-        if mostImprovedData['nature'] == "Decline":
-            mostImprovedLabel = "Least Drop: (All Dropped)"
-        elif mostImprovedData['nature'] == "Improve":
-            mostImprovedLabel = "Most Improved:"
-
-        mostImprovedStud = ""
-
-        for item in mostImprovedData['student_id']:
-            student = getStudentByID(item)
-            student_name = student['full_names'] + ", " + str(student['form']) + " " + student['class'] + "\n"
-            mostImprovedStud = mostImprovedStud + student_name
-
-        mostImprvdPts = str(mostImprovedData['mark']) + " Points"
-
         if self.exam_data['class_id'] == 0:
-            exam_title = "FORM " + str(self.exam_data['form']) + "              " + self.exam_data['exam_name'] + " RESULTS"
+            exam_title = "FORM " + str(self.exam_data['form']) + ", " + self.exam_data['exam_name'] + " Exam"
         else:
-            exam_title = "FORM " + str(self.exam_data['form']) + " " + self.exam_data['class_name'] + "              " + self.exam_data['exam_name'] + " RESULTS"
+            exam_title = "FORM " + str(self.exam_data['form']) + " " + self.exam_data['class_name'] + ", " + self.exam_data['exam_name'] + " Exam"
 
         self.exam_title = exam_title.upper()
         self.term = "TERM " + self.exam_data['term'].upper()
@@ -596,7 +669,7 @@ class ViewResults(wx.Panel):
         else:
             self.subjects = [self.parent.exam_data['subject_alias']]
 
-        self.results = getExamResults(self.parent.exam_data, self.subjects)
+        self.results = allSubjectsMean(self.parent.exam_data, self.subjects, self.parent.prev_exam_data)
 
         self.resultsOLV = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.setExamResults()
@@ -618,28 +691,14 @@ class ViewResults(wx.Panel):
         self.exam_title_text.Wrap(-1)
         self.exam_title_text.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
 
-        title_sizer.Add(self.exam_title_text, 3, wx.ALL, 5)
-
-        # space before term, after exam name
-        self.before_term_spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.before_term_spacer.Wrap(-1)
-        self.before_term_spacer.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
-
-        title_sizer.Add(self.before_term_spacer, 1, wx.ALL, 5)
+        title_sizer.Add(self.exam_title_text, 0, wx.ALL, 5)
 
         # Term exam was taken
         self.term_title = wx.StaticText(self, wx.ID_ANY, self.term, wx.DefaultPosition, wx.DefaultSize, 0)
         self.term_title.Wrap(-1)
         self.term_title.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
 
-        title_sizer.Add(self.term_title, 1, wx.ALL, 5)
-
-        # space after term, before year
-        self.before_yr_spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.before_yr_spacer.Wrap(-1)
-        self.before_yr_spacer.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
-
-        title_sizer.Add(self.before_yr_spacer, 1, wx.ALL, 5)
+        title_sizer.Add(self.term_title, 0, wx.ALL, 5)
 
         # Year exam was taken
         self.year_title = wx.StaticText(self, wx.ID_ANY, self.year, wx.DefaultPosition, wx.DefaultSize, 0)
@@ -648,11 +707,18 @@ class ViewResults(wx.Panel):
 
         title_sizer.Add(self.year_title, 0, wx.ALL, 5)
 
+        # space after title ends
+        self.right_spacer_title = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.right_spacer_title.Wrap(-1)
+        self.right_spacer_title.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.right_spacer_title, 1, wx.ALL, 5)
+
         mainSizer.Add(title_sizer, 0, wx.EXPAND, 5)
 
         #
         #
-        mainSizer.Add(self.resultsOLV, 2, wx.ALL | wx.EXPAND, 5)
+        mainSizer.Add(self.resultsOLV, 0, wx.ALL | wx.EXPAND, 5)
 
         examStatsSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -670,7 +736,7 @@ class ViewResults(wx.Panel):
         self.mean_text.Wrap(-1)
         self.mean_text.SetFont(wx.Font(10, 70, 90, 90, False, wx.EmptyString))
 
-        mean_sizer.Add(self.mean_text, 4, wx.ALL, 5)
+        mean_sizer.Add(self.mean_text, 2, wx.ALL, 5)
 
         examStatsSizer.Add(mean_sizer, 0, wx.EXPAND, 5)
 
@@ -688,35 +754,9 @@ class ViewResults(wx.Panel):
         self.dev_text.Wrap(-1)
         self.dev_text.SetFont(wx.Font(10, 70, 90, 90, False, wx.EmptyString))
 
-        deviation_sizer.Add(self.dev_text, 4, wx.ALL, 5)
+        deviation_sizer.Add(self.dev_text, 2, wx.ALL, 5)
 
         examStatsSizer.Add(deviation_sizer, 0, wx.EXPAND, 5)
-
-        # Show only if there are points in mostImprovedData['mark']
-        if mostImprovedData['mark'] != "--":
-            #
-            # MOST IMPROVED STUDENT
-            most_improved_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-            self.most_improved_label = wx.StaticText(self, wx.ID_ANY, mostImprovedLabel, wx.DefaultPosition, wx.DefaultSize, 0)
-            self.most_improved_label.Wrap(-1)
-            self.most_improved_label.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
-
-            most_improved_sizer.Add(self.most_improved_label, 1, wx.ALL, 5)
-
-            self.most_improved_text = wx.StaticText(self, wx.ID_ANY, mostImprovedStud, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE)
-            self.most_improved_text.Wrap(-1)
-            self.most_improved_text.SetFont(wx.Font(10, 70, 90, 90, False, wx.EmptyString))
-
-            most_improved_sizer.Add(self.most_improved_text, 1, wx.ALL, 5)
-
-            self.most_improved_points = wx.StaticText(self, wx.ID_ANY, mostImprvdPts, wx.DefaultPosition, wx.DefaultSize, 0)
-            self.most_improved_points.Wrap(-1)
-            self.most_improved_points.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
-
-            most_improved_sizer.Add(self.most_improved_points, 3, wx.ALL, 5)
-
-            examStatsSizer.Add(most_improved_sizer, 0, wx.EXPAND, 5)
 
         mainSizer.Add(examStatsSizer, 1, wx.EXPAND, 5)
 
@@ -732,17 +772,15 @@ class ViewResults(wx.Panel):
             else:
                 subjects = [self.parent.exam_data['subject_alias']]
 
-        data = getExamResults(self.parent.exam_data, subjects)
+        data = allSubjectsMean(self.parent.exam_data, subjects, self.parent.prev_exam_data)
+
         self.resultsOLV.SetObjects(data)
 
     # ----------------------------------------------------------------------
     def setExamResults(self, data=None):
 
         columns_array = [
-            ColumnDefn("POS", "center", 50, "number"),
-            ColumnDefn("ID", "center", 50, "student_id"),
-            ColumnDefn("STUDENT", "left", 100, "names"),
-            ColumnDefn("CLASS", "left", 50, "form"),
+            ColumnDefn("Mean/Deviation", "left", 130, "subject"),
         ]
 
         if self.parent.exam_data['subject_alias'] != "":
@@ -757,11 +795,9 @@ class ViewResults(wx.Panel):
                 columns_array.append(col)
 
             if self.parent.exam_data['subject_alias'] == "All":
-                mean = ColumnDefn("MEAN", "left", 55, "student_mean")
+                mean = ColumnDefn("MEAN GRADE", "left", 100, "mean_grade")
                 columns_array.append(mean)
 
         self.resultsOLV.SetColumns(columns_array)
 
         self.resultsOLV.SetObjects(self.results)
-
-

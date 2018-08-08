@@ -1,6 +1,6 @@
 import wx
 from ObjectListView import ObjectListView, ColumnDefn
-from db.get_students import getStudents
+from db.get_students import getStudents, getStudentByIDAllDetails
 from db.save_student import editStudent, deleteStudent
 from db.get_classes import getClassNamesWithForm
 from datetime import datetime
@@ -40,12 +40,10 @@ class ViewStudents(wx.Panel):
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
 
-        self.m_staticText54 = wx.StaticText(self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText54.Wrap(-1)
-        search_container.Add(self.m_staticText54, 0, wx.ALL, 5)
-
-        self.search_students = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                          wx.TE_PROCESS_ENTER)
+        self.search_students = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                             wx.TE_PROCESS_ENTER)
+        self.search_students.ShowSearchButton(True)
+        self.search_students.ShowCancelButton(False)
         search_container.Add(self.search_students, 0, wx.BOTTOM | wx.RIGHT, 8)
 
         self.search_students.Bind(wx.EVT_TEXT, self.searchStudents)
@@ -89,16 +87,13 @@ class ViewStudents(wx.Panel):
         # BUTTONS ON RIGHT OF TABLE
         # -------------------------------------------------------------------------
 
-
-
-
-        editFormSizer = wx.BoxSizer(wx.VERTICAL)
-
         #
         #
         #
         #
         # EDIT FORM
+        editFormSizer = wx.BoxSizer(wx.VERTICAL)
+
         sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Edit Student Form"), wx.VERTICAL)
 
         bSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -110,92 +105,78 @@ class ViewStudents(wx.Panel):
 
         sbSizer2.Add(bSizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 10)
 
-        bSizer26 = wx.BoxSizer(wx.HORIZONTAL)
+        fname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText29 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"First Name", wx.DefaultPosition,
+        self.fname_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"First Name", wx.DefaultPosition,
                                             wx.DefaultSize, 0)
-        self.m_staticText29.Wrap(-1)
-        bSizer26.Add(self.m_staticText29, 1, wx.ALL, 8)
+        self.fname_label.Wrap(-1)
+        fname_sizer.Add(self.fname_label, 1, wx.ALL, 8)
 
         self.first_name = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                       wx.DefaultSize, 0)
-        bSizer26.Add(self.first_name, 4, wx.ALL, 5)
+        fname_sizer.Add(self.first_name, 2, wx.ALL, 5)
 
-        sbSizer2.Add(bSizer26, 1, wx.ALL | wx.EXPAND | wx.TOP, 10)
+        sbSizer2.Add(fname_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 3)
 
-        bSizer262 = wx.BoxSizer(wx.HORIZONTAL)
+        lname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText292 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Last Name", wx.DefaultPosition,
+        self.lname_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Last Name", wx.DefaultPosition,
                                              wx.DefaultSize, 0)
-        self.m_staticText292.Wrap(-1)
-        bSizer262.Add(self.m_staticText292, 1, wx.ALL, 8)
+        self.lname_label.Wrap(-1)
+        lname_sizer.Add(self.lname_label, 1, wx.ALL, 8)
 
         self.last_name = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                      wx.DefaultSize, 0)
-        bSizer262.Add(self.last_name, 4, wx.ALL, 5)
+        lname_sizer.Add(self.last_name, 2, wx.ALL, 5)
 
-        sbSizer2.Add(bSizer262, 1, wx.ALL | wx.EXPAND, 10)
+        sbSizer2.Add(lname_sizer, 1, wx.ALL | wx.EXPAND, 3)
 
-        bSizer263 = wx.BoxSizer(wx.HORIZONTAL)
+        surname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText293 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Surname", wx.DefaultPosition,
+        self.surname_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Surname", wx.DefaultPosition,
                                              wx.DefaultSize, 0)
-        self.m_staticText293.Wrap(-1)
-        bSizer263.Add(self.m_staticText293, 1, wx.ALL, 8)
+        self.surname_label.Wrap(-1)
+        surname_sizer.Add(self.surname_label, 1, wx.ALL, 8)
 
         self.surname = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                    wx.DefaultSize, 0)
-        bSizer263.Add(self.surname, 4, wx.ALL, 5)
+        surname_sizer.Add(self.surname, 2, wx.ALL, 5)
 
-        sbSizer2.Add(bSizer263, 1, wx.ALL | wx.EXPAND, 10)
+        sbSizer2.Add(surname_sizer, 1, wx.ALL | wx.EXPAND, 3)
 
-        bSizer261 = wx.BoxSizer(wx.HORIZONTAL)
+        dob_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText291 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Date of Birth", wx.DefaultPosition,
+        self.dob_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Date of Birth", wx.DefaultPosition,
                                              wx.DefaultSize, 0)
-        self.m_staticText291.Wrap(-1)
-        bSizer261.Add(self.m_staticText291, 1, wx.ALL, 8)
+        self.dob_label.Wrap(-1)
+        dob_sizer.Add(self.dob_label, 1, wx.ALL, 8)
 
         self.dob = wx.DatePickerCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultDateTime, wx.DefaultPosition,
                                      wx.DefaultSize, wx.DP_DEFAULT | wx.DP_DROPDOWN)
-        bSizer261.Add(self.dob, 4, wx.ALL, 5)
+        dob_sizer.Add(self.dob, 2, wx.ALL, 5)
 
-        sbSizer2.Add(bSizer261, 1, wx.ALL | wx.EXPAND, 10)
+        sbSizer2.Add(dob_sizer, 1, wx.ALL | wx.EXPAND, 3)
 
-        bSizer264 = wx.BoxSizer(wx.HORIZONTAL)
+        gender_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText294 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Gender", wx.DefaultPosition,
+        self.gender_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Gender", wx.DefaultPosition,
                                              wx.DefaultSize, 0)
-        self.m_staticText294.Wrap(-1)
-        bSizer264.Add(self.m_staticText294, 1, wx.ALL, 8)
+        self.gender_label.Wrap(-1)
+        gender_sizer.Add(self.gender_label, 1, wx.ALL, 8)
 
         genderChoices = [u"Male", u"Female"]
         self.gender = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                   wx.DefaultSize, genderChoices, wx.CB_READONLY)
-        bSizer264.Add(self.gender, 4, wx.ALL, 5)
+        gender_sizer.Add(self.gender, 2, wx.ALL, 5)
 
-        sbSizer2.Add(bSizer264, 1, wx.ALL | wx.EXPAND, 10)
+        sbSizer2.Add(gender_sizer, 1, wx.ALL | wx.EXPAND, 3)
 
-        # bSizer2651 = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        # self.m_staticText2951 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Form", wx.DefaultPosition,
-        #                                       wx.DefaultSize, 0)
-        # self.m_staticText2951.Wrap(-1)
-        # bSizer2651.Add(self.m_staticText2951, 1, wx.ALL, 8)
-        #
-        # formChoices = [u"One", u"Two", u"Three", u"Four"]
-        # self.form = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-        #                         formChoices, wx.CB_READONLY)
-        # bSizer2651.Add(self.form, 4, wx.ALL, 5)
-        #
-        # sbSizer2.Add(bSizer2651, 1, wx.ALL | wx.EXPAND, 10)
+        class_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizer265 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText295 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Class", wx.DefaultPosition,
+        self.class_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Class", wx.DefaultPosition,
                                              wx.DefaultSize, 0)
-        self.m_staticText295.Wrap(-1)
-        bSizer265.Add(self.m_staticText295, 1, wx.ALL, 8)
+        self.class_label.Wrap(-1)
+        class_sizer.Add(self.class_label, 1, wx.ALL, 8)
 
         self.classes = getClassNamesWithForm()
 
@@ -203,26 +184,79 @@ class ViewStudents(wx.Panel):
 
         self.class_id = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                     wx.DefaultSize, class_idChoices, wx.CB_READONLY)
-        bSizer265.Add(self.class_id, 4, wx.ALL, 5)
+        class_sizer.Add(self.class_id, 2, wx.ALL, 5)
 
-        sbSizer2.Add(bSizer265, 1, wx.ALL | wx.EXPAND, 10)
+        sbSizer2.Add(class_sizer, 1, wx.ALL | wx.EXPAND, 3)
 
-        bSizer271 = wx.BoxSizer(wx.HORIZONTAL)
+        kin_names_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText22 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+        self.kin_names_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Next of Kin Names",
+                                             wx.DefaultPosition,
+                                             wx.DefaultSize, 0)
+        self.kin_names_label.Wrap(-1)
+        kin_names_sizer.Add(self.kin_names_label, 1, wx.ALL, 8)
+
+        self.kin_names = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                     wx.DefaultSize, 0)
+        kin_names_sizer.Add(self.kin_names, 2, wx.ALL, 5)
+
+        sbSizer2.Add(kin_names_sizer, 1, wx.ALL | wx.EXPAND, 3)
+
+        kin_phone_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.kin_phone_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Next of Kin Phone",
+                                             wx.DefaultPosition, wx.DefaultSize, 0)
+        self.kin_phone_label.Wrap(-1)
+        kin_phone_sizer.Add(self.kin_phone_label, 1, wx.ALL, 8)
+
+        self.kin_phone = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                     wx.DefaultSize, 0)
+        kin_phone_sizer.Add(self.kin_phone, 2, wx.ALL, 5)
+
+        sbSizer2.Add(kin_phone_sizer, 1, wx.ALL | wx.EXPAND, 3)
+
+        birth_cert_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.birth_cert_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Birth Certificate No",
+                                              wx.DefaultPosition, wx.DefaultSize, 0)
+        self.birth_cert_label.Wrap(-1)
+        birth_cert_sizer.Add(self.birth_cert_label, 1, wx.ALL, 8)
+
+        self.birth_cert_no = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        birth_cert_sizer.Add(self.birth_cert_no, 2, wx.ALL, 5)
+
+        sbSizer2.Add(birth_cert_sizer, 1, wx.ALL | wx.EXPAND, 3)
+
+        kcpe_marks_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.kcpe_marks_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"KCPE Marks", wx.DefaultPosition,
+                                              wx.DefaultSize, 0)
+        self.kcpe_marks_label.Wrap(-1)
+        kcpe_marks_sizer.Add(self.kcpe_marks_label, 1, wx.ALL, 8)
+
+        self.kcpe_marks = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                      wx.DefaultSize, 0)
+        kcpe_marks_sizer.Add(self.kcpe_marks, 2, wx.ALL, 5)
+
+        sbSizer2.Add(kcpe_marks_sizer, 1, wx.ALL | wx.EXPAND, 3)
+
+        edit_form_btns_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.edit_btns_spacer = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                             wx.DefaultSize, 0)
-        self.m_staticText22.Wrap(-1)
-        bSizer271.Add(self.m_staticText22, 1, wx.ALL, 5)
+        self.edit_btns_spacer.Wrap(-1)
+        edit_form_btns_sizer.Add(self.edit_btns_spacer, 1, wx.ALL, 5)
 
         self.cancel_edit = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Cancel", wx.DefaultPosition, wx.DefaultSize,
                                     0)
-        bSizer271.Add(self.cancel_edit, 0, wx.ALL, 5)
+        edit_form_btns_sizer.Add(self.cancel_edit, 0, wx.ALL, 5)
 
         self.save_student = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Edit", wx.DefaultPosition, wx.DefaultSize,
                                       0)
-        bSizer271.Add(self.save_student, 0, wx.ALL, 5)
+        edit_form_btns_sizer.Add(self.save_student, 0, wx.ALL, 5)
 
-        sbSizer2.Add(bSizer271, 3, wx.ALL | wx.EXPAND, 10)
+        sbSizer2.Add(edit_form_btns_sizer, 3, wx.ALL | wx.EXPAND, 3)
 
         self.save_student.Bind(wx.EVT_BUTTON, self.editStudent)
         self.cancel_edit.Bind(wx.EVT_BUTTON, self.cancelEdit)
@@ -274,33 +308,32 @@ class ViewStudents(wx.Panel):
             dlg.ShowModal()
         else:
             rowObj = self.dataOlv.GetSelectedObject()
-            self.user_id.SetValue(str(rowObj['user_id']))
-            self.first_name.SetValue(rowObj['first_name'])
-            self.last_name.SetValue(rowObj['last_name'])
-            self.surname.SetValue(rowObj['surname'])
+
+            user_id = rowObj['user_id']
+
+            studentData = getStudentByIDAllDetails(user_id)
+
+            self.user_id.SetValue(str(studentData['user_id']))
+            self.first_name.SetValue(studentData['first_name'])
+            self.last_name.SetValue(studentData['last_name'])
+            self.surname.SetValue(studentData['surname'])
+            self.kin_names.SetValue(studentData['next_of_kin_name'])
+            self.kin_phone.SetValue(studentData['next_of_kin_phone'])
+            self.birth_cert_no.SetValue(studentData['birth_cert_no'])
+            self.kcpe_marks.SetValue(str(studentData['kcpe_marks']))
 
             # get wxPython datetime format
-            day = rowObj['dob'].day
-            month = rowObj['dob'].month
-            year = rowObj['dob'].year
+            day = studentData['dob'].day
+            month = studentData['dob'].month
+            year = studentData['dob'].year
 
             # -1 because the month counts from 0, whereas people count January as month #1.
             dateFormatted = wx.DateTimeFromDMY(day, month - 1, year)
 
             self.dob.SetValue(dateFormatted)
 
-            if rowObj['form'] == 1:
-                form = "One"
-            elif rowObj['form'] == 2:
-                form = "Two"
-            elif rowObj['form'] == 3:
-                form = "Three"
-            elif rowObj['form'] == 4:
-                form = "Four"
-
-            self.class_id.SetValue(str(rowObj['form']) + " " + rowObj['class'])
-            self.gender.SetValue(rowObj['gender'])
-            # self.form.SetValue(form)
+            self.class_id.SetValue(str(studentData['form']) + " " + studentData['class'])
+            self.gender.SetValue(studentData['gender'])
 
     def cancelEdit(self, event):
         self.user_id.SetValue("")
@@ -319,10 +352,13 @@ class ViewStudents(wx.Panel):
         tdFormatted = wx.DateTimeFromDMY(day, month - 1, year)
 
         self.dob.SetValue(tdFormatted)
-
-        self.class_id.SetSelection(-1)
         self.gender.SetSelection(-1)
-        # self.form.SetSelection(-1)
+        self.class_id.SetSelection(-1)
+
+        self.kin_names.SetValue("")
+        self.kin_phone.SetValue("")
+        self.birth_cert_no.SetValue("")
+        self.kcpe_marks.SetValue("")
 
     def hasNumbers(self, inputString):  # checks for numbers in string, returns true if there is a number
         return any(char.isdigit() for char in inputString)
@@ -335,6 +371,10 @@ class ViewStudents(wx.Panel):
         dob = self.dob.GetValue()
         genderIndex = self.gender.GetCurrentSelection()
         classIndex = self.class_id.GetCurrentSelection()
+        kin_names = self.kin_names.GetLineText(0)
+        kin_phone = self.kin_phone.GetLineText(0)
+        birth_cert_no = self.birth_cert_no.GetLineText(0)
+        kcpe_marks = self.kcpe_marks.GetLineText(0)
 
         # Remove white spaces
         first_name = first_name.replace(" ", "")
@@ -372,6 +412,27 @@ class ViewStudents(wx.Panel):
 
             if classIndex == -1:
                 error = error + "The class field is required.\n"
+
+            if kin_names == "":
+                error = error + "The Next of Kin Names field is required.\n"
+            else:
+                if self.hasNumbers(kin_names):
+                    error = error + "The Next of Kin Names field cannot contain numeric characters. \n"
+
+            if kin_phone == "":
+                error = error + "The Next of Kin Phone field is required.\n"
+            else:
+                if not kin_phone.isdigit():
+                    error = error + "The Next of kin phone no field expects only numbers. \n"
+
+            if birth_cert_no == "":
+                error = error + "The Birth Certificate No field is required.\n"
+
+            if kcpe_marks == "":
+                error = error + "The KCPE Marks field is required.\n"
+            else:
+                if not kcpe_marks.isdigit():
+                    error = error + "The KCPE Marks field expects only numbers. \n"
             #
             #
             #
@@ -399,7 +460,11 @@ class ViewStudents(wx.Panel):
                     "surname": surname,
                     "dob": dob,
                     "gender": gender,
-                    "class_id": class_id
+                    "class_id": class_id,
+                    "kin_names": kin_names,
+                    "kin_phone": kin_phone,
+                    "birth_cert_no": birth_cert_no,
+                    "kcpe_marks": kcpe_marks
                 }
 
                 if editStudent(student_data):

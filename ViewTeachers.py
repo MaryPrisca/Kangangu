@@ -47,16 +47,14 @@ class ViewTeachers(wx.Panel):
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
 
-        self.m_staticText54 = wx.StaticText(self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText54.Wrap(-1)
-        search_container.Add(self.m_staticText54, 0, wx.ALL, 5)
+        self.search_teachers = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                            wx.TE_PROCESS_ENTER)
+        self.search_teachers.ShowSearchButton(True)
+        self.search_teachers.ShowCancelButton(False)
+        search_container.Add(self.search_teachers, 0, wx.BOTTOM | wx.RIGHT, 8)
 
-        self.search_students = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                          wx.TE_PROCESS_ENTER)
-        search_container.Add(self.search_students, 0, wx.BOTTOM | wx.RIGHT, 8)
-
-        self.search_students.Bind(wx.EVT_TEXT, self.searchStudents)
-        self.search_students.Bind(wx.EVT_TEXT_ENTER, self.searchStudents)
+        self.search_teachers.Bind(wx.EVT_TEXT, self.searchTeachers)
+        self.search_teachers.Bind(wx.EVT_TEXT_ENTER, self.searchTeachers)
 
         tableSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -307,8 +305,8 @@ class ViewTeachers(wx.Panel):
         self.dataOlv.SetObjects(self.products)
 
     # ----------------------------------------------------------------------
-    def searchStudents(self, event):
-        search = self.search_students.GetLineText(0)
+    def searchTeachers(self, event):
+        search = self.search_teachers.GetLineText(0)
         data = getTeachers(search=search)
         self.dataOlv.SetObjects(data)
 

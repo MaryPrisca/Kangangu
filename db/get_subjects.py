@@ -124,3 +124,28 @@ def checkIfSubjectExists(col):
         ret = False
 
     return ret
+
+
+def getSubjectByID(id):
+    cursor = db.cursor()
+
+    sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, `deleted` 
+                            FROM `subjects` 
+                            WHERE deleted = 0 AND subject_id = %s""" % id
+    try:
+        cursor.execute(sql)
+
+        data = [{
+            'subject_id': row[0],
+            'subject_name': row[1],
+            'subject_alias': row[2],
+            'compulsory': "Yes" if row[3] == 1 else "No"
+        } for row in cursor.fetchall()]
+
+        ret = data[0]
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret

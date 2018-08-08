@@ -1,7 +1,5 @@
 import wx
 import wx.xrc
-from ObjectListView import ObjectListView, ColumnDefn
-from datetime import datetime
 
 from MarksForm import MarksForm
 
@@ -43,6 +41,27 @@ class AddMarks(wx.Panel):
         #
         #
         #
+
+
+        # self.year_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        # year_sizer = wx.BoxSizer(wx.VERTICAL)
+        #
+        # self.year_label = wx.StaticText(self.year_panel, wx.ID_ANY, u"Select Year", wx.DefaultPosition, wx.DefaultSize,
+        #                                 0)
+        # self.year_label.Wrap(-1)
+        # year_sizer.Add(self.year_label, 0, wx.ALL, 5)
+        #
+        # current_year = int(datetime.now().year)
+        # self.year = wx.TextCtrl(self.year_panel, wx.ID_ANY, str(current_year), wx.DefaultPosition,
+        #                         wx.DefaultSize,
+        #                         wx.TE_READONLY)
+        # year_sizer.Add(self.year, 0, wx.ALL | wx.EXPAND, 5)
+        #
+        # self.year_panel.SetSizer(year_sizer)
+        # self.year_panel.Layout()
+        # year_sizer.Fit(self.year_panel)
+        # self.sbSizer2.Add(self.year_panel, 0, wx.EXPAND | wx.ALL, 5)
+
         self.year_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         year_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -51,10 +70,9 @@ class AddMarks(wx.Panel):
         self.year_label.Wrap(-1)
         year_sizer.Add(self.year_label, 0, wx.ALL, 5)
 
-        current_year = int(datetime.now().year)
-        self.year = wx.TextCtrl(self.year_panel, wx.ID_ANY, str(current_year), wx.DefaultPosition,
-                                wx.DefaultSize,
-                                wx.TE_READONLY)
+        yearChoices = getPresentYears()
+        self.year = wx.ComboBox(self.year_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                yearChoices, wx.CB_READONLY)
         year_sizer.Add(self.year, 0, wx.ALL | wx.EXPAND, 5)
 
         self.year_panel.SetSizer(year_sizer)
@@ -162,10 +180,15 @@ class AddMarks(wx.Panel):
         self.Layout()
 
         # Connect Events
+        self.year.Bind(wx.EVT_COMBOBOX, self.yearSelected)
         self.term.Bind(wx.EVT_COMBOBOX, self.termSelected)
 
     def __del__(self):
         pass
+
+    def yearSelected(self, event):
+        year = self.year.GetStringSelection()
+        self.exam_data['year'] = year
 
     def subjectSelected(self, event):
         self.term_panel.Show()
@@ -176,10 +199,9 @@ class AddMarks(wx.Panel):
         self.exam_data['subject_alias'] = alias
 
     def termSelected(self, event):
-        year = int(datetime.now().year)
+        year = self.exam_data['year']
         term = self.term.GetStringSelection()
 
-        self.exam_data['year'] = year
         self.exam_data['term'] = term
 
         # Check if there are exams in selected year and term
@@ -256,6 +278,7 @@ class AddMarks(wx.Panel):
         self.exam_data['class'] = class_name
 
     def resetForm(self, event):
+        self.year.SetSelection(-1)
         self.term.SetSelection(-1)
         self.select_exam.exam_name.SetSelection(-1)
         self.select_form.form.SetSelection(-1)

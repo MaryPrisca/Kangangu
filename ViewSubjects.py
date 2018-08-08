@@ -56,12 +56,10 @@ class ViewSubjects(wx.Panel):
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
 
-        self.m_staticText54 = wx.StaticText(self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText54.Wrap(-1)
-        search_container.Add(self.m_staticText54, 0, wx.ALL, 5)
-
-        self.search_subjects = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                          wx.TE_PROCESS_ENTER)
+        self.search_subjects = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                            wx.TE_PROCESS_ENTER)
+        self.search_subjects.ShowSearchButton(True)
+        self.search_subjects.ShowCancelButton(False)
         search_container.Add(self.search_subjects, 0, wx.BOTTOM | wx.RIGHT, 8)
 
         OLV_sizer.Add(search_container, 0, wx.EXPAND, 5)

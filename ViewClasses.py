@@ -52,12 +52,10 @@ class ViewClasses(wx.Panel):
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
 
-        self.m_staticText54 = wx.StaticText(self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText54.Wrap(-1)
-        search_container.Add(self.m_staticText54, 0, wx.ALL, 5)
-
-        self.search_classes = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                          wx.TE_PROCESS_ENTER)
+        self.search_classes = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                             wx.TE_PROCESS_ENTER)
+        self.search_classes.ShowSearchButton(True)
+        self.search_classes.ShowCancelButton(False)
         search_container.Add(self.search_classes, 0, wx.BOTTOM, 8)
 
         self.search_classes.Bind(wx.EVT_TEXT, self.searchClasses)

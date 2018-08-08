@@ -22,7 +22,7 @@ class AddTeacher(wx.Panel):
         self.m_staticText17.Wrap(-1)
         self.m_staticText17.SetFont(wx.Font(14, 70, 90, 92, False, wx.EmptyString))
 
-        container.Add(self.m_staticText17, 0, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 30)
+        container.Add(self.m_staticText17, 0, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 15)
 
         bSizer27 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -53,7 +53,7 @@ class AddTeacher(wx.Panel):
                                       wx.DefaultSize, 0)
         fname_sizer.Add(self.first_name, 3, wx.ALL, 5)
 
-        left_controls_sizer.Add(fname_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 10)
+        left_controls_sizer.Add(fname_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 5)
 
         lname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -66,7 +66,7 @@ class AddTeacher(wx.Panel):
                                      wx.DefaultSize, 0)
         lname_sizer.Add(self.last_name, 3, wx.ALL, 5)
 
-        left_controls_sizer.Add(lname_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        left_controls_sizer.Add(lname_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
         surname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -79,50 +79,7 @@ class AddTeacher(wx.Panel):
                                    wx.DefaultSize, 0)
         surname_sizer.Add(self.surname, 3, wx.ALL, 5)
 
-        left_controls_sizer.Add(surname_sizer, 1, wx.ALL | wx.EXPAND, 10)
-
-        username_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.username_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Username", wx.DefaultPosition,
-                                            wx.DefaultSize, 0)
-        self.username_label.Wrap(-1)
-        username_sizer.Add(self.username_label, 1, wx.ALL, 8)
-
-        self.username = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                    wx.DefaultSize, 0)
-        username_sizer.Add(self.username, 3, wx.ALL, 5)
-
-        left_controls_sizer.Add(username_sizer, 1, wx.ALL | wx.EXPAND, 10)
-
-        password_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.password_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Password", wx.DefaultPosition,
-                                            wx.DefaultSize, 0)
-        self.password_label.Wrap(-1)
-        password_sizer.Add(self.password_label, 1, wx.ALL, 8)
-
-        self.password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TE_PASSWORD)
-        password_sizer.Add(self.password, 3, wx.ALL, 5)
-
-        left_controls_sizer.Add(password_sizer, 1, wx.ALL | wx.EXPAND, 10)
-
-        conf_pwd_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.conf_pwd_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Confirm Password", wx.DefaultPosition,
-                                            wx.DefaultSize, 0)
-        self.conf_pwd_label.Wrap(-1)
-        conf_pwd_sizer.Add(self.conf_pwd_label, 1, wx.ALL, 8)
-
-        self.conf_password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                         wx.DefaultSize, wx.TE_PASSWORD)
-        conf_pwd_sizer.Add(self.conf_password, 3, wx.ALL, 5)
-
-        left_controls_sizer.Add(conf_pwd_sizer, 1, wx.ALL | wx.EXPAND, 10)
-
-        wrapper_sizer.Add(left_controls_sizer, 1, wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 10)
-
-        right_controls_sizer = wx.BoxSizer(wx.VERTICAL)
+        left_controls_sizer.Add(surname_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
         email_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -135,7 +92,108 @@ class AddTeacher(wx.Panel):
                                  0)
         email_sizer.Add(self.email, 3, wx.ALL, 5)
 
-        right_controls_sizer.Add(email_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        left_controls_sizer.Add(email_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        phone_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.phone_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Phone Number", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.phone_label.Wrap(-1)
+        phone_sizer.Add(self.phone_label, 1, wx.ALL, 8)
+
+        self.phone = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                 0)
+        phone_sizer.Add(self.phone, 3, wx.ALL, 5)
+
+        left_controls_sizer.Add(phone_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        address_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.address_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Postal Address", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.address_label.Wrap(-1)
+        address_sizer.Add(self.address_label, 1, wx.ALL, 8)
+
+        self.address = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                 0)
+        address_sizer.Add(self.address, 3, wx.ALL, 5)
+
+        left_controls_sizer.Add(address_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+
+
+        national_id_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.national_id_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"National ID", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.national_id_label.Wrap(-1)
+        national_id_sizer.Add(self.national_id_label, 1, wx.ALL, 8)
+
+        self.national_id = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                 0)
+        national_id_sizer.Add(self.national_id, 3, wx.ALL, 5)
+
+        left_controls_sizer.Add(national_id_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        tsc_no_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.tsc_no_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"TSC Number", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.tsc_no_label.Wrap(-1)
+        tsc_no_sizer.Add(self.tsc_no_label, 1, wx.ALL, 8)
+
+        self.tsc_no = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                 0)
+        tsc_no_sizer.Add(self.tsc_no, 3, wx.ALL, 5)
+
+        left_controls_sizer.Add(tsc_no_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        wrapper_sizer.Add(left_controls_sizer, 1, wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 10)
+
+        #
+        #
+        #
+
+        right_controls_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        username_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.username_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Username", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.username_label.Wrap(-1)
+        username_sizer.Add(self.username_label, 1, wx.ALL, 8)
+
+        self.username = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                    wx.DefaultSize, 0)
+        username_sizer.Add(self.username, 3, wx.ALL, 5)
+
+        right_controls_sizer.Add(username_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        password_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.password_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Password", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.password_label.Wrap(-1)
+        password_sizer.Add(self.password_label, 1, wx.ALL, 8)
+
+        self.password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                    wx.DefaultSize, wx.TE_PASSWORD)
+        password_sizer.Add(self.password, 3, wx.ALL, 5)
+
+        right_controls_sizer.Add(password_sizer, 1, wx.ALL | wx.EXPAND, 5)
+
+        conf_pwd_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.conf_pwd_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Confirm Password", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.conf_pwd_label.Wrap(-1)
+        conf_pwd_sizer.Add(self.conf_pwd_label, 1, wx.ALL, 8)
+
+        self.conf_password = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                         wx.DefaultSize, wx.TE_PASSWORD)
+        conf_pwd_sizer.Add(self.conf_password, 3, wx.ALL, 5)
+
+        right_controls_sizer.Add(conf_pwd_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
         gender_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -150,7 +208,7 @@ class AddTeacher(wx.Panel):
         self.gender.SetSelection(-1)
         gender_sizer.Add(self.gender, 3, wx.ALL, 5)
 
-        right_controls_sizer.Add(gender_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(gender_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
         dob_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -163,7 +221,7 @@ class AddTeacher(wx.Panel):
                                      wx.DefaultSize, wx.DP_DEFAULT | wx.DP_DROPDOWN)
         dob_sizer.Add(self.dob, 3, wx.ALL, 5)
 
-        right_controls_sizer.Add(dob_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(dob_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
         subject_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -179,7 +237,7 @@ class AddTeacher(wx.Panel):
         self.subject.SetSelection(-1)
         subject_sizer.Add(self.subject, 3, wx.ALL, 5)
 
-        right_controls_sizer.Add(subject_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(subject_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
         subject2_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -194,7 +252,7 @@ class AddTeacher(wx.Panel):
         self.subject2.SetSelection(-1)
         subject2_sizer.Add(self.subject2, 3, wx.ALL, 5)
 
-        right_controls_sizer.Add(subject2_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(subject2_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
         wrapper_sizer.Add(right_controls_sizer, 1, wx.BOTTOM | wx.EXPAND | wx.RIGHT | wx.TOP, 10)
 
@@ -250,10 +308,14 @@ class AddTeacher(wx.Panel):
         self.first_name.SetValue("")
         self.last_name.SetValue("")
         self.surname.SetValue("")
+        self.email.SetValue("")
+        self.phone.SetValue("")
+        self.address.SetValue("")
+        self.national_id.SetValue("")
+        self.tsc_no.SetValue("")
         self.username.SetValue("")
         self.password.SetValue("")
         self.conf_password.SetValue("")
-        self.email.SetValue("")
         self.gender.SetSelection(-1)
         self.subject.SetSelection(-1)
         self.subject2.SetSelection(-1)
@@ -270,7 +332,6 @@ class AddTeacher(wx.Panel):
 
         self.dob.SetValue(tdFormatted)
 
-
     def hasNumbers(self, inputString):  # checks for numbers in string, returns true if there is a number
         return any(char.isdigit() for char in inputString)
 
@@ -279,6 +340,10 @@ class AddTeacher(wx.Panel):
         last_name = self.last_name.GetLineText(0)
         surname = self.surname.GetLineText(0)
         email = self.email.GetLineText(0)
+        phone = self.phone.GetLineText(0)
+        address = self.address.GetLineText(0)
+        national_id = self.national_id.GetLineText(0)
+        tsc_no = self.tsc_no.GetLineText(0)
         username = self.username.GetLineText(0)
         password = self.password.GetLineText(0)
         conf_password = self.conf_password.GetLineText(0)
@@ -292,6 +357,10 @@ class AddTeacher(wx.Panel):
         last_name = last_name.replace(" ", "")
         surname = surname.replace(" ", "")
         email = email.replace(" ", "")
+        phone = phone.replace(" ", "")
+        # address = address.replace(" ", "")
+        national_id = national_id.replace(" ", "")
+        tsc_no = tsc_no.replace(" ", "")
         username = username.replace(" ", "")
         password = password.replace(" ", "")
         conf_password = conf_password.replace(" ", "")
@@ -308,9 +377,27 @@ class AddTeacher(wx.Panel):
 
         if email == "":
             error = error + "The Email Address field is required.\n"
+        else:
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                error = error + "Enter a valid email address.\n"
 
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            error = error + "Enter a valid email address.\n"
+        if phone == "":
+            error = error + "The Phone Number field is required.\n"
+        else:
+            if not phone.isdigit():
+                error = error + "The Phone Number field must contain only numbers.\n"
+
+            if len(phone) != 10:
+                error = error + "The Phone Number field expects ten numbers.\n"
+
+        if address == "":
+            error = error + "The Postal Address field is required.\n"
+
+        if national_id == "":
+            error = error + "The National ID field is required.\n"
+
+        if tsc_no == "":
+            error = error + "The TSC Number field is required.\n"
 
         if username == "":
             error = error + "The Username field is required.\n"
@@ -372,6 +459,10 @@ class AddTeacher(wx.Panel):
                 "last_name": last_name,
                 "surname": surname,
                 "email": email,
+                "phone": phone,
+                "address": address,
+                "national_id": national_id,
+                "tsc_no": tsc_no,
                 "username": username,
                 "password": password,
                 "dob": dob,

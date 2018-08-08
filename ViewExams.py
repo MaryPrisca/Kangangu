@@ -3,7 +3,7 @@ import wx.xrc
 from ObjectListView import ObjectListView, ColumnDefn
 from datetime import datetime
 
-from db.get_exams import getAllExams
+from db.get_exams import *
 from db.save_exam import editExam, deleteExam
 from db.get_subjects import getActiveSubjectAliases
 from db.get_exam_results import getExamResults
@@ -53,12 +53,10 @@ class ViewExams(wx.Panel):
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
 
-        self.m_staticText54 = wx.StaticText(self, wx.ID_ANY, u"Search:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText54.Wrap(-1)
-        search_container.Add(self.m_staticText54, 0, wx.ALL, 5)
-
-        self.search_exams = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                          wx.TE_PROCESS_ENTER)
+        self.search_exams = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                            wx.TE_PROCESS_ENTER)
+        self.search_exams.ShowSearchButton(True)
+        self.search_exams.ShowCancelButton(False)
         search_container.Add(self.search_exams, 0, wx.BOTTOM, 8)
 
         self.search_exams.Bind(wx.EVT_TEXT, self.searchExams)
@@ -84,7 +82,7 @@ class ViewExams(wx.Panel):
         left_btns_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.view_results_btn = wx.Button(self, wx.ID_ANY, u"View Results", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.view_results_btn.Bind(wx.EVT_BUTTON, self.getExamResults)
+        self.view_results_btn.Bind(wx.EVT_BUTTON, self.fetchExamResults)
         left_btns_sizer.Add(self.view_results_btn, 0, wx.EXPAND | wx.ALL, 5)
 
         self.edit_exam_btn = wx.Button(self, wx.ID_ANY, u"Edit Exam", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -100,23 +98,35 @@ class ViewExams(wx.Panel):
         left_sizer.Add(OLV_sizer, 3, wx.EXPAND | wx.ALL, 5)
         left_sizer.Add(left_btns_sizer, 1, wx.ALL, 5)
 
-        horizontal_sizer.Add(left_sizer, 1, wx.EXPAND, 5)
+        horizontal_sizer.Add(left_sizer, 0, wx.EXPAND, 5)
 
-        right_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.right_sizer = wx.BoxSizer(wx.VERTICAL)
 
+        self.exam_data = {
+            "exam_id": 0,
+            "class_id": 0,
+            "form": 0,
+            "subject_alias": "",
+            "year": 0,
+            "term": "",
+            "exam_name": ""
+        }
 
         self.edit_exam_panel = EditExam(self)
+        # self.edit_exam_panel.Hide()
         #
-        # self.show_students = ViewClassStudents(self)
+        self.show_results = ViewResults(self, self.exam_data)
+        self.show_results.Hide()
+
+        self.show_results_panel_added = 0
 
         #
         #
         #
-        right_sizer.Add(self.edit_exam_panel, 1, wx.EXPAND)
-        # right_sizer.Add(self.show_students, 1, wx.EXPAND)
-        # self.show_students.Hide()
+        self.right_sizer.Add(self.edit_exam_panel, 1, wx.EXPAND)
+        self.right_sizer.Add(self.show_results, 1, wx.EXPAND)
 
-        horizontal_sizer.Add(right_sizer, 1, wx.EXPAND, 5)
+        horizontal_sizer.Add(self.right_sizer, 1, wx.EXPAND, 5)
 
         container.Add(horizontal_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
@@ -126,33 +136,126 @@ class ViewExams(wx.Panel):
         # Connect Events
         self.refresh_btn.Bind(wx.EVT_BUTTON, self.refreshTable)
 
+    #
+    #
+    # ------------------------------------------------------------------------------
     def setExamData(self, data=None):
         self.examsOLV.SetColumns([
-            ColumnDefn("ID", "left", 80, "exam_id"),
-            ColumnDefn("Year", "center", 100, "year"),
-            ColumnDefn("Term", "center", 100, "term"),
-            ColumnDefn("Name", "center", 80, "exam_name"),
+            ColumnDefn("ID", "left", 60, "exam_id"),
+            ColumnDefn("Year", "center", 70, "year"),
+            ColumnDefn("Term", "center", 70, "term"),
+            ColumnDefn("Name", "center", 100, "exam_name"),
             # ColumnDefn("Form", "center", 100, "form"),
         ])
 
         self.examsOLV.SetObjects(self.exams)
 
+    #
+    # ------------------------------------------------------------------------------
     def updateExamsOLV(self, event):  # Refresh classes table
         """"""
         data = getAllExams()
         self.examsOLV.SetObjects(data)
 
+    #
+    # ------------------------------------------------------------------------------
     def refreshTable(self, event):
         self.updateExamsOLV("")
 
+    #
+    # ------------------------------------------------------------------------------
     def searchExams(self, event):
         search = self.search_exams.GetLineText(0)
         data = getAllExams(search)
         self.examsOLV.SetObjects(data)
 
-    def getExamResults(self, event):
-        """"""
+    #
+    # ------------------------------------------------------------------------------
+    def fetchExamResults(self, event):
+        rowObj = self.examsOLV.GetSelectedObject()
 
+        form = getFormsInExam(rowObj['exam_id'])
+
+        if form == "All":
+            choices =[u"Form 1", u"Form 2", u"Form 3", u"Form 4"]
+
+            formChosen = wx.GetSingleChoice(message="Select Form to View Results", caption="Exam Results.",
+                                            choices=choices, parent=None)
+        else:
+            formChosen = form
+
+        if formChosen == "Form 1" or formChosen == "One":
+            formChosen = 1
+        elif formChosen == "Form 2" or formChosen == "Two":
+            formChosen = 2
+        elif formChosen == "Form 3" or formChosen == "Three":
+            formChosen = 3
+        elif formChosen == "Form 4" or formChosen == "Four":
+            formChosen = 4
+
+        subjectChoices = getActiveSubjectAliases()
+        subjectChoices = subjectChoices['aliases']
+        subjectChoices.insert(0, "All Subjects")
+
+        subjectChosen = wx.GetSingleChoice(message="Select Subject.", caption="Exam Results.",
+                                        choices=subjectChoices, parent=None)
+
+        if subjectChosen == "All Subjects":
+            alias = "All"
+            subjects = getActiveSubjectAliases()
+            subjects = subjects['aliases']
+        else:
+            alias = subjectChosen
+            subjects = [subjectChosen]
+
+        self.exam_data = {
+            "exam_id": rowObj['exam_id'],
+            "class_id": 0,
+            "form": formChosen,
+            "subject_alias": alias,
+            "year": rowObj['year'],
+            "term": rowObj['term'],
+            "exam_name": rowObj['exam_name'],
+        }
+
+        data = getExamResults(self.exam_data, subjects)
+        if data:
+            self.edit_exam_panel.Hide()
+            # self.show_results.Hide()
+            #
+            # self.show_results = ViewResults(self, self.exam_data)
+            # self.show_results.setExamResults()
+            # self.show_results.updateResultsOLV("")
+            # self.show_results.Show()
+            #
+            # self.Layout()
+
+            if self.show_results_panel_added == 0:
+                self.show_results = ViewResults(self, self.exam_data)
+                self.right_sizer.Add(self.show_results, 1, wx.EXPAND)
+
+                self.Layout()
+
+                self.show_results_panel_added = 1
+            else:
+                self.show_results.Destroy()
+                self.show_results = ViewResults(self, self.exam_data)
+                self.right_sizer.Add(self.show_results, 1, wx.EXPAND)
+
+                self.Layout()
+        else:
+            dlg = wx.MessageDialog(None, "No results for selected exam.",
+                                   'Error Message.',
+                                   wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+
+            self.show_results.Hide()
+            self.edit_exam_panel.Show()
+
+            self.Layout()
+
+    #
+    # ------------------------------------------------------------------------------
     def getExamInfo(self, event):
         if not self.examsOLV.GetSelectedObject():
             dlg = wx.MessageDialog(None, "Click on a row in order to edit exam.",
@@ -168,9 +271,11 @@ class ViewExams(wx.Panel):
             self.edit_exam_panel.term.SetValue(rowObj['term'])
             self.edit_exam_panel.form.SetValue(rowObj['form'])
 
-            # self.show_students.Hide()
+            self.show_results.Hide()
             self.edit_exam_panel.Show()
 
+    #
+    # ------------------------------------------------------------------------------
     def deleteExam(self, event):
         if self.examsOLV.GetSelectedObject():
             rowObj = self.examsOLV.GetSelectedObject()
@@ -189,7 +294,6 @@ class ViewExams(wx.Panel):
             else:
                 dlg.Destroy()
                 rowObj=""
-
 
         else:
             dlg = wx.MessageDialog(None, "Click on a row to delete a class.", 'Error Message.',
@@ -331,7 +435,8 @@ class EditExam(wx.Panel):
     def __del__(self):
         pass
 
-    # Virtual event handlers, overide them in your derived class
+    #
+    # ------------------------------------------------------------
     def cancelEditExam(self, event):
         self.exam_id.SetValue("")
         self.exam_name.SetValue("")
@@ -339,6 +444,8 @@ class EditExam(wx.Panel):
         self.term.SetSelection(-1)
         self.form.SetSelection(-1)
 
+    #
+    # ------------------------------------------------------------
     def editExam(self, event):
         exam_id = self.exam_id.GetLineText(0)
 
@@ -402,14 +509,29 @@ class EditExam(wx.Panel):
 
 class ViewResults(wx.Panel):
     # ----------------------------------------------------------------------
-    def __init__(self, parent):
+    def __init__(self, parent, exam_dets):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.parent = parent
+        self.exam_dets = exam_dets
+
+        exam_title = "FORM " + str(self.exam_dets['form']) + "              " + self.exam_dets['exam_name'] + " RESULTS"
+
+        self.exam_title = exam_title.upper()
+        self.term = "TERM " + self.exam_dets['term'].upper()
+        self.year = str(self.exam_dets['year'])
 
         self.class_id = ""
-        subjects = getActiveSubjectAliases()
-        self.subjects = subjects['aliases']
+        # subjects = getActiveSubjectAliases()
+        # self.subjects = subjects['aliases']
+
+        if self.parent.exam_data['subject_alias'] == "":
+            self.subjects = []
+        elif self.parent.exam_data['subject_alias'] == "All":
+            subjects = getActiveSubjectAliases()
+            self.subjects = subjects['aliases']
+        else:
+            self.subjects = [self.parent.exam_data['subject_alias']]
 
         self.results = getExamResults(self.parent.exam_data, self.subjects)
 
@@ -417,29 +539,94 @@ class ViewResults(wx.Panel):
         self.setExamResults()
 
         # Create some sizers
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+
+        #
+        #
+        #
+        # Sizer that contains titles at the top
+        title_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # space before title starts
+        self.spacer_title = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.spacer_title.Wrap(-1)
+        self.spacer_title.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.spacer_title, 1, wx.ALL, 5)
+
+        # Exam name
+        self.exam_title_text = wx.StaticText(self, wx.ID_ANY, self.exam_title, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.exam_title_text.Wrap(-1)
+        self.exam_title_text.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.exam_title_text, 3, wx.ALL, 5)
+
+        # space before term, after exam name
+        self.before_term_spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.before_term_spacer.Wrap(-1)
+        self.before_term_spacer.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.before_term_spacer, 1, wx.ALL, 5)
+
+        # Term exam was taken
+        self.term_title = wx.StaticText(self, wx.ID_ANY, self.term, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.term_title.Wrap(-1)
+        self.term_title.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.term_title, 1, wx.ALL, 5)
+
+        # space after term, before year
+        self.before_yr_spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.before_yr_spacer.Wrap(-1)
+        self.before_yr_spacer.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.before_yr_spacer, 1, wx.ALL, 5)
+
+        # Year exam was taken
+        self.year_title = wx.StaticText(self, wx.ID_ANY, self.year, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.year_title.Wrap(-1)
+        self.year_title.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.year_title, 0, wx.ALL, 5)
+
+        mainSizer.Add(title_sizer, 0, wx.ALL | wx.EXPAND, 5)
+
+        #
+        #
+        #
 
         mainSizer.Add(self.resultsOLV, 1, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(mainSizer)
 
+    #
     # ----------------------------------------------------------------------
     def updateResultsOLV(self, event):
-        """"""
-        data = getExamResults(self.parent.exam_data, self.subjects)
+        subjects = []
+        if self.parent.exam_data['subject_alias'] != "":
+            if self.parent.exam_data['subject_alias'] == "All":
+                subjects = getActiveSubjectAliases()
+                subjects = subjects['aliases']
+            else:
+                subjects = [self.parent.exam_data['subject_alias']]
+
+        data = getExamResults(self.parent.exam_data, subjects)
+
         self.resultsOLV.SetObjects(data)
 
+    #
     # ----------------------------------------------------------------------
     def refreshTable(self, event):
         self.updateResultsOLV("")
 
+    #
     # ----------------------------------------------------------------------
     def setExamResults(self, data=None):
 
         columns_array = [
-            ColumnDefn("ID", "center", 100, "exam_result_id"),
-            ColumnDefn("Student", "left", 135, "names"),
-            ColumnDefn("Class", "left", 65, "form"),
+            ColumnDefn("ID", "center", 50, "exam_result_id"),
+            ColumnDefn("Student", "left", 100, "names"),
+            ColumnDefn("Class", "left", 50, "form"),
         ]
 
         if self.parent.exam_data['subject_alias'] != "":
@@ -450,8 +637,12 @@ class ViewResults(wx.Panel):
                 subjects = [self.parent.exam_data['subject_alias']]
 
             for i, val in enumerate(subjects):  # adding columns dynamically
-                col = ColumnDefn(subjects[i].upper(), "left", 65, subjects[i])
+                col = ColumnDefn(subjects[i].upper(), "left", 55, subjects[i])
                 columns_array.append(col)
+
+            if self.parent.exam_data['subject_alias'] == "All":
+                mean = ColumnDefn("MEAN", "left", 55, "student_mean")
+                columns_array.append(mean)
 
         self.resultsOLV.SetColumns(columns_array)
 

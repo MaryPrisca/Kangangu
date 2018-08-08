@@ -27,14 +27,16 @@ def saveStudent(data):
     # Prepare SQL query to INSERT a record into the database.
     sql = """
             INSERT INTO `users`(`user_id`, `first_name`, `last_name`, `surname`, `dob`, `gender`, `username`,
-                `password`, `role`, `class_id`, `status`, `created_at`, `deleted`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                `password`, `role`, `class_id`, `kcpe_marks`, `birth_cert_no`, `next_of_kin_name`, `next_of_kin_phone`, 
+                `address`, `status`, `created_at`, `deleted`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
     try:
         # Execute the SQL command
         cursor.execute(sql, (data["user_id"], data["first_name"], data["last_name"], data["surname"], data["dob"], data["gender"],
-                             data["username"], data["password"], data["role"], data["class_id"], data["status"], data["created_at"], data["deleted"] ))
+                             data["username"], data["password"], data["role"], data["class_id"], data["kcpe_marks"], data["birth_cert_no"],
+                             data["kin_names"], data["kin_phone"], data["address"], data["status"], data["created_at"], data["deleted"] ))
         # Commit your changes in the database
         db.commit()
 
@@ -62,10 +64,15 @@ def editStudent(data):
                     surname = %s,
                     dob = %s,
                     gender = %s,
-                    class_id = %s                 
+                    class_id = %s,
+                    kcpe_marks = %s,
+                    birth_cert_no = %s,
+                    next_of_kin_name = %s,
+                    next_of_kin_phone = %s                                     
                     WHERE user_id = %s """
 
-    data = (data["first_name"], data["last_name"], data["surname"], data["dob"], data["gender"], data["class_id"], data["user_id"])
+    data = (data["first_name"], data["last_name"], data["surname"], data["dob"], data["gender"], data["class_id"],
+            data["kcpe_marks"], data["birth_cert_no"], data["kin_names"], data["kin_phone"], data["user_id"])
 
     try:
         cursor.execute(sql, data)
@@ -74,7 +81,7 @@ def editStudent(data):
         ret = True
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        # print(e)
+        print(e)
         db.rollback()
 
         # ret = e

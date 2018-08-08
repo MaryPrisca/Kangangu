@@ -4,6 +4,7 @@ import wx.xrc
 from AddExam import AddExam
 from ExamResults import ExamResults
 from ViewExams import ViewExams
+from ExamStatistics import ExamStatistics
 from AddMarks import AddMarks
 
 
@@ -41,6 +42,13 @@ class ExamsPanel(wx.Panel):
                                                     wx.ArtProvider.GetBitmap(wx.ART_HELP_SIDE_PANEL, wx.ART_TOOLBAR),
                                                     wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString, None)
 
+        self.m_toolBar3.AddSeparator()
+
+        self.m_tool14 = self.m_toolBar3.AddLabelTool(wx.ID_ANY, u"Exam Statistics",
+                                                     wx.ArtProvider.GetBitmap(wx.ART_REPORT_VIEW, wx.ART_TOOLBAR),
+                                                     wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString,
+                                                     None)
+
         if self.userdata['role'] == "teacher":
             self.m_toolBar3.AddSeparator()
 
@@ -70,6 +78,7 @@ class ExamsPanel(wx.Panel):
         self.add_exam = AddExam(self)
         self.exam_results = ExamResults(self)
         self.view_exams = ViewExams(self)
+        self.exam_stats = ExamStatistics(self)
 
         self.add_marks_panel_added = 0
 
@@ -83,10 +92,12 @@ class ExamsPanel(wx.Panel):
 
         self.add_exam.Hide()
         self.exam_results.Hide()
+        self.exam_stats.Hide()
 
         container.Add(self.add_exam, 1, wx.EXPAND)
         container.Add(self.exam_results, 1, wx.EXPAND)
         container.Add(self.view_exams, 1, wx.EXPAND)
+        container.Add(self.exam_stats, 1, wx.EXPAND)
 
         self.SetSizer(container)
         self.Layout()
@@ -95,6 +106,7 @@ class ExamsPanel(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.switchToViewExams, id=self.m_tool7.GetId())
         self.Bind(wx.EVT_TOOL, self.switchToAddExam, id=self.m_tool6.GetId())
         self.Bind(wx.EVT_TOOL, self.switchToAllResults, id=self.m_tool8.GetId())
+        self.Bind(wx.EVT_TOOL, self.switchToExamStatistics, id=self.m_tool14.GetId())
         if self.userdata['role'] == "teacher":
             self.Bind(wx.EVT_TOOL, self.switchToAddMarks, id=self.m_tool9.GetId())
 
@@ -104,6 +116,7 @@ class ExamsPanel(wx.Panel):
     def switchToViewExams(self, event):
         self.add_exam.Hide()
         self.exam_results.Hide()
+        self.exam_stats.Hide()
 
         if self.add_marks_panel_added:
             self.add_marks.Hide()
@@ -115,6 +128,7 @@ class ExamsPanel(wx.Panel):
     def switchToAddExam(self, event):
         self.exam_results.Hide()
         self.view_exams.Hide()
+        self.exam_stats.Hide()
 
         if self.add_marks_panel_added:
             self.add_marks.Hide()
@@ -126,6 +140,7 @@ class ExamsPanel(wx.Panel):
     def switchToAllResults(self, event):
         self.add_exam.Hide()
         self.view_exams.Hide()
+        self.exam_stats.Hide()
 
         if self.add_marks_panel_added:
             self.add_marks.Hide()
@@ -134,10 +149,23 @@ class ExamsPanel(wx.Panel):
 
         self.Layout()
 
+    def switchToExamStatistics(self, event):
+        self.add_exam.Hide()
+        self.view_exams.Hide()
+        self.exam_results.Hide()
+
+        if self.add_marks_panel_added:
+            self.add_marks.Hide()
+
+        self.exam_stats.Show()
+
+        self.Layout()
+
     def switchToAddMarks(self, event):
         self.add_exam.Hide()
         self.view_exams.Hide()
         self.exam_results.Hide()
+        self.exam_stats.Hide()
 
         self.add_marks.Show()
 
