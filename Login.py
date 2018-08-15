@@ -207,7 +207,7 @@ class MySplashScreen(wx.SplashScreen):
         self.Bind(wx.EVT_CLOSE, self.OnExit)
 
         wx.Yield()
-# ----------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 
     def OnExit(self, evt):
         self.Hide()
@@ -217,7 +217,7 @@ class MySplashScreen(wx.SplashScreen):
         loginFrame.Show()
         # The program will freeze without this line.
         evt.Skip()  # Make sure the default handler runs too...
-# ----------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 
 
 class MyApp(wx.App):
@@ -226,7 +226,7 @@ class MyApp(wx.App):
         MySplash.Show()
 
         return True
-# ----------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 
 
 # app = MyApp(redirect=True, filename = "demo.log")
