@@ -49,8 +49,8 @@ def saveStudent(data):
 
         ret = False
 
-    # disconnect from server
-    db.close()
+    # # disconnect from server
+    # db.close()
 
     return ret
 
@@ -93,7 +93,7 @@ def editStudent(data):
 def deleteStudent(id):
     cursor = db.cursor()
 
-    sql = """ UPDATE users SET deleted = %s WHERE user_id = %s """
+    sql = """UPDATE users SET deleted = %s WHERE user_id = %s"""
 
     data = (1, id)
 

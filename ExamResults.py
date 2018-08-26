@@ -41,6 +41,16 @@ class ExamResults(wx.Panel):
         #
         #
         #
+        reset_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
+        reset_btn_sizer.Add(self.reset_btn, 2, wx.ALL, 5)
+
+        self.sbSizer2.Add(reset_btn_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        #
+        #
+        #
         self.year_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         year_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -152,6 +162,7 @@ class ExamResults(wx.Panel):
         self.Layout()
 
         # Connect Events
+        self.reset_btn.Bind(wx.EVT_BUTTON, self.resetForm)
         self.year.Bind(wx.EVT_COMBOBOX, self.yearSelected)
         self.term.Bind(wx.EVT_COMBOBOX, self.termSelected)
 
@@ -292,28 +303,44 @@ class ExamResults(wx.Panel):
     def resetForm(self, event):
         self.year.SetSelection(-1)
         self.term.SetSelection(-1)
-        self.select_exam.exam_name.SetSelection(-1)
-        self.select_form.form.SetSelection(-1)
-        self.select_class.class_name.SetSelection(-1)
-        self.select_subject.subject_name.SetSelection(-1)
 
         self.year.Enable(True)
         self.term.Enable(True)
-        self.select_exam.exam_name.Enable(True)
-        self.select_form.form.Enable(True)
 
         self.term_panel.Hide()
-        self.select_exam.Hide()
-        self.select_form.Hide()
-        self.select_class.Hide()
-        self.select_subject.Hide()
-        self.buttons_panel.Hide()
 
-        self.exam_panel_created = 0
-        self.form_panel_created = 0
-        self.class_panel_created = 0
-        self.subjects_panel_created = 0
-        self.buttons_panel_created = 0
+        if self.exam_panel_created:
+            self.select_exam.exam_name.SetSelection(-1)
+
+            self.select_exam.exam_name.Enable(True)
+
+            self.select_exam.Hide()
+
+            self.exam_panel_created = 0
+
+        if self.form_panel_created:
+            self.select_form.form.SetSelection(-1)
+            self.select_form.form.Enable(True)
+
+            self.select_form.Hide()
+
+            self.form_panel_created = 0
+
+        if self.class_panel_created:
+            self.select_class.class_name.SetSelection(-1)
+
+            self.select_class.Hide()
+
+            self.class_panel_created = 0
+
+        if self.subjects_panel_created:
+            self.select_subject.subject_name.SetSelection(-1)
+            self.select_subject.Hide()
+
+            self.subjects_panel_created = 0
+
+        if self.buttons_panel_created:
+            self.buttons_panel.Hide()
 
         self.exam_data = {
             "year":     0,
@@ -531,16 +558,16 @@ class ButtonsPanel(wx.Panel):
 
         btns_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        # self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
+        # btns_sizer.Add(self.reset_btn, 1, wx.ALL, 5)
+
+
         self.spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                     0)
         self.spacer.Wrap(-1)
         btns_sizer.Add(self.spacer, 1, wx.ALL, 5)
-
-        self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
-        btns_sizer.Add(self.reset_btn, 0, wx.ALL, 5)
-
         self.save_btn = wx.Button(self, wx.ID_ANY, u"Get Results", wx.DefaultPosition, wx.DefaultSize, 0)
-        btns_sizer.Add(self.save_btn, 0, wx.ALL, 5)
+        btns_sizer.Add(self.save_btn, 1, wx.ALL, 5)
 
         wrapper_sizer.Add(btns_sizer, 1, wx.EXPAND | wx.TOP, 15)
 
@@ -548,7 +575,7 @@ class ButtonsPanel(wx.Panel):
         self.Layout()
 
         # Connect Events
-        self.reset_btn.Bind(wx.EVT_BUTTON, self.parent.resetForm)
+        # self.reset_btn.Bind(wx.EVT_BUTTON, self.parent.resetForm)
         self.save_btn.Bind(wx.EVT_BUTTON, self.parent.getResults)
 
 
@@ -562,20 +589,21 @@ class ViewResults(wx.Panel):
         self.exam_data = exam_data
         self.deviation = deviation
 
-        mostImprovedLabel = ""
-        if mostImprovedData['nature'] == "Decline":
-            mostImprovedLabel = "Least Drop: (All Dropped)"
-        elif mostImprovedData['nature'] == "Improve":
-            mostImprovedLabel = "Most Improved:"
+        if mostImprovedData:
+            mostImprovedLabel = ""
+            if mostImprovedData['nature'] == "Decline":
+                mostImprovedLabel = "Least Drop: (All Dropped)"
+            elif mostImprovedData['nature'] == "Improve":
+                mostImprovedLabel = "Most Improved:"
 
-        mostImprovedStud = ""
+            mostImprovedStud = ""
 
-        for item in mostImprovedData['student_id']:
-            student = getStudentByID(item)
-            student_name = student['full_names'] + ", " + str(student['form']) + " " + student['class'] + "\n"
-            mostImprovedStud = mostImprovedStud + student_name
+            for item in mostImprovedData['student_id']:
+                student = getStudentByID(item)
+                student_name = student['full_names'] + ", " + str(student['form']) + " " + student['class'] + "\n"
+                mostImprovedStud = mostImprovedStud + student_name
 
-        mostImprvdPts = str(mostImprovedData['mark']) + " Points"
+            mostImprvdPts = str(mostImprovedData['mark']) + " Points"
 
         if self.exam_data['class_id'] == 0:
             exam_title = "FORM " + str(self.exam_data['form']) + "              " + self.exam_data['exam_name'] + " RESULTS"
@@ -693,7 +721,7 @@ class ViewResults(wx.Panel):
         examStatsSizer.Add(deviation_sizer, 0, wx.EXPAND, 5)
 
         # Show only if there are points in mostImprovedData['mark']
-        if mostImprovedData['mark'] != "--":
+        if mostImprovedData and mostImprovedData['mark'] != "--":
             #
             # MOST IMPROVED STUDENT
             most_improved_sizer = wx.BoxSizer(wx.HORIZONTAL)

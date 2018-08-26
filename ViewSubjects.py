@@ -10,7 +10,6 @@ from db.save_subject import editSubject, deleteSubject
 # sys.path.insert(0, r'/F:/PythonApps/Kangangu')
 
 
-
 ###########################################################################
 # Class ViewSubjects
 ###########################################################################
@@ -132,12 +131,10 @@ class ViewSubjects(wx.Panel):
     def updateSubjectsOLV(self, event):  # Refresh classes table
         """"""
         data = getSubjects()
-        print data
         self.subjectsOLV.SetObjects(data)
 
     def refreshTable(self, event):
         self.updateSubjectsOLV("")
-
 
     def searchSubjects(self, event):
         search = self.search_subjects.GetLineText(0)
@@ -269,7 +266,7 @@ class EditSubject(wx.Panel):
                                     0)
         btns_sizer.Add(self.cancel_btn, 0, wx.ALL, 10)
 
-        self.edit_subject = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Edit", wx.DefaultPosition, wx.DefaultSize,
+        self.edit_subject = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Save", wx.DefaultPosition, wx.DefaultSize,
                                       0)
         btns_sizer.Add(self.edit_subject, 0, wx.ALL, 10)
 
@@ -314,48 +311,54 @@ class EditSubject(wx.Panel):
 
         subject_alias = subject_alias.replace(" ", "")
 
-        # ---------- VALIDATION ----------
-        error = ""
+        # Check if a subject has been selected
+        if subject_id != "":
+            # ---------- VALIDATION ----------
+            error = ""
 
-        if subject_name == "":
-            error = error + "The Full Name field is required.\n"
+            if subject_name == "":
+                error = error + "The Full Name field is required.\n"
 
-        if subject_alias == "":
-            error = error + "The Subject Alias field required.\n"
+            if subject_alias == "":
+                error = error + "The Subject Alias field required.\n"
 
-        if compulsory_index == -1:
-            error = error + "The Compulsory field is required.\n"
+            if compulsory_index == -1:
+                error = error + "The Compulsory field is required.\n"
 
-        if error:
-            dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
-            dlg.ShowModal()
+            if error:
+                dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
+                dlg.ShowModal()
+
+            else:
+                compulsory = self.compulsory.GetString(compulsory_index)
+
+                if compulsory == "Yes":
+                    compulsory = 1
+                elif compulsory == "No":
+                    compulsory = 0
+                else:  # Partialy
+                    compulsory = 2
+
+                data = {
+                    "subject_id": subject_id,
+                    "subject_name": subject_name,
+                    "subject_alias": subject_alias,
+                    "compulsory": compulsory
+                }
+
+                if editSubject(data):
+                    dlg = wx.MessageDialog(None, "Subject Edited Successfully.", 'Success Message',
+                                           wx.OK | wx.ICON_INFORMATION)
+                    dlg.ShowModal()
+                    self.parent.updateSubjectsOLV("")
+                    self.cancelEditSubject("")
+                else:
+                    dlg = wx.MessageDialog(None, "Edit Failed. Try Again.", 'Failed.',
+                                           wx.OK | wx.ICON_ERROR)
+                    dlg.ShowModal()
 
         else:
-            compulsory = self.compulsory.GetString(compulsory_index)
-
-            if compulsory == "Yes":
-                compulsory = 1
-            else:
-                compulsory = 0
-
-            data = {
-                "subject_id": subject_id,
-                "subject_name": subject_name,
-                "subject_alias": subject_alias,
-                "compulsory": compulsory
-            }
-
-            if editSubject(data):
-                dlg = wx.MessageDialog(None, "Subject Edited Successfully.", 'Success Message',
-                                       wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                self.parent.updateSubjectsOLV("")
-                self.cancelEditSubject("")
-            else:
-                dlg = wx.MessageDialog(None, "Edit Failed. Try Again.", 'Failed.',
-                                       wx.OK | wx.ICON_ERROR)
-                dlg.ShowModal()
-
-
+            dlg = wx.MessageDialog(None, "Please select subject to edit.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+            dlg.ShowModal()
 
 

@@ -256,7 +256,7 @@ class ViewTeachers(wx.Panel):
                                     0)
         btns_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
 
-        self.edit_teacher = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Edit", wx.DefaultPosition, wx.DefaultSize,
+        self.edit_teacher = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Save", wx.DefaultPosition, wx.DefaultSize,
                                       0)
         btns_sizer.Add(self.edit_teacher, 0, wx.ALL, 5)
 

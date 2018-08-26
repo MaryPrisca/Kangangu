@@ -2,7 +2,7 @@ import wx
 import wx.xrc
 
 from db.get_classes import getClassNamesWithForm
-from db.get_subjects import getActiveSubjectAliases
+from db.get_subjects import getOptionalSubjects
 from db.subject_selection import *
 
 ###########################################################################
@@ -49,7 +49,7 @@ class SubjectSelection(wx.Panel):
         self.subject_label.Wrap(-1)
         form_sizer.Add(self.subject_label, 0, wx.ALL, 10)
 
-        self.subjects = getActiveSubjectAliases()
+        self.subjects = getOptionalSubjects()
 
         subjectChoices = self.subjects['names']
         self.subject = wx.ComboBox(form_sizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
@@ -281,7 +281,7 @@ class SelectionPanel(wx.Panel):
         self.parent.reRenderPreviewPanel(data)
 
     def cancelChosenSubjects(self, event):
-        """"""
+        self.parent.cancelSubjectSelection("")
 
     def saveChosenSubjects(self, event):
         student_data = self.student_fields

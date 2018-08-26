@@ -26,7 +26,7 @@ def saveExam(data):
 
         ret = False
 
-    db.close()
+    # db.close()
 
     return ret
 

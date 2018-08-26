@@ -225,6 +225,8 @@ class MyApp(wx.App):
         MySplash = MySplashScreen()
         MySplash.Show()
 
+        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+
         return True
 # ---------------------------------------------------------------------- #
 

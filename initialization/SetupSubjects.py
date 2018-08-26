@@ -21,6 +21,11 @@ class SetupSubjects(wx.Panel):
 
         container.Add(self.school_subjects_label, 0, wx.ALL | wx.EXPAND, 30)
 
+        self.navigation_disclaimer = wx.StaticText( self, wx.ID_ANY, u"(Please use buttons to navigate)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+        self.navigation_disclaimer.Wrap(-1)
+
+        container.Add(self.navigation_disclaimer, 0, wx.ALL | wx.EXPAND, 5)
+
         content_Sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         content_Sizer.AddSpacer((0, 0), 1, wx.EXPAND, 5)
@@ -36,7 +41,7 @@ class SetupSubjects(wx.Panel):
         self.subject_name_label = wx.StaticText(left_Sizer.GetStaticBox(), wx.ID_ANY, u"Subject Name",
                                                 wx.DefaultPosition, wx.DefaultSize, 0)
         self.subject_name_label.Wrap(-1)
-        left_Sizer.Add(self.subject_name_label, 1, wx.ALL, 5)
+        left_Sizer.Add(self.subject_name_label, 0, wx.ALL, 5)
 
         self.subject_textfield = wx.TextCtrl(left_Sizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                              wx.DefaultSize, wx.TE_PROCESS_ENTER)
@@ -50,6 +55,16 @@ class SetupSubjects(wx.Panel):
         self.subject_alias_textfield = wx.TextCtrl(left_Sizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
                                                    wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER)
         left_Sizer.Add(self.subject_alias_textfield, 0, wx.ALL | wx.EXPAND, 5)
+
+        checkboxes_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        compulsory_radio_boxChoices = [u"Yes", u"No", u"Partially (Only in lower forms)"]
+        self.compulsory_radio_box = wx.RadioBox(left_Sizer.GetStaticBox(), wx.ID_ANY, u"Subject Compulsory?",
+                                                wx.DefaultPosition, wx.DefaultSize, compulsory_radio_boxChoices, 1, 0)
+        self.compulsory_radio_box.SetSelection(0)
+        checkboxes_sizer.Add(self.compulsory_radio_box, 0, wx.ALL | wx.EXPAND, 5)
+
+        left_Sizer.Add(checkboxes_sizer, 1, wx.EXPAND | wx.TOP, 5)
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -107,6 +122,7 @@ class SetupSubjects(wx.Panel):
     def subjectAdded(self, event):
         subject_name = self.subject_textfield.GetLineText(0)
         subject_alias = self.subject_alias_textfield.GetLineText(0)
+        compulsory = self.compulsory_radio_box.GetSelection()
 
         # ----- VALIADATION -----
         error = ""
@@ -126,13 +142,17 @@ class SetupSubjects(wx.Panel):
         else:
             subject = {
                 'name': subject_name,
-                'alias': subject_alias
+                'alias': subject_alias,
+                'compulsory': compulsory
             }
 
             self.subjects.append(subject)
 
             self.subject_textfield.SetValue("")
             self.subject_alias_textfield.SetValue("")
+            self.compulsory_radio_box.SetSelection(0)
+
+            self.subject_textfield.SetFocus()
 
             self.refreshPreview("")
 
@@ -162,11 +182,11 @@ class PreviewSetUpSubjects(wx.Panel):
         count = 1
 
         for key, value in enumerate(subjects):  # adding subject list dynamically
-            self.preview_subjects[str(key)] = OneSubjectPreviewPanel(self, value)
+            self.preview_subjects[str(key)] = OneSubjectPreviewPanel(self, value, count)
 
             subject_list_sizer.Add(self.preview_subjects[str(key)], 0, wx.EXPAND, 5)
 
-            count = count + 1
+            count += 1
 
         self.SetSizer(subject_list_sizer)
         self.Layout()
@@ -184,12 +204,21 @@ class PreviewSetUpSubjects(wx.Panel):
 
 class OneSubjectPreviewPanel(wx.Panel):
 
-    def __init__(self, parent, subject):
+    def __init__(self, parent, subject, count):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
         self.subject = subject
-        subject_name = subject['name'] + " - " + subject['alias']
+
+        compulsory = ""
+        if subject['compulsory'] == 0:
+            compulsory = "Compulsory"
+        elif subject['compulsory'] == 1:
+            compulsory = "Optional"
+        elif subject['compulsory'] == 2:
+            compulsory = "Partial"
+
+        subject_name = str(count) + ". " + subject['name'] + " - " + subject['alias'] + ", " + compulsory
 
         subjectSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -201,11 +230,6 @@ class OneSubjectPreviewPanel(wx.Panel):
         self.subject_name = wx.StaticText(self, wx.ID_ANY, subject_name, wx.DefaultPosition, wx.DefaultSize, 0)
         self.subject_name.Wrap(-1)
         subjectSizer.Add(self.subject_name, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
-
-        self.subject_hidden_text = wx.TextCtrl(self, wx.ID_ANY, subject_name, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.subject_hidden_text.Hide()
-
-        subjectSizer.Add(self.subject_hidden_text, 0, wx.ALL, 5)
 
         self.SetSizer(subjectSizer)
         self.Layout()

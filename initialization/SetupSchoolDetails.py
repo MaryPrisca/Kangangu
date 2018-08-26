@@ -18,6 +18,11 @@ class SetupSchoolDetails(wx.Panel):
 
         container.Add(self.school_dets_label, 0, wx.ALL | wx.EXPAND, 30)
 
+        self.navigation_disclaimer = wx.StaticText( self, wx.ID_ANY, u"(Please use buttons to navigate)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+        self.navigation_disclaimer.Wrap(-1)
+
+        container.Add(self.navigation_disclaimer, 0, wx.ALL | wx.EXPAND, 5)
+
         content_Sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         content_Sizer.AddSpacer((0, 0), 1, wx.EXPAND, 5)

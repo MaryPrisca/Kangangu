@@ -237,18 +237,18 @@ def getAllResultsForExam(data, columns):
         # To get all classes ie if class_id =0, exam_id > 0 ie exam has been selected
         if data["class_id"] == 0 and data["exam_id"] > 0:
             sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, u.deleted   \
-                                       FROM exam_results er \
-                                       JOIN exams e ON e.exam_id = er.exam_id \
-                                       JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
-                                       JOIN classes c ON c.class_id = u.class_id AND c.form_name = %d AND u.deleted = %d \
-                                       WHERE e.exam_id = %d" % (0, int(data['form']), 0, data['exam_id'])
+                   FROM exam_results er \
+                   JOIN exams e ON e.exam_id = er.exam_id \
+                   JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
+                   JOIN classes c ON c.class_id = u.class_id AND c.form_name = %d AND u.deleted = %d \
+                   WHERE e.exam_id = %d" % (0, int(data['form']), 0, data['exam_id'])
         else:
             sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, u.deleted   \
-                                       FROM exam_results er \
-                                       JOIN exams e ON e.exam_id = er.exam_id \
-                                       JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
-                                       JOIN classes c ON c.class_id = u.class_id AND c.class_id = %d AND u.deleted = %d \
-                                       WHERE e.exam_id = %d" % (0, data['class_id'], 0, data['exam_id'])
+                   FROM exam_results er \
+                   JOIN exams e ON e.exam_id = er.exam_id \
+                   JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
+                   JOIN classes c ON c.class_id = u.class_id AND c.class_id = %d AND u.deleted = %d \
+                   WHERE e.exam_id = %d" % (0, data['class_id'], 0, data['exam_id'])
 
     else:
         # to create dynamic sum of all subjects eg IFNULL(Eng, 0)+IFNULL(Kis, 0)+IFNULL(Mat, 0)+...
@@ -537,28 +537,32 @@ def getMostImproved(prev_exam_data, curr_exam_data, subjects):
 
                 deviations[key] = dev
 
-    student_ids = deviations.keys()
-    devs = deviations.values()
+    if len(deviations):
+        student_ids = deviations.keys()
+        devs = deviations.values()
 
-    max_dev = max(devs)  # Most improved
+        max_dev = max(devs)  # Most improved
 
-    # Get all indexes in which max_dev occure (In case it occurs more than once
-    indices = [i for i, x in enumerate(devs) if x == max_dev]
+        # Get all indexes in which max_dev occure (In case it occurs more than once
+        indices = [i for i, x in enumerate(devs) if x == max_dev]
 
-    max_dev_student_ids = []
-    for item in indices:
-        max_dev_student_ids.append(student_ids[item])
+        max_dev_student_ids = []
+        for item in indices:
+            max_dev_student_ids.append(student_ids[item])
 
-    # Return the student id and the marks they improved by
-    ret = {
-        'student_id': max_dev_student_ids,
-        'mark': max_dev
-    }
+        # Return the student id and the marks they improved by
+        ret = {
+            'student_id': max_dev_student_ids,
+            'mark': max_dev
+        }
 
-    # Check if there was an improvement. If max dev is negative then all dropped, will return the least drop
-    if max_dev < 0:
-        ret['nature'] = "Decline"
+        # Check if there was an improvement. If max dev is negative then all dropped, will return the least drop
+        if max_dev < 0:
+            ret['nature'] = "Decline"
+        else:
+            ret['nature'] = "Improve"
+
+        return ret
+
     else:
-        ret['nature'] = "Improve"
-    # print ret
-    return ret
+        return False

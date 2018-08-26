@@ -3,6 +3,10 @@ from connect import db
 
 
 def saveSubject(data):
+    alias = data['subject_alias']
+    alias = ''.join(e for e in alias if e.isalnum())
+    data['subject_alias'] = alias
+
     data["deleted"] = "0"
 
     cursor = db.cursor()
@@ -37,7 +41,7 @@ def saveSubject(data):
 
         ret = False
 
-    db.close()
+    # db.close()
 
     return ret
 

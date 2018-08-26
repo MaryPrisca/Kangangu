@@ -36,6 +36,13 @@ class ViewStudents(wx.Panel):
 
         search_container = wx.BoxSizer(wx.HORIZONTAL)
 
+        self.refresh_btn = wx.BitmapButton(self, wx.ID_ANY,
+                                           wx.Bitmap(u"images/reload_16x16.bmp", wx.BITMAP_TYPE_ANY),
+                                           wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW)
+
+        self.refresh_btn.SetBitmapHover(wx.Bitmap(u"images/reload_16x16_rotated.bmp", wx.BITMAP_TYPE_ANY))
+        search_container.Add(self.refresh_btn, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
+
         self.m_staticText53 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText53.Wrap(-1)
         search_container.Add(self.m_staticText53, 1, wx.ALL, 5)
@@ -252,7 +259,7 @@ class ViewStudents(wx.Panel):
                                     0)
         edit_form_btns_sizer.Add(self.cancel_edit, 0, wx.ALL, 5)
 
-        self.save_student = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Edit", wx.DefaultPosition, wx.DefaultSize,
+        self.save_student = wx.Button(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Save", wx.DefaultPosition, wx.DefaultSize,
                                       0)
         edit_form_btns_sizer.Add(self.save_student, 0, wx.ALL, 5)
 
@@ -273,6 +280,9 @@ class ViewStudents(wx.Panel):
         container.Add(mainSizer, 1, wx.ALL, 5)
 
         self.SetSizer(container)
+
+        # Connect events
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.updateControl)
 
     # ----------------------------------------------------------------------
     def updateControl(self, event):

@@ -19,17 +19,27 @@ def getSubjects(search=""):
         else:
             cursor.execute(sql, ('%' + search + '%', '%' + search + '%',))
 
-        data = [{
-            'subject_id': row[0],
-            'subject_name': row[1],
-            'subject_alias': row[2],
-            'compulsory': "Yes" if row[3] == 1 else "No"
-            } for row in cursor.fetchall()]
+        dataArray = []
+        for row in cursor.fetchall():
+            if row[3] == 0:
+                compulsory = "No"
+            if row[3] == 1:
+                compulsory = "Yes"
+            if row[3] == 2:
+                compulsory = "Partially"
 
-        ret = data
+            data = {
+                'subject_id': row[0],
+                'subject_name': row[1],
+                'subject_alias': row[2],
+                'compulsory': compulsory
+            }
+
+            dataArray.append(data)
+
+        ret = dataArray
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        print 'e'
         ret = False
 
     return ret
@@ -41,6 +51,43 @@ def getActiveSubjectAliases():  # To be used in query for exam results
     sql = """SELECT `subject_alias`, `subject_name`, `subject_id`
                 FROM `subjects` 
                 WHERE deleted = 0"""
+
+    try:
+        cursor.execute(sql)
+
+        data = [item[0].lower() for item in cursor.fetchall()]
+
+        aliases = []
+        names = []
+        ids = []
+
+        for row in cursor:
+            aliases.append(row[0].lower().capitalize())
+            names.append(row[1])
+            ids.append(row[2])
+
+        data = {
+            "aliases": aliases,
+            "names": names,
+            "ids": ids
+        }
+
+        ret = data
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
+def getOptionalSubjects():  # used in query for subject selection
+    cursor = db.cursor()
+
+    sql = """SELECT `subject_alias`, `subject_name`, `subject_id`
+                FROM `subjects` 
+                WHERE compulsory NOT IN (1)
+                AND deleted = 0 """
 
     try:
         cursor.execute(sql)

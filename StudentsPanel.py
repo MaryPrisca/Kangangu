@@ -3,7 +3,8 @@ from AddStudent import AddStudent
 from ViewStudents import ViewStudents
 from SubjectSelection import SubjectSelection
 from StudentDashboard import StudentDashboard
-locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+from PromoteStudents import PromoteStudents
+# locale = wx.Locale(wx.LANGUAGE_ENGLISH)
 
 
 class StudentsPanel(wx.Panel):
@@ -12,7 +13,7 @@ class StudentsPanel(wx.Panel):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(500, 300),
                           style=wx.TAB_TRAVERSAL)
 
-        container = wx.BoxSizer(wx.VERTICAL)
+        self.container = wx.BoxSizer(wx.VERTICAL)
 
         bSizer78 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -42,6 +43,14 @@ class StudentsPanel(wx.Panel):
                                                      wx.NullBitmap, wx.ITEM_NORMAL, u"View All Details Per Student",
                                                      wx.EmptyString, None)
 
+        self.m_toolBar1.AddSeparator()
+
+        self.m_tool16 = self.m_toolBar1.AddLabelTool(wx.ID_ANY, u"Promote Students",
+                                                     wx.ArtProvider.GetBitmap(wx.ART_REDO, wx.ART_TOOLBAR),
+                                                     wx.NullBitmap, wx.ITEM_NORMAL,
+                                                     u"Move all students to their respective next classes.",
+                                                     wx.EmptyString, None)
+
         self.m_toolBar1.Realize()
 
         bSizer78.Add(self.m_toolBar1, 1, wx.EXPAND, 5)
@@ -56,23 +65,26 @@ class StudentsPanel(wx.Panel):
 
         bSizer78.Add(self.m_toolBar4, 0, wx.EXPAND, 5)
 
-        container.Add(bSizer78, 0, wx.EXPAND, 5)
+        self.container.Add(bSizer78, 0, wx.EXPAND, 5)
 
         # ------------ ADD PANELS ------------------
         self.add_student = AddStudent(self)
         self.view_students = ViewStudents(self)
         self.subject_selection = SubjectSelection(self)
         self.student_dashboard = StudentDashboard(self)
+        self.promote_students = PromoteStudents(self)
         self.add_student.Hide()
         self.subject_selection.Hide()
         self.student_dashboard.Hide()
+        self.promote_students.Hide()
 
-        container.Add(self.add_student, 1, wx.EXPAND)
-        container.Add(self.view_students, 1, wx.EXPAND)
-        container.Add(self.subject_selection, 1, wx.EXPAND)
-        container.Add(self.student_dashboard, 1, wx.EXPAND)
+        self.container.Add(self.add_student, 1, wx.EXPAND)
+        self.container.Add(self.view_students, 1, wx.EXPAND)
+        self.container.Add(self.subject_selection, 1, wx.EXPAND)
+        self.container.Add(self.student_dashboard, 1, wx.EXPAND)
+        self.container.Add(self.promote_students, 1, wx.EXPAND)
 
-        self.SetSizer(container)
+        self.SetSizer(self.container)
         self.Layout()
 
         # Connect Events
@@ -80,11 +92,18 @@ class StudentsPanel(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.switchToViewStudents, id=self.m_tool2.GetId())
         self.Bind(wx.EVT_TOOL, self.switchToSubjectSelection, id=self.subject_tool.GetId())
         self.Bind(wx.EVT_TOOL, self.switchToStudentDashboard, id=self.m_tool15.GetId())
+        self.Bind( wx.EVT_TOOL, self.switchToPromoteStudents, id = self.m_tool16.GetId() )
 
     def switchToAddStudent(self, event):
         self.view_students.Hide()
         self.subject_selection.Hide()
         self.student_dashboard.Hide()
+        self.promote_students.Hide()
+
+        self.add_student = AddStudent(self)
+        self.container.Add(self.add_student, 1, wx.EXPAND)
+        self.Layout()
+
         self.add_student.Show()
 
         self.Layout()
@@ -93,6 +112,7 @@ class StudentsPanel(wx.Panel):
         self.add_student.Hide()
         self.subject_selection.Hide()
         self.student_dashboard.Hide()
+        self.promote_students.Hide()
         self.view_students.Show()
 
         self.Layout()
@@ -101,6 +121,7 @@ class StudentsPanel(wx.Panel):
         self.add_student.Hide()
         self.view_students.Hide()
         self.student_dashboard.Hide()
+        self.promote_students.Hide()
         self.subject_selection.Show()
 
         self.Layout()
@@ -109,6 +130,16 @@ class StudentsPanel(wx.Panel):
         self.add_student.Hide()
         self.view_students.Hide()
         self.subject_selection.Hide()
+        self.promote_students.Hide()
         self.student_dashboard.Show()
+
+        self.Layout()
+
+    def switchToPromoteStudents(self, event):
+        self.add_student.Hide()
+        self.view_students.Hide()
+        self.subject_selection.Hide()
+        self.student_dashboard.Hide()
+        self.promote_students.Show()
 
         self.Layout()

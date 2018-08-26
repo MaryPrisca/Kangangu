@@ -75,6 +75,8 @@ def getClassNamesWithForm():
         ret = data
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        print cursor._last_executed
         ret = False
 
     return ret

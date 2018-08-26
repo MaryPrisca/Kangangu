@@ -30,8 +30,8 @@ def saveClass(data):
 
         ret = False
 
-    # disconnect from server
-    db.close()
+    # # disconnect from server
+    # db.close()
 
     return ret
 

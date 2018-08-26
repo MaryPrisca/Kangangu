@@ -34,8 +34,10 @@ class PreviewSetup(wx.Panel):
 
         subject_data = setup_data['subjects']
         subjects = ""
+        count = 1
         for subject in subject_data:
-            subjects = subjects + subject['name'] + " - " + subject['alias'] + "\n"
+            subjects =  subjects + str(count) + ". " + subject['name'] + " - " + subject['alias'] + "\n"
+            count = count+1
 
         container = wx.BoxSizer(wx.VERTICAL)
 
@@ -61,10 +63,13 @@ class PreviewSetup(wx.Panel):
 
         content_sizer.Add(self.school_name_label, 0, wx.BOTTOM | wx.EXPAND, 5)
 
+        self.sch_name_static_line = wx.StaticLine( sbSizer20.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+        content_sizer.Add(self.sch_name_static_line, 0, wx.EXPAND | wx.ALL, 5)
+
         self.school_name_text = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, setup_data['school_name'].upper(), wx.DefaultPosition,
                                               wx.DefaultSize, 0)
         self.school_name_text.Wrap(-1)
-        content_sizer.Add(self.school_name_text, 0, wx.BOTTOM, 15)
+        content_sizer.Add(self.school_name_text, 0, wx.BOTTOM | wx.LEFT, 15)
 
         self.classes_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Classes", wx.DefaultPosition,
                                            wx.DefaultSize, wx.ALIGN_CENTRE)
@@ -73,69 +78,84 @@ class PreviewSetup(wx.Panel):
 
         content_sizer.Add(self.classes_label, 0, wx.BOTTOM | wx.EXPAND, 5)
 
-        form_one_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.classes_static_line = wx.StaticLine( sbSizer20.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+        content_sizer.Add( self.classes_static_line, 0, wx.EXPAND|wx.ALL, 5 )
 
-        self.form_one_classes_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form One:",
-                                                    wx.DefaultPosition, wx.DefaultSize, 0)
-        self.form_one_classes_label.Wrap(-1)
-        self.form_one_classes_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+        wrapper_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        form_one_sizer.Add(self.form_one_classes_label, 1, wx.ALL | wx.EXPAND, 5)
+        left_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.form_one_classes_text = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_one_classes, wx.DefaultPosition,
-                                                   wx.DefaultSize, wx.ALIGN_RIGHT | wx.TE_MULTILINE)
-        self.form_one_classes_text.Wrap(-1)
-        form_one_sizer.Add(self.form_one_classes_text, 1, wx.ALL, 5)
+        form_one_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        content_sizer.Add(form_one_sizer, 0, wx.EXPAND, 5)
+        self.form_one_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form 1", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.form_one_label.Wrap(-1)
+        self.form_one_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        form_two_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        form_one_sizer.Add(self.form_one_label, 1, wx.EXPAND | wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
-        self.form_two_classes_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form Two:",
-                                                    wx.DefaultPosition, wx.DefaultSize, 0)
-        self.form_two_classes_label.Wrap(-1)
-        self.form_two_classes_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+        self.form_one_classes = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_one_classes, wx.DefaultPosition,
+                                              wx.DefaultSize, 0)
+        self.form_one_classes.Wrap(-1)
+        form_one_sizer.Add(self.form_one_classes, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
-        form_two_sizer.Add(self.form_two_classes_label, 1, wx.ALL, 5)
+        left_sizer.Add(form_one_sizer, 1, wx.EXPAND, 5)
 
-        self.form_two_classes_text = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_two_classes, wx.DefaultPosition,
-                                                   wx.DefaultSize, wx.ALIGN_RIGHT | wx.TE_MULTILINE)
-        self.form_two_classes_text.Wrap(-1)
-        form_two_sizer.Add(self.form_two_classes_text, 1, wx.ALL, 5)
+        form_three_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        content_sizer.Add(form_two_sizer, 0, wx.EXPAND, 5)
+        self.form_three_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form 3", wx.DefaultPosition,
+                                              wx.DefaultSize, 0)
+        self.form_three_label.Wrap(-1)
+        self.form_three_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        form_three_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        form_three_sizer.Add(self.form_three_label, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
-        self.form_three_classes_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form Three:",
-                                                      wx.DefaultPosition, wx.DefaultSize, 0)
-        self.form_three_classes_label.Wrap(-1)
-        self.form_three_classes_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+        self.form_three_classes = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_three_classes, wx.DefaultPosition,
+                                                wx.DefaultSize, 0)
+        self.form_three_classes.Wrap(-1)
+        form_three_sizer.Add(self.form_three_classes, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
-        form_three_sizer.Add(self.form_three_classes_label, 1, wx.EXPAND | wx.ALL, 5)
+        left_sizer.Add(form_three_sizer, 1, wx.EXPAND | wx.TOP, 5)
 
-        self.form_three_classes_text = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_three_classes,
-                                                     wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT | wx.TE_MULTILINE)
-        self.form_three_classes_text.Wrap(-1)
-        form_three_sizer.Add(self.form_three_classes_text, 1, wx.ALL, 5)
+        wrapper_sizer.Add(left_sizer, 2, wx.EXPAND|wx.TOP|wx.RIGHT|wx.LEFT, 10 )
 
-        content_sizer.Add(form_three_sizer, 0, wx.EXPAND, 5)
+        right_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        form_four_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        form_two_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.form_four_classes_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form Four:",
-                                                     wx.DefaultPosition, wx.DefaultSize, 0)
-        self.form_four_classes_label.Wrap(-1)
-        self.form_four_classes_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+        self.form_two_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form 2", wx.DefaultPosition,
+                                            wx.DefaultSize, 0)
+        self.form_two_label.Wrap(-1)
+        self.form_two_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        form_four_sizer.Add(self.form_four_classes_label, 1, wx.EXPAND | wx.ALL, 5)
+        form_two_sizer.Add(self.form_two_label, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
-        self.form_four_classes_text = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_four_classes, wx.DefaultPosition,
-                                                    wx.DefaultSize, wx.ALIGN_RIGHT | wx.TE_MULTILINE)
-        self.form_four_classes_text.Wrap(-1)
-        form_four_sizer.Add(self.form_four_classes_text, 1, wx.ALL, 5)
+        self.form_two_classes = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_two_classes, wx.DefaultPosition,
+                                              wx.DefaultSize, 0)
+        self.form_two_classes.Wrap(-1)
+        form_two_sizer.Add(self.form_two_classes, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
-        content_sizer.Add(form_four_sizer, 0, wx.EXPAND, 5)
+        right_sizer.Add(form_two_sizer, 1, wx.EXPAND, 5)
+
+        form_four_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.form_four_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Form 4", wx.DefaultPosition,
+                                             wx.DefaultSize, 0)
+        self.form_four_label.Wrap(-1)
+        self.form_four_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+
+        form_four_sizer.Add(self.form_four_label, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
+
+        self.form_four_classes = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, form_four_classes, wx.DefaultPosition,
+                                               wx.DefaultSize, 0)
+        self.form_four_classes.Wrap(-1)
+        form_four_sizer.Add(self.form_four_classes, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
+
+        right_sizer.Add(form_four_sizer, 1, wx.EXPAND | wx.TOP, 5)
+
+        wrapper_sizer.Add(right_sizer, 1, wx.EXPAND|wx.TOP|wx.RIGHT|wx.LEFT, 10 )
+
+        content_sizer.Add(wrapper_sizer, 0, wx.EXPAND, 5)
 
         self.subjects_label = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, u"Subjects", wx.DefaultPosition,
                                             wx.DefaultSize, wx.ALIGN_CENTRE)
@@ -144,10 +164,13 @@ class PreviewSetup(wx.Panel):
 
         content_sizer.Add(self.subjects_label, 0, wx.EXPAND | wx.ALL, 5)
 
+        self.subjects_static_line = wx.StaticLine( sbSizer20.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+        content_sizer.Add(self.subjects_static_line, 0, wx.EXPAND | wx.ALL, 5)
+
         self.subjects_list = wx.StaticText(sbSizer20.GetStaticBox(), wx.ID_ANY, subjects, wx.DefaultPosition,
                                            wx.DefaultSize, wx.TE_MULTILINE)
         self.subjects_list.Wrap(-1)
-        content_sizer.Add(self.subjects_list, 0, wx.ALL, 5)
+        content_sizer.Add(self.subjects_list, 0, wx.LEFT, 15 )
 
         sbSizer20.Add(content_sizer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 50)
 

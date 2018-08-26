@@ -39,6 +39,21 @@ class ExamStatistics(wx.Panel):
         #
         #
         #
+        reset_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                    0)
+        self.spacer.Wrap(-1)
+        reset_btn_sizer.Add(self.spacer, 1, wx.ALL, 5)
+
+        self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
+        reset_btn_sizer.Add(self.reset_btn, 2, wx.ALL, 5)
+
+        self.sbSizer2.Add(reset_btn_sizer, 0, wx.EXPAND | wx.ALL, 5)
+
+        #
+        #
+        #
         self.year_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         year_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -160,6 +175,7 @@ class ExamStatistics(wx.Panel):
         self.Layout()
 
         # Connect Events
+        self.reset_btn.Bind(wx.EVT_BUTTON, self.resetForm)
         self.year.Bind(wx.EVT_COMBOBOX, self.yearSelected)
         self.term.Bind(wx.EVT_COMBOBOX, self.termSelected)
 
@@ -322,30 +338,53 @@ class ExamStatistics(wx.Panel):
     def resetForm(self, event):
         self.year.SetSelection(-1)
         self.term.SetSelection(-1)
-        self.select_exam.exam_name.SetSelection(-1)
-        self.select_form.form.SetSelection(-1)
-        self.select_class.class_name.SetSelection(-1)
-        self.select_subject.subject_name.SetSelection(-1)
 
         self.year.Enable(True)
         self.term.Enable(True)
-        self.select_exam.exam_name.Enable(True)
-        self.select_form.form.Enable(True)
 
         self.term_panel.Hide()
-        self.select_exam.Hide()
-        self.select_form.Hide()
-        self.select_class.Hide()
-        self.select_subject.Hide()
-        self.comparison_panel.Hide()
-        self.buttons_panel.Hide()
 
-        self.exam_panel_created = 0
-        self.form_panel_created = 0
-        self.class_panel_created = 0
-        self.subjects_panel_created = 0
-        self.comparison_panel_created = 0
-        self.buttons_panel_created = 0
+        if self.exam_panel_created:
+            self.select_exam.exam_name.SetSelection(-1)
+            self.select_exam.exam_name.Enable(True)
+
+            self.select_exam.Hide()
+
+            self.exam_panel_created = 0
+
+        if self.form_panel_created:
+            self.select_form.form.SetSelection(-1)
+
+            self.select_form.Hide()
+            self.form_panel_created = 0
+
+        if self.class_panel_created:
+            self.select_class.class_name.SetSelection(-1)
+            self.select_form.form.Enable(True)
+
+            self.select_class.Hide()
+
+            self.class_panel_created = 0
+
+
+        if self.subjects_panel_created:
+            self.select_subject.subject_name.SetSelection(-1)
+
+            self.select_subject.Hide()
+
+            self.subjects_panel_created = 0
+
+        if self.comparison_panel_created:
+            self.comparison_panel.Hide()
+
+            self.comparison_panel_created = 0
+
+            self.comparison_panel_created = 0
+
+        if self.buttons_panel_created:
+            self.buttons_panel.Hide()
+
+            self.buttons_panel_created = 0
 
         self.exam_data = {
             "year":     0,
@@ -624,11 +663,11 @@ class ButtonsPanel(wx.Panel):
         self.spacer.Wrap(-1)
         btns_sizer.Add(self.spacer, 1, wx.ALL, 5)
 
-        self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
-        btns_sizer.Add(self.reset_btn, 0, wx.ALL, 5)
+        # self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
+        # btns_sizer.Add(self.reset_btn, 0, wx.ALL, 5)
 
         self.save_btn = wx.Button(self, wx.ID_ANY, u"Get Results", wx.DefaultPosition, wx.DefaultSize, 0)
-        btns_sizer.Add(self.save_btn, 0, wx.ALL, 5)
+        btns_sizer.Add(self.save_btn, 1, wx.ALL, 5)
 
         wrapper_sizer.Add(btns_sizer, 1, wx.EXPAND | wx.TOP, 15)
 
@@ -636,7 +675,6 @@ class ButtonsPanel(wx.Panel):
         self.Layout()
 
         # Connect Events
-        self.reset_btn.Bind(wx.EVT_BUTTON, self.parent.resetForm)
         self.save_btn.Bind(wx.EVT_BUTTON, self.parent.getResults)
 
 
