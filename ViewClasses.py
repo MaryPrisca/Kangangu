@@ -155,6 +155,7 @@ class ViewClasses(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             self.rowData = self.classesOLV.GetSelectedObject()
             rowObj = self.classesOLV.GetSelectedObject()
@@ -181,6 +182,7 @@ class ViewClasses(wx.Panel):
             dlg = wx.MessageDialog(None, "Click on a row to view students.", 'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             rowObj = self.classesOLV.GetSelectedObject()
             self.show_students.class_id = rowObj['class_id']
@@ -196,6 +198,7 @@ class ViewClasses(wx.Panel):
 
             dlg = wx.MessageDialog(None, "Are you sure?", 'Warning Message.', wx.YES_NO | wx.ICON_WARNING)
             retCode = dlg.ShowModal()
+            dlg.Destroy()
 
             if retCode == wx.ID_YES:
                 # check whether class has students
@@ -203,22 +206,23 @@ class ViewClasses(wx.Panel):
                     dlg = wx.MessageDialog(None, "You cannot delete a class that has students.", 'Error Message.',
                                            wx.OK | wx.ICON_EXCLAMATION)
                     dlg.ShowModal()
+                    dlg.Destroy()
                 else:
                     if deleteClass(rowObj["class_id"]):
                         dlg = wx.MessageDialog(None, "Class deleted successfully.", 'Success Message.',
                                                wx.OK | wx.ICON_EXCLAMATION)
                         dlg.ShowModal()
+                        dlg.Destroy()
 
                         self.updateClassesOLV("")
             else:
-                dlg.Destroy()
                 rowObj=""
-
 
         else:
             dlg = wx.MessageDialog(None, "Click on a row to delete a class.", 'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
 
 
 class EditClass(wx.Panel):
@@ -342,6 +346,7 @@ class EditClass(wx.Panel):
         if class_id == "":  # Check that a class has been selected before starting validation
             dlg = wx.MessageDialog(None, "Please select a class to edit.", 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
             self.cancelEditClass("")
         else:
             error = ""
@@ -354,6 +359,7 @@ class EditClass(wx.Panel):
             if error:
                 dlg = wx.MessageDialog(None, error, 'Validation Error.', wx.OK | wx.ICON_EXCLAMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
             else:
                 data = {
                     "class_id": class_id,
@@ -369,11 +375,13 @@ class EditClass(wx.Panel):
                         """"""
                         self.parent.updateClassesOLV("")
                         self.cancelEditClass("")
+                    dlg.Destroy()
 
                 else:
                     dlg = wx.MessageDialog(None, "Edit Failed. Try again.", 'Error Message.',
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
 
 class ViewClassStudents(wx.Panel):

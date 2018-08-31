@@ -7,20 +7,14 @@ def getStudents(class_id=0, search=""):
     cursor = db.cursor()
 
     if class_id > 0:
-        sql = """SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name
+        sql = """SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name, reg_no
                     FROM `users` u
                     JOIN classes c
                         ON c.class_id = u.class_id AND c.class_id='%s'
                     WHERE u.deleted = 0 AND c.deleted = 0 AND role='%s'""" % (class_id, 'student')
-    # elif search != "":
-    #     sql = """SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name
-    #                 FROM `users` u
-    #                 JOIN classes c
-    #                     ON c.class_id = u.class_id AND c.deleted = 0
-    #                 WHERE u.deleted = 0 AND (first_name LIKE %s OR last_name LIKE %s OR surname LIKE %s OR dob LIKE %s)"""
 
     else:
-        sql = """SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name
+        sql = """SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name, reg_no
                     FROM `users` u
                     JOIN classes c
                         ON c.class_id = u.class_id
@@ -28,8 +22,7 @@ def getStudents(class_id=0, search=""):
 
     try:
         if search != "":
-            # cursor.execute(sql, ('%' + search + '%',))
-            cursor.execute("SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name \
+            cursor.execute("SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name, reg_no \
                            FROM `users` u JOIN classes c ON c.class_id = u.class_id AND c.deleted = 0 \
                            WHERE u.deleted = 0 AND role=%s AND (first_name LIKE %s OR last_name LIKE %s OR surname LIKE %s OR dob LIKE %s or class_name LIKE %s or form_name LIKE %s)", \
                            ('student', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%',))
@@ -46,7 +39,8 @@ def getStudents(class_id=0, search=""):
             'gender': "Male" if row[5] == "M" else "Female",
             'class_id': row[6],
             'class': row[7],
-            'form': row[8]} for row in cursor.fetchall()]
+            'form': row[8],
+            'reg_no': row[9]} for row in cursor.fetchall()]
         # data = [[row[0], row[1], row[2], row[3], row[4], row[5], row[6]] for row in cursor.fetchall()]
 
         ret = data
@@ -64,7 +58,7 @@ def getStudentByIDAllDetails(id):
     cursor = db.cursor()
 
     sql = """SELECT `user_id`,`first_name`, `last_name`, `surname`, `dob`, `gender`, u.class_id, `subjects_taken`, `kcpe_marks`, 
-                    `birth_cert_no`, `next_of_kin_name`, `next_of_kin_phone`, `address`, `created_at`, class_name, form_name
+                    `birth_cert_no`, `next_of_kin_name`, `next_of_kin_phone`, `address`, `created_at`, class_name, form_name, reg_no
                 FROM `users` u
                 JOIN classes c
                     ON c.class_id = u.class_id
@@ -89,7 +83,8 @@ def getStudentByIDAllDetails(id):
             'address': "" if row[12] is None else row[12],
             'created_at': row[13],
             'class': row[14],
-            'form': row[15]} for row in cursor.fetchall()]
+            'form': row[15],
+            'reg_no': row[16]} for row in cursor.fetchall()]
 
         ret = data[0]
 
@@ -105,7 +100,7 @@ def getStudentByID(id):
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
 
-    sql = """SELECT first_name, last_name, surname, class_name, form_name
+    sql = """SELECT first_name, last_name, surname, class_name, form_name, reg_no
                         FROM `users` u
                         JOIN classes c
                             ON c.class_id = u.class_id
@@ -117,7 +112,8 @@ def getStudentByID(id):
         data = [{
             'full_names': row[2] + " " + row[0] + " " + row[1],
             'class': row[3],
-            'form': row[4]} for row in cursor.fetchall()]
+            'form': row[4],
+            'reg_no': row[5]} for row in cursor.fetchall()]
 
         ret = data[0]
 

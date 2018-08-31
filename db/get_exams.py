@@ -7,10 +7,10 @@ def getAllExams(search=""):
 
     if search == "":
         sql = """SELECT `exam_id`, `exam_name`, `form`, `term`, `year`, `created_at`, `deleted` FROM `exams`
-                    WHERE deleted = 0"""
+                    WHERE deleted = 0 ORDER BY year DESC"""
     else:
         sql = """SELECT `exam_id`, `exam_name`, `form`, `term`, `year`, `created_at`, `deleted` FROM `exams`
-                        WHERE deleted = 0 AND (exam_name LIKE %s OR form LIKE %s)"""
+                        WHERE deleted = 0 AND (exam_name LIKE %s OR form LIKE %s) ORDER BY year DESCgetPreviousExam"""
     try:
         if search == "":
             cursor.execute(sql)
@@ -34,22 +34,30 @@ def getAllExams(search=""):
     return ret
 
 
-def getExamsInForm(form):
-    if form == "1":
-        form = "One"
-    elif form == "2":
-        form = "Two"
-    elif form == "3":
-        form = "Three"
-    elif form == "4":
-        form = "Four"
-    else:
-        form = ""
+def getExamsInForm(form, year, curr_exam_id):
 
     cursor = db.cursor()
 
+    condition = ""
+
+    # To generate query like "...AND ((form = 4 AND year = 2018) OR (form = 3 AND year = 2017) OR ...)
+    if form == "1":
+        condition = condition + " form = 1 AND year = " + year
+
+    if form == "2":
+        form1yr = str(int(year) - 1)
+        condition = condition + " ((form = 2 AND year = " + year + ") OR (form = 1 AND year = " + form1yr + "))"
+
+    if form == "3":
+        form2yr = str(int(year) - 1)
+        form1yr = str(int(year) - 2)
+        condition = condition + " ((form = 3 AND year = " + year + ") OR (form = 2 AND year = " + form2yr + ") OR (form = 1 AND year = " + form1yr + "))"
+
+    # sql = """SELECT `exam_id`, `exam_name`, `form`, `term`, `year`, `created_at`, `deleted` FROM `exams`
+    #             WHERE deleted = 0 AND %s ORDER BY year DESC""" % (form)
+
     sql = """SELECT `exam_id`, `exam_name`, `form`, `term`, `year`, `created_at`, `deleted` FROM `exams`
-                WHERE deleted = 0 AND (form = '%s' OR form = '%s') ORDER BY year DESC""" % (form, "All")
+                WHERE deleted = 0 AND %s AND exam_id NOT IN (%s) ORDER BY year DESC""" % (condition, curr_exam_id)
 
     try:
         cursor.execute(sql)
@@ -57,6 +65,7 @@ def getExamsInForm(form):
         ids = []
         full_names = []
         exam_name = []
+        forms = []
         term = []
         year = []
 
@@ -64,6 +73,7 @@ def getExamsInForm(form):
             ids.append(row[0])
             full_names.append(" Term " + row[3] + " " + row[1] + ", " + str(row[4]))
             exam_name.append(row[1])
+            forms.append(row[2])
             term.append(row[3])
             year.append(row[4])
 
@@ -71,6 +81,7 @@ def getExamsInForm(form):
             "ids": ids,
             "full_names": full_names,
             "exam_names": exam_name,
+            "forms": forms,
             "terms": term,
             "years": year,
         }
@@ -85,21 +96,11 @@ def getExamsInForm(form):
 
 
 def getExamsInFormAndYear(form, year):
-    if form == "1" or form == 1:
-        form = "One"
-    elif form == "2" or form == 2:
-        form = "Two"
-    elif form == "3" or form == 3:
-        form = "Three"
-    elif form == "4" or form == 4:
-        form = "Four"
-    else:
-        form = ""
 
     cursor = db.cursor()
 
     sql = """SELECT `exam_id`, `exam_name`, `form`, `term`, `year`, `created_at`, `deleted` FROM `exams`
-                WHERE deleted = 0 AND (form = '%s' OR form = '%s') AND year = %s ORDER BY year DESC""" % (form, "All", year)
+                WHERE deleted = 0 AND form = '%s' AND year = %s ORDER BY year DESC""" % (form, year)
 
     try:
         cursor.execute(sql)
@@ -143,31 +144,52 @@ def getExamsInFormAndYear(form, year):
 
 def getPreviousExam(data):  # Most previous similar exam. Ie same form. To get deviation.
 
-    if data['form'] == "1":
-        form = "One"
-    elif data['form'] == "2":
-        form = "Two"
-    elif data['form'] == "3":
-        form = "Three"
-    elif data['form'] == "4":
-        form = "Four"
-    else:
-        form = "0"
-
     cursor = db.cursor()
 
+    condition = ""
+
+    # To generate query like "...AND ((form = 4 AND year = 2018) OR (form = 3 AND year = 2017) OR ...)
+    if data['form'] == "1":
+        condition = condition + " form = 1 AND year = " + data['year']
+
+    if data['form'] == "2":
+        form1yr = str(int(data['year']) - 1)
+        condition = condition + " ((form = 2 AND year = " + data['year'] + ") OR (form = 1 AND year = " + form1yr + "))"
+
+    if data['form'] == "3":
+        form2yr = str(int(data['year']) - 1)
+        form1yr = str(int(data['year']) - 2)
+        condition = condition + " ((form = 3 AND year = " + data['year'] + ") " \
+                                            "OR (form = 2 AND year = " + form2yr + ") " \
+                                            "OR (form = 1 AND year = " + form1yr + "))"
+    if data['form'] == "4":
+        form3yr = str(int(data['year']) - 1)
+        form2yr = str(int(data['year']) - 2)
+        form1yr = str(int(data['year']) - 3)
+        condition = condition + " ((form = 4 AND year = " + data['year'] + ") " \
+                                        "OR (form = 3 AND year = " + form3yr + ") " \
+                                        "OR (form = 2 AND year = " + form2yr + ") " \
+                                        "OR (form = 1 AND year = " + form1yr + "))"
+
+    # sql = """SELECT `exam_id`, `exam_name`, `form`, `term`, `year`
+    #             FROM `exams`
+    #             WHERE deleted = 0
+    #             AND exam_id < %s
+    #             AND form = '%s'
+    #             ORDER BY exam_id DESC """ % (data['exam_id'], data['form'])
+
     sql = """SELECT `exam_id`, `exam_name`, `form`, `term`, `year`  
-                FROM `exams` 
-                WHERE deleted = 0 
-                AND (form = '%s' OR form = "All") 
-                AND exam_id < %s
-                ORDER BY exam_id DESC """ % (form, data['exam_id'])
+                    FROM `exams` 
+                    WHERE deleted = 0 
+                    AND exam_id < %s
+                    AND %s 
+                    ORDER BY exam_id DESC """ % (data['exam_id'], condition)
 
     try:
         cursor.execute(sql)
 
         if cursor.rowcount < 1:
-            ret = 0
+            ret = False
         else:
             data = [{
                 'exam_id': row[0],

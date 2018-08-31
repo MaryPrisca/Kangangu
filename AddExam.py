@@ -174,9 +174,10 @@ class AddExam(wx.Panel):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
         else:
-            form = self.form.GetString(formIndex)
+            form = formIndex
             term = self.term.GetString(termIndex)
 
             data = {
@@ -190,11 +191,14 @@ class AddExam(wx.Panel):
                 dlg = wx.MessageDialog(None, "Exam Added Successfully.", 'Success Message',
                                        wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
                 self.cancelAddExam("")
             else:
-                dlg = wx.MessageDialog(None, "Exam Not Saved. Try Again.", 'Failed',
+                dlg = wx.MessageDialog(None, "Exam may not have been saved correctly. \n "
+                                             "Refresh exams table on the previous tab to confirm before trying again.", 'Failed',
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
+                dlg.Destroy()
 
 
 

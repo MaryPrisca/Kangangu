@@ -230,35 +230,31 @@ class ExamStatistics(wx.Panel):
 
                 self.exam_data['year'] = 0
                 self.exam_data['term'] = ""
+            dlg.Destroy()
 
     #
     # ---------------------------------------------------------
     def examSelected(self, event):
-
-        if not self.form_panel_created:
-            self.select_form = SelectForm(self)
-            self.sbSizer2.Add(self.select_form, 0, wx.EXPAND | wx.ALL, 5)
-            self.Layout()
-
-            self.form_panel_created = 1  # change to 1 so it's not created again
-
         exam = self.select_exam.exam_name.GetCurrentSelection()  # get index of exam selected
         exam_id = self.select_exam.examDets['ids'][exam]
+        form = self.select_exam.examDets['forms'][exam]
 
         exam_name = self.select_exam.exam_name.GetStringSelection()
 
         self.exam_data['exam_id'] = exam_id
         self.exam_data['exam_name'] = exam_name
-
-    #
-    # ---------------------------------------------------------
-    def formSelected(self, event):
-        form = self.select_form.form.GetCurrentSelection() + 1
-
         self.exam_data['form'] = form
 
+        # Add Form and class panels concurrently because form will be disabled.
+        if not self.form_panel_created:
+            self.select_form = SelectForm(self, form)
+            self.sbSizer2.Add(self.select_form, 0, wx.EXPAND | wx.ALL, 5)
+            self.Layout()
+
+            self.form_panel_created = 1  # change to 1 so it's not created again
+
         if not self.class_panel_created:
-            self.select_class = SelectClass(self, form)
+            self.select_class = SelectClass(self, int(form))
             self.sbSizer2.Add(self.select_class, 0, wx.EXPAND | wx.ALL, 5)
             self.Layout()
 
@@ -267,6 +263,25 @@ class ExamStatistics(wx.Panel):
             #  Disable changing exam and form to avoid inconsistency
             self.select_exam.exam_name.Enable(False)
             self.select_form.form.Enable(False)
+
+    #
+    # ---------------------------------------------------------
+    def formSelected(self, event):
+        """"""
+        # form = self.select_form.form.GetCurrentSelection() + 1
+        #
+        # self.exam_data['form'] = form
+        #
+        # if not self.class_panel_created:
+        #     self.select_class = SelectClass(self, form)
+        #     self.sbSizer2.Add(self.select_class, 0, wx.EXPAND | wx.ALL, 5)
+        #     self.Layout()
+        #
+        #     self.class_panel_created = 1  # change to 1 so it's not created again
+        #
+        #     #  Disable changing exam and form to avoid inconsistency
+        #     self.select_exam.exam_name.Enable(False)
+        #     self.select_form.form.Enable(False)
 
     #
     # ---------------------------------------------------------
@@ -296,7 +311,7 @@ class ExamStatistics(wx.Panel):
     # ---------------------------------------------------------
     def subjectSelected(self, event):
         if not self.comparison_panel_created:
-            self.comparison_panel = SelectComparisonExam(self, str(self.exam_data['form']))
+            self.comparison_panel = SelectComparisonExam(self, str(self.exam_data['form']), self.exam_data['year'], self.exam_data['exam_id'])
             self.sbSizer2.Add(self.comparison_panel, 0, wx.EXPAND | wx.ALL, 5)
             self.Layout()
             self.comparison_panel_created = 1  # change to 1 so it's not created again
@@ -325,12 +340,14 @@ class ExamStatistics(wx.Panel):
 
         comp_exam_id = self.comparison_panel.comparisonExamDets['ids'][comp_exam_index]
         comp_exam_name = self.comparison_panel.comparisonExamDets['exam_names'][comp_exam_index]
+        comp_exam_form = self.comparison_panel.comparisonExamDets['forms'][comp_exam_index]
         comp_exam_term = self.comparison_panel.comparisonExamDets['terms'][comp_exam_index]
         comp_exam_year = self.comparison_panel.comparisonExamDets['years'][comp_exam_index]
 
         self.prev_exam_data['exam_id'] = comp_exam_id
         self.prev_exam_data['exam_name'] = comp_exam_name
         self.prev_exam_data['term'] = comp_exam_term
+        self.prev_exam_data['form'] = comp_exam_form
         self.prev_exam_data['year'] = comp_exam_year
 
     #
@@ -365,7 +382,6 @@ class ExamStatistics(wx.Panel):
             self.select_class.Hide()
 
             self.class_panel_created = 0
-
 
         if self.subjects_panel_created:
             self.select_subject.subject_name.SetSelection(-1)
@@ -406,32 +422,35 @@ class ExamStatistics(wx.Panel):
     # ---------------------------------------------------------
     def getResults(self, event):
         # To get mean of most previous exam
-        # 1. Get previous exam's exam_id if comparison exam not selected
+
+        # 1. Get previous exam's details if comparison exam not selected
 
         if self.comparison_panel.comparison_exam_name.GetCurrentSelection() == -1:  # Not selected
             prev_exam_details = getPreviousExam(self.exam_data)
 
-            prev_exam_id = prev_exam_details['exam_id']
-            prev_exam_name = prev_exam_details['exam_name']
-            prev_exam_term = prev_exam_details['term']
-            prev_exam_year = prev_exam_details['year']
-        else:
-            prev_exam_id = self.prev_exam_data['exam_id']
-            prev_exam_name = self.prev_exam_data['exam_name']
-            prev_exam_term = self.prev_exam_data['term']
-            prev_exam_year = self.prev_exam_data['year']
+            if prev_exam_details:
+                self.prev_exam_data = {
+                    "year": prev_exam_details['year'],
+                    "term": prev_exam_details['term'],
+                    "exam_id": prev_exam_details['exam_id'],
+                    "exam_name": prev_exam_details['exam_name'],
+                    "form": prev_exam_details['form'],
+                    "class_id": self.exam_data['class_id'],
+                    "class_name": self.exam_data['class_name'],
+                    "subject_alias": self.exam_data['subject_alias'],
+                }
 
-        # Set exam details of prev/comparison exam. Only exam id changes
-        self.prev_exam_data = {
-            "year": prev_exam_year,
-            "term": prev_exam_term,
-            "exam_id": prev_exam_id,
-            "exam_name": prev_exam_name,
-            "form": self.exam_data['form'],
-            "class_id": self.exam_data['class_id'],
-            "class_name": self.exam_data['class_name'],
-            "subject_alias": self.exam_data['subject_alias'],
-        }
+        else:
+            self.prev_exam_data = {
+                "year": self.prev_exam_data['year'],
+                "term": self.prev_exam_data['term'],
+                "exam_id": self.prev_exam_data['exam_id'],
+                "exam_name": self.prev_exam_data['exam_name'],
+                "form": self.prev_exam_data['form'],
+                "class_id": self.exam_data['class_id'],
+                "class_name": self.exam_data['class_name'],
+                "subject_alias": self.exam_data['subject_alias'],
+            }
 
         # check if there are results
         if self.exam_data["subject_alias"] == "All":
@@ -461,27 +480,57 @@ class ExamStatistics(wx.Panel):
 
         exam_data = getExamResults(self.exam_data, subjects)
 
+        # Check whether the main exam selected has results
         if exam_data:
-            if self.results_panel_created == 0:
-                self.show_results = ViewResults(self, mean, self.exam_data, deviation)
-                self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
 
-                self.Layout()
+            # check whether there's an prev exam id to compare results with
+            if self.prev_exam_data['exam_id']:
 
-                self.results_panel_created = 1
+                # Check whether the comparison exam selected has results
+                if getExamResults(self.prev_exam_data, subjects):
+
+                    if self.results_panel_created == 0:
+                        self.show_results = ViewResults(self, mean, self.exam_data, deviation)
+                        self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
+
+                        self.Layout()
+
+                        self.results_panel_created = 1
+
+                    else:
+                        self.show_results.Destroy()
+                        self.show_results = ViewResults(self, mean, self.exam_data, deviation)
+                        self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
+
+                        self.Layout()
+
+                    self.show_results.setExamResults()
+                    self.show_results.updateResultsOLV("")
+
+                else:
+                    dlg = wx.MessageDialog(None, "No results in comparison exam. Try a different exam.", 'Error Message.',
+                                           wx.OK | wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+
             else:
-                self.show_results.Destroy()
-                self.show_results = ViewResults(self, mean, self.exam_data, deviation)
-                self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
+                # Ask user to select comparison exam if the drop down has data
+                if len(self.comparison_panel.comparisonExamNames): # Has data
+                    dlg = wx.MessageDialog(None, "Please select exam to compare results with.", 'Message.',
+                                           wx.OK | wx.ICON_INFORMATION)
+                    dlg.ShowModal()
+                    dlg.Destroy()
 
-                self.Layout()
+                else:  # Else ask them to try a diff exam
+                    dlg = wx.MessageDialog(None, "There is no exam to compare results with. \nTry a different exam.", 'Error Message.',
+                                           wx.OK | wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
 
-            self.show_results.setExamResults()
-            self.show_results.updateResultsOLV("")
         else:
-            dlg = wx.MessageDialog(None, "No results found. Try a different class.", 'Error Message.', wx.OK | wx.ICON_ERROR)
+            dlg = wx.MessageDialog(None, "No results found. Try a different class/exam.", 'Error Message.', wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
-            self.select_class.class_name.SetSelection(-1)
+            dlg.Destroy()
 
 
 class SelectExam(wx.Panel):
@@ -504,7 +553,7 @@ class SelectExam(wx.Panel):
 
         self.examDets = getExamsinTerm(self.data['term'], self.data['year'])
 
-        self.exam_nameChoices = self.examDets['names']
+        self.exam_nameChoices = self.examDets['names_n_form']
 
         self.exam_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                      self.exam_nameChoices, wx.CB_READONLY)
@@ -519,7 +568,7 @@ class SelectExam(wx.Panel):
 
 class SelectForm(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, form):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
@@ -530,9 +579,11 @@ class SelectForm(wx.Panel):
         self.form_label.Wrap(-1)
         form_sizer.Add(self.form_label, 1, wx.ALL, 5)
 
-        formChoices = [u"One", u"Two", u"Three", u"Four"]
+        formChoices = [u"1", u"2", u"3", u"4"]
         self.form = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, formChoices,
                                 wx.CB_READONLY)
+        self.form.SetStringSelection(form)
+        self.form.Enable(False)
         form_sizer.Add(self.form, 2, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(form_sizer)
@@ -602,7 +653,7 @@ class SelectSubject(wx.Panel):
 
 class SelectComparisonExam(wx.Panel):
 
-    def __init__(self, parent, form):
+    def __init__(self, parent, form, year, exam_id):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
@@ -630,7 +681,7 @@ class SelectComparisonExam(wx.Panel):
         self.comparison_exam_label.Wrap(-1)
         comparison_exam_sizer.Add(self.comparison_exam_label, 1, wx.ALL, 5)
 
-        self.comparisonExamDets = getExamsInForm(form)
+        self.comparisonExamDets = getExamsInForm(form, year, exam_id)
 
         self.comparisonExamNames = self.comparisonExamDets['full_names']
 
@@ -818,7 +869,7 @@ class ViewResults(wx.Panel):
     def setExamResults(self, data=None):
 
         columns_array = [
-            ColumnDefn("Mean/Deviation", "left", 130, "subject"),
+            ColumnDefn("Mean/Deviation", "left", 250, "subject"),
         ]
 
         if self.parent.exam_data['subject_alias'] != "":

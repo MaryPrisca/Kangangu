@@ -8,6 +8,7 @@ from db.subject_selection import updateSubjectsTakenOneStudent
 # Class StudentSubjects
 ###########################################################################
 
+
 class StudentSubjects(wx.Panel):
 
     def __init__(self, parent, student):
@@ -88,6 +89,7 @@ class StudentSubjects(wx.Panel):
                                        'Warning Message.',
                                        wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             subject_id = self.subjectsIDs[subjectIndex]
             print subjectIndex
@@ -107,6 +109,7 @@ class StudentSubjects(wx.Panel):
                                        'Success Message.',
                                        wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
 
                 self.cancelDropSubject("")
             else:
@@ -114,6 +117,7 @@ class StudentSubjects(wx.Panel):
                                        'Warning Message.',
                                        wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
+                dlg.Destroy()
 
 
 

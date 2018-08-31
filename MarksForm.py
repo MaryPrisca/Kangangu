@@ -252,10 +252,12 @@ class MarksForm(wx.Panel):
             dlg = wx.MessageDialog(None, "Marks Entered Successfully.", 'Success Message',
                                    wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             dlg = wx.MessageDialog(None, "Some marks may not have been saved, Confirm before exit.", 'Warning',
                                    wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
 
 class StudentMarks(wx.Panel):

@@ -37,13 +37,15 @@ def getSetupData(setup_data):
         saveOneForm(key+1, len(value))
 
         for class_name in value:
+            if class_name == "No Streams":
+                class_name = "Form " + str(key+1)
             saveOneClass(class_name, key+1)
 
     # save subjects
     for subject in setup_data['subjects']:
         saveOneSubject(subject)
 
-    saveSchDetails(setup_data['school_name'])
+    saveSchDetails(setup_data['school_name'], setup_data['subjects_lower_form'])
 
 
 def saveAdminDetails(data):
@@ -186,13 +188,14 @@ def saveOneSubject(data):
     return ret
 
 
-def saveSchDetails(school_name):
+def saveSchDetails(school_name, no_of_subjects):
     cursor = db.cursor()
 
-    sql = """INSERT INTO `system_setup`(`id`, `school_name`, `school_logo`, `setup_complete`) VALUES (%s, %s, %s, %s)"""
+    sql = """INSERT INTO `system_setup`(`id`, `school_name`, `subjects_lower_forms`, `setup_complete`) 
+                VALUES (%s, %s, %s, %s)"""
 
     try:
-        cursor.execute(sql, (0, school_name, "", 1))
+        cursor.execute(sql, (0, school_name, no_of_subjects, 1))
         db.commit()
 
         ret = True

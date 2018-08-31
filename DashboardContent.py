@@ -33,9 +33,6 @@ class DashboardContent(wx.Panel):
         self.drop_subject_btn = wx.Button(self, wx.ID_ANY, u"Drop Subject", wx.DefaultPosition, wx.DefaultSize, 0)
         left_menu_sizer.Add(self.drop_subject_btn, 1, wx.EXPAND, 5)
 
-        self.m_button51 = wx.Button(self, wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0)
-        left_menu_sizer.Add(self.m_button51, 1, wx.EXPAND, 5)
-
         left_menu_sizer.AddSpacer((0, 0), 12, wx.EXPAND, 5)
 
         outer_sizer.Add(left_menu_sizer, 0, wx.EXPAND | wx.LEFT, 15)
@@ -90,19 +87,19 @@ class DashboardContent(wx.Panel):
         self.m_staticline72 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
         profile_left_sizer.Add(self.m_staticline72, 0, wx.EXPAND | wx.LEFT, 5)
 
-        kcpe_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        reg_no_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.kcpe_label = wx.StaticText(self, wx.ID_ANY, u"KCPE:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.kcpe_label.Wrap(-1)
-        self.kcpe_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+        self.reg_no_label = wx.StaticText(self, wx.ID_ANY, u"Reg. No:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.reg_no_label.Wrap(-1)
+        self.reg_no_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        kcpe_sizer.Add(self.kcpe_label, 0, wx.ALL, 5)
+        reg_no_sizer.Add(self.reg_no_label, 0, wx.ALL, 5)
 
-        self.kcpe_text = wx.StaticText(self, wx.ID_ANY, str(student['kcpe_marks']), wx.DefaultPosition, wx.DefaultSize, 0)
-        self.kcpe_text.Wrap(-1)
-        kcpe_sizer.Add(self.kcpe_text, 0, wx.ALL, 5)
+        self.reg_no_text = wx.StaticText(self, wx.ID_ANY, str(student['reg_no']), wx.DefaultPosition, wx.DefaultSize, 0)
+        self.reg_no_text.Wrap(-1)
+        reg_no_sizer.Add(self.reg_no_text, 0, wx.ALL, 5)
 
-        profile_left_sizer.Add(kcpe_sizer, 1, wx.EXPAND, 5)
+        profile_left_sizer.Add(reg_no_sizer, 0, wx.EXPAND, 5)
 
         profile_sizer.Add(profile_left_sizer, 1, wx.EXPAND, 5)
 
@@ -141,6 +138,21 @@ class DashboardContent(wx.Panel):
 
         self.m_staticline711 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
         profile_right_sizer.Add(self.m_staticline711, 0, wx.EXPAND | wx.RIGHT, 5)
+
+        kcpe_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.kcpe_label = wx.StaticText(self, wx.ID_ANY, u"KCPE:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.kcpe_label.Wrap(-1)
+        self.kcpe_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+
+        kcpe_sizer.Add(self.kcpe_label, 0, wx.ALL, 5)
+
+        self.kcpe_text = wx.StaticText(self, wx.ID_ANY, str(student['kcpe_marks']), wx.DefaultPosition, wx.DefaultSize,
+                                       0)
+        self.kcpe_text.Wrap(-1)
+        kcpe_sizer.Add(self.kcpe_text, 0, wx.ALL, 5)
+
+        profile_right_sizer.Add(kcpe_sizer, 1, wx.EXPAND, 5)
 
         profile_sizer.Add(profile_right_sizer, 1, wx.EXPAND, 5)
 

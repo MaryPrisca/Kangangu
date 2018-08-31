@@ -48,7 +48,7 @@ class SetupMainFrame(wx.Frame):
         self.setup_data = {
             'adminDets': {},
             'school_name': "",
-            'school_logo_path': "",
+            'subjects_lower_form': "",
             'form_streams': [],
             'class_names': [],
             'subjects': [],
@@ -106,12 +106,16 @@ class SetupMainFrame(wx.Frame):
         self.Centre(wx.BOTH)
 
         # Connect Events
+        self.Bind( wx.EVT_CLOSE, self.closeFrame )
         self.back_btn.Bind(wx.EVT_BUTTON, self.goToPreviousTab)
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.cancelTab)
         self.next_button.Bind(wx.EVT_BUTTON, self.openNextTab)
 
     def __del__(self):
         pass
+
+    def closeFrame(self, event):
+        wx.Exit()
 
     # Virtual event handlers, overide them in your derived class
     def goToPreviousTab(self, event):
@@ -252,6 +256,7 @@ class SetupMainFrame(wx.Frame):
     # --------------------------------------------------
     def cancelSchoolDetails(self):
         self.schDetsTab.school_name.SetValue("")
+        self.schDetsTab.no_of_subjects.SetValue("")
 
     #
     # --------------------------------------------------
@@ -371,7 +376,7 @@ class SetupMainFrame(wx.Frame):
                 error = error + "The Phone field expects numeric characters. \n"
             else:
                 if len(phone) != 10:
-                    error = error + "The Phone field expects only ten digits. \n"
+                    error = error + "The Phone field expects ten digits. \n"
 
         if username == "":
             error = error + "The Username field is required.\n"
@@ -429,15 +434,25 @@ class SetupMainFrame(wx.Frame):
     # --------------------------------------------------
     def saveSchoolDetails(self):  # Save Tab 2
         school_name = self.schDetsTab.school_name.GetLineText(0)
+        no_of_subjects = self.schDetsTab.no_of_subjects.GetLineText(0)
 
         # -------------------- VALIDATION --------------------
         error = ""
 
         if school_name == "" or school_name.replace(" ", "") == "":
             error = error + "School Name is required.\n"
+        else:
+            if self.hasNumbers(school_name):
+                error = error + "School Name cannot have numeric characters.\n"
 
-        if self.hasNumbers(school_name):
-            error = error + "School Name cannot have numeric characters.\n"
+        if no_of_subjects.replace("", "") == "":
+            error = error + "The No of subjects field is required.\n"
+        else:
+            if not no_of_subjects.isdigit():
+                error = error + "The No of subjects field expects a number.\n"
+            else:
+                if int(no_of_subjects) < 9:
+                    error = error + "No of subjects in lower forms are expected to be more than 8.\n"
 
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
@@ -445,6 +460,7 @@ class SetupMainFrame(wx.Frame):
 
         else:
             self.setup_data['school_name'] = school_name
+            self.setup_data['subjects_lower_form'] = no_of_subjects
 
             # Navigate
 

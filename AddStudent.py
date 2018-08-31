@@ -29,7 +29,18 @@ class AddStudent(wx.Panel):
 
         wrapper_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        right_conrtols_sizer = wx.BoxSizer(wx.VERTICAL)
+        right_controls_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        reg_no_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.reg_no_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Registration No.", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.reg_no_label.Wrap(-1)
+        reg_no_sizer.Add(self.reg_no_label, 1, wx.ALL, 8)
+
+        self.reg_no = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        reg_no_sizer.Add(self.reg_no, 3, wx.ALL, 5)
+
+        right_controls_sizer.Add(reg_no_sizer, 1, wx.EXPAND|wx.ALL, 10)
 
         fname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -42,7 +53,7 @@ class AddStudent(wx.Panel):
                                       wx.DefaultSize, 0)
         fname_sizer.Add(self.first_name, 3, wx.ALL, 5)
 
-        right_conrtols_sizer.Add(fname_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 10)
+        right_controls_sizer.Add(fname_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 10)
 
         lname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -55,7 +66,7 @@ class AddStudent(wx.Panel):
                                      wx.DefaultSize, 0)
         lname_sizer.Add(self.last_name, 3, wx.ALL, 5)
 
-        right_conrtols_sizer.Add(lname_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(lname_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         surname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -68,7 +79,7 @@ class AddStudent(wx.Panel):
                                    wx.DefaultSize, 0)
         surname_sizer.Add(self.surname, 3, wx.ALL, 5)
 
-        right_conrtols_sizer.Add(surname_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(surname_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         address_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -81,7 +92,7 @@ class AddStudent(wx.Panel):
                                    wx.DefaultSize, 0)
         address_sizer.Add(self.address, 3, wx.ALL, 5)
 
-        right_conrtols_sizer.Add(address_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(address_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         dob_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -94,7 +105,11 @@ class AddStudent(wx.Panel):
                                      wx.DefaultSize, wx.DP_DEFAULT | wx.DP_DROPDOWN)
         dob_sizer.Add(self.dob, 3, wx.ALL, 5)
 
-        right_conrtols_sizer.Add(dob_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_controls_sizer.Add(dob_sizer, 1, wx.ALL | wx.EXPAND, 10)
+
+        wrapper_sizer.Add(right_controls_sizer, 1, wx.EXPAND, 5)
+
+        left_controls_sizer = wx.BoxSizer(wx.VERTICAL)
 
         geder_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -106,14 +121,10 @@ class AddStudent(wx.Panel):
         genderChoices = [u"Male", u"Female"]
         self.gender = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Female", wx.DefaultPosition, wx.DefaultSize,
                                   genderChoices, wx.CB_READONLY)
-        self.gender.SetSelection(1)
+        self.gender.SetSelection(-1)
         geder_sizer.Add(self.gender, 3, wx.ALL, 5)
 
-        right_conrtols_sizer.Add(geder_sizer, 1, wx.ALL | wx.EXPAND, 10)
-
-        wrapper_sizer.Add(right_conrtols_sizer, 1, wx.EXPAND, 5)
-
-        left_controls_sizer = wx.BoxSizer(wx.VERTICAL)
+        left_controls_sizer.Add(geder_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         class_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -228,6 +239,7 @@ class AddStudent(wx.Panel):
     # Virtual event handlers, overide them in your derived class
 
     def cancelAddStudent(self, event):
+        self.reg_no.SetValue("")
         self.first_name.SetValue("")
         self.last_name.SetValue("")
         self.surname.SetValue("")
@@ -256,6 +268,7 @@ class AddStudent(wx.Panel):
         return any(char.isdigit() for char in inputString)
 
     def saveStudent(self, event):
+        reg_no = self.reg_no.GetLineText(0)
         first_name = self.first_name.GetLineText(0)
         last_name = self.last_name.GetLineText(0)
         surname = self.surname.GetLineText(0)
@@ -269,12 +282,19 @@ class AddStudent(wx.Panel):
         classIndex = self.class_id.GetCurrentSelection()
 
         # Remove white spaces
+        reg_no = reg_no.replace(" ", "")
         first_name = first_name.replace(" ", "")
         last_name = last_name.replace(" ", "")
         surname = surname.replace(" ", "")
 
         # ---------- VALIDATION ----------
         error = ""
+
+        if reg_no == "":
+            error = error + "The Registration No. field is required.\n"
+        else:
+            if not reg_no.isdigit():
+                error = error + "The Registration No. field expects a number.\n"
 
         if first_name == "" or last_name == "" or surname == "":
             error = error + "All name fields are required.\n"
@@ -331,7 +351,7 @@ class AddStudent(wx.Panel):
             if retCode == wx.ID_OK:
                 ''''''
                 # print "yes"
-                # dlg.Destroy()
+            dlg.Destroy()
 
         else:
             gen = self.gender.GetString(genderIndex)
@@ -345,6 +365,7 @@ class AddStudent(wx.Panel):
             class_id = self.classes['ids'][classIndex]
 
             student_data = {
+                "reg_no": reg_no,
                 "first_name": first_name,
                 "last_name": last_name,
                 "surname": surname,
@@ -362,7 +383,9 @@ class AddStudent(wx.Panel):
                 dlg = wx.MessageDialog(None, "Student Added Successfully.", 'Success Message', wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 self.cancelAddStudent("")
+                dlg.Destroy()
             else:
                 dlg = wx.MessageDialog(None, "Student Not Saved. Try Again.", 'Failed',
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
+                dlg.Destroy()

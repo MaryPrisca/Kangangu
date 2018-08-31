@@ -21,7 +21,7 @@ def saveClass(data):
         # Commit your changes in the database
         db.commit()
 
-        ret = True
+        ret = cursor.lastrowid
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         print(e)
 

@@ -1,6 +1,8 @@
 import MySQLdb
 from connect import db
 
+from login import getSchoolDetails
+
 from exam_statistics import *
 
 
@@ -26,7 +28,7 @@ def getExamsinTerm(term, year):
 
     cursor = db.cursor()
 
-    sql = "SELECT exam_id, exam_name FROM exams \
+    sql = "SELECT exam_id, exam_name, form FROM exams \
             WHERE deleted = '%d' \
             AND year = '%s' \
             AND term = '%s'" % (0, year, term)
@@ -35,14 +37,20 @@ def getExamsinTerm(term, year):
 
         ids = []
         names = []
+        forms = []
+        names_n_form = []
 
         for row in cursor:
             ids.append(row[0])
             names.append(row[1])
+            forms.append(row[2])
+            names_n_form.append("Form " + row[2] + " " + row[1])
 
         data = {
             "ids": ids,
-            "names": names
+            "names": names,
+            "forms": forms,
+            "names_n_form": names_n_form
         }
 
         ret = data
@@ -160,15 +168,14 @@ def getExamResults(data, columns):
 
                 all_marks.append(row[9+i+1] if row[9+i+1] is not None else 0)
 
-            data['student_mean'] = getGradePlusMark(getStudentMean(all_marks))
+            data['student_mean'] = getGradePlusMark(getStudentMean(all_marks, data['form']))
 
             dataArray.append(data)
 
-        # print(cursor._last_executed)
         ret = dataArray
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        print e
+
         ret = False
 
     return ret
@@ -217,7 +224,7 @@ def getResultsByStudentAndExamID(data, columns, subject_names):
         ret = dataArray
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        print e
+
         ret = False
 
     return ret
@@ -311,11 +318,11 @@ def getAllResultsForExam(data, columns):
 
             dataArray.append(data)
 
-        # print(cursor._last_executed)
+
         ret = dataArray
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        # print e
+
         ret = False
 
     return ret
@@ -362,6 +369,15 @@ def getClassMean(data, columns):
     for x in columns:
         columnStr = columnStr + x + ', '
 
+    schDets = getSchoolDetails()
+
+    subjects_lower_forms = schDets['lower_subjects']
+
+    if data['form'] == 1 or 2:
+        no_of_subjects = subjects_lower_forms
+    else:
+        no_of_subjects = 8
+
     cursor = db.cursor()
 
     # to create dynamic sum of all subjects eg IFNULL(Eng, 0)+IFNULL(Kis, 0)+IFNULL(Mat, 0)+...
@@ -376,19 +392,19 @@ def getClassMean(data, columns):
 
     # To get all classes ie if class_id =0, exam_id > 0 ie exam has been selected
     if data["class_id"] == 0 and data["exam_id"] > 0:
-        sql = "SELECT SUM(%s)/5 AS mean \
+        sql = "SELECT SUM(%s)/%s AS mean \
                     FROM exam_results er \
                     JOIN exams e ON e.exam_id = er.exam_id \
                     JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                     JOIN classes c ON c.class_id = u.class_id AND c.form_name = %d AND u.deleted = %d \
-                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (sum_cols, 0, int(data['form']), 0, data['exam_id'])
+                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (no_of_subjects, sum_cols, 0, int(data['form']), 0, data['exam_id'])
     else:
-        sql = "SELECT SUM(%s)/5 AS mean  \
+        sql = "SELECT SUM(%s)/%s AS mean  \
                     FROM exam_results er \
                     JOIN exams e ON e.exam_id = er.exam_id \
                     JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                     JOIN classes c ON c.class_id = u.class_id AND c.class_id = %d AND u.deleted = %d \
-                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (sum_cols, 0, int(data['class_id']), 0, data['exam_id'])
+                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (no_of_subjects, sum_cols, 0, int(data['class_id']), 0, data['exam_id'])
 
     try:
         cursor.execute(sql)
@@ -401,7 +417,7 @@ def getClassMean(data, columns):
         ret = mean
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        # print e
+
         ret = False
 
     return ret
@@ -501,11 +517,10 @@ def getMarksAndStudentId(data, columns):
 
             dataArray.append(data)
 
-        # print(cursor._last_executed)
         ret = dataArray
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        # print e
+
         ret = False
 
     return ret

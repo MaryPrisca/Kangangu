@@ -229,6 +229,7 @@ class AddMarks(wx.Panel):
                 self.term.Enable(True)
 
                 self.exam_data['term'] = ""
+            dlg.Destroy()
 
     def examSelected(self, event):
 

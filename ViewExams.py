@@ -143,9 +143,9 @@ class ViewExams(wx.Panel):
         self.examsOLV.SetColumns([
             ColumnDefn("ID", "left", 60, "exam_id"),
             ColumnDefn("Year", "center", 70, "year"),
-            ColumnDefn("Term", "center", 70, "term"),
             ColumnDefn("Name", "center", 100, "exam_name"),
-            # ColumnDefn("Form", "center", 100, "form"),
+            ColumnDefn("Form", "center", 100, "form"),
+            ColumnDefn("Term", "center", 70, "term"),
         ])
 
         self.examsOLV.SetObjects(self.exams)
@@ -248,6 +248,7 @@ class ViewExams(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
 
             self.show_results.Hide()
             self.edit_exam_panel.Show()
@@ -262,6 +263,7 @@ class ViewExams(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             rowObj = self.examsOLV.GetSelectedObject()
 
@@ -282,23 +284,25 @@ class ViewExams(wx.Panel):
 
             dlg = wx.MessageDialog(None, "Are you sure? \nYou will lose access to all results under this exam.", 'Warning Message.', wx.YES_NO | wx.ICON_WARNING)
             retCode = dlg.ShowModal()
+            dlg.Destroy()
 
             if retCode == wx.ID_YES:
                 if deleteExam(rowObj["exam_id"]):
                     dlg = wx.MessageDialog(None, "Exam deleted successfully.", 'Success Message.',
                                            wx.OK | wx.ICON_EXCLAMATION)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
                     self.updateExamsOLV("")
 
             else:
-                dlg.Destroy()
                 rowObj=""
 
         else:
             dlg = wx.MessageDialog(None, "Click on a row to delete a class.", 'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
 
 
 class EditExam(wx.Panel):
@@ -452,6 +456,7 @@ class EditExam(wx.Panel):
         if exam_id == "":  # Check that a class has been selected before starting validation
             dlg = wx.MessageDialog(None, "Please select an exam to edit.", 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
             self.cancelEditExam("")
         else:
             exam_id = self.exam_id.GetLineText(0)
@@ -479,6 +484,7 @@ class EditExam(wx.Panel):
             if error:
                 dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
+                dlg.Destroy()
 
             else:
                 form = self.form.GetString(formIndex)
@@ -500,11 +506,13 @@ class EditExam(wx.Panel):
                         """"""
                         self.parent.updateExamsOLV("")
                         self.cancelEditExam("")
+                    dlg.Destroy()
 
                 else:
                     dlg = wx.MessageDialog(None, "Exam Not Edited. Try Again.", 'Failed',
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
 
 class ViewResults(wx.Panel):

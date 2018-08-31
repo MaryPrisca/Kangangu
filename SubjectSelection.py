@@ -169,6 +169,7 @@ class SubjectSelection(wx.Panel):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
         else:
             class_id = self.classes['ids'][classIndex]
@@ -351,11 +352,13 @@ class SelectionPanel(wx.Panel):
                                        'Success Message.',
                                        wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
             else:
                 dlg = wx.MessageDialog(None, "Some students' subjects may not have been saved. Try again later.",
                                        'Warning Message.',
                                        wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
+                dlg.Destroy()
 
 
 #
@@ -394,6 +397,7 @@ class OneStudent(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
 
             self.selected.SetValue(False)
         else:

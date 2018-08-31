@@ -12,6 +12,8 @@ class SetupClasses(wx.Panel):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(522, 459),
                           style=wx.TAB_TRAVERSAL)
 
+        form_streams.insert(0, "No Streams")  # Add to top of list
+
         container = wx.BoxSizer(wx.VERTICAL)
 
         self.classes_title = wx.StaticText(self, wx.ID_ANY, u"Setup Classes", wx.DefaultPosition, wx.DefaultSize,
@@ -205,10 +207,62 @@ class OneStreamCheckBox(wx.Panel):
     #
     # --------------------------------------------------
     def streamClicked(self, event):
-        stream = self.stream_name
         checked = self.stream_name_checkbox.IsChecked()
+        stream = self.stream_name
+
         if checked:
-            self.addStreamToForm(stream, self.form)
+            # If No Streams, Check that there are no other streams selected in respective form
+            addStream = True
+            if stream == "No Streams":
+                if self.form == 1:
+                    if len(self.parent.form_one_streams) > 0:
+                        dlg = wx.MessageDialog(None, "Only select 'No Streams' if there are no other streams in form.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+                if self.form == 2:
+                    if len(self.parent.form_two_streams) > 0:
+                        dlg = wx.MessageDialog(None, "Only select No streams if there are no other streams in form.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+                if self.form == 3:
+                    if len(self.parent.form_three_streams) > 0:
+                        dlg = wx.MessageDialog(None, "Only select No streams if there are no other streams in form.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+                if self.form == 4:
+                    if len(self.parent.form_four_streams) > 0:
+                        dlg = wx.MessageDialog(None, "Only select No streams if there are no other streams in form.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+            else:
+                # Check that no streams option hadn't been selected prior
+
+                if self.form == 1:
+                    if "No Streams" in self.parent.form_one_streams:
+                        dlg = wx.MessageDialog(None, "Uncheck 'No Streams' in order to add streams.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+                if self.form == 2:
+                    if "No Streams" in self.parent.form_two_streams:
+                        dlg = wx.MessageDialog(None, "Uncheck 'No Streams' in order to add streams.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+                if self.form == 3:
+                    if "No Streams" in self.parent.form_three_streams:
+                        dlg = wx.MessageDialog(None, "Uncheck 'No Streams' in order to add streams.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+                if self.form == 4:
+                    if "No Streams" in self.parent.form_four_streams:
+                        dlg = wx.MessageDialog(None, "Uncheck 'No Streams' in order to add streams.", 'Validation Error', wx.OK | wx.ICON_WARNING)
+                        dlg.ShowModal()
+                        addStream = False
+
+            if addStream:
+                self.addStreamToForm(stream, self.form)
+            else:
+                self.stream_name_checkbox.SetValue(False)
+
         else:
             self.removeStreamFromForm(stream, self.form)
 
@@ -227,11 +281,17 @@ class OneStreamCheckBox(wx.Panel):
     #
     # --------------------------------------------------
     def removeStreamFromForm(self, stream_name, form):
+        # Fist confirm that the stream name is in list before trying to remove it
+        # Because the no streams option can be unchecked without having been added
+
         if form == 1:
             self.parent.form_one_streams.remove(stream_name)
+
         elif form == 2:
             self.parent.form_two_streams.remove(stream_name)
+
         elif form == 3:
             self.parent.form_three_streams.remove(stream_name)
+
         elif form == 4:
             self.parent.form_four_streams.remove(stream_name)

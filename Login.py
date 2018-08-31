@@ -168,8 +168,9 @@ class LoginFrame(wx.Frame):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error.', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
-            data={
+            data = {
                 "username": username,
                 "password": password
             }
@@ -179,10 +180,11 @@ class LoginFrame(wx.Frame):
             if not loggedInUser:
                 dlg = wx.MessageDialog(None, "Login failed. Check your credentials and try again.", 'Login Failed.', wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
+                dlg.Destroy()
             else:
                 hp = HomePage(None, loggedInUser)
                 hp.Show()
-                self.Hide()
+                self.Destroy()
 
 
 # # Run the program

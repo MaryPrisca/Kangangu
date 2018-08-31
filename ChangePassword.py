@@ -8,6 +8,7 @@ from db.change_password import checkOldPassword
 # Class ChangePassword
 ###########################################################################
 
+
 class ChangePassword(wx.Panel):
 
     def __init__(self, parent, userdata):
@@ -176,6 +177,7 @@ class ChangePassword(wx.Panel):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
         else:
             data = {
@@ -187,10 +189,12 @@ class ChangePassword(wx.Panel):
                 dlg = wx.MessageDialog(None, "Password Changed Successfully.", 'Success Message',
                                        wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
                 self.cancelChangePwd("")
             else:
                 dlg = wx.MessageDialog(None, "Password Not Changed. Try Again.", 'Failed',
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
+                dlg.Destroy()
 
 

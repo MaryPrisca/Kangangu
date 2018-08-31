@@ -436,6 +436,7 @@ class AddTeacher(wx.Panel):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
         else:
             gen = self.gender.GetString(genderIndex)
@@ -475,8 +476,10 @@ class AddTeacher(wx.Panel):
                 dlg = wx.MessageDialog(None, "Teacher Added Successfully.", 'Success Message',
                                        wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
                 self.cancelAddTeacher("")
             else:
                 dlg = wx.MessageDialog(None, "Teacher Not Saved. Try Again.", 'Failed',
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
+                dlg.Destroy()

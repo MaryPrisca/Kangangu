@@ -156,12 +156,14 @@ class AddSubject(wx.Panel):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
         else:
             if checkIfSubjectExists(subject_alias):  # Check if subject is already in the results table
                 dlg = wx.MessageDialog(None, "Subject or it's alias already exists.", 'Validation Error',
                                        wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
+                dlg.Destroy()
             else:
                 compulsory = self.compulsory.GetString(compulsory_index)
 
@@ -182,10 +184,12 @@ class AddSubject(wx.Panel):
                     dlg = wx.MessageDialog(None, "Subject Added Successfully.", 'Success Message',
                                            wx.OK | wx.ICON_INFORMATION)
                     dlg.ShowModal()
+                    dlg.Destroy()
                     self.cancelAddSubject("")
                 else:
                     dlg = wx.MessageDialog(None, "Subject Not Saved. Try Again.", 'Failed.',
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
 

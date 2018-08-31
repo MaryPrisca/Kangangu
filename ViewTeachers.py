@@ -317,6 +317,7 @@ class ViewTeachers(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             rowObj = self.dataOlv.GetSelectedObject()
             self.user_id.SetValue(str(rowObj['user_id']))
@@ -397,6 +398,7 @@ class ViewTeachers(wx.Panel):
         if user_id == "":  # Check that a teacher has been selected before starting validation
             dlg = wx.MessageDialog(None, "Please select a teacher to edit.", 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
         else:
             if first_name == "" or last_name == "" or surname == "":
@@ -439,6 +441,7 @@ class ViewTeachers(wx.Panel):
             if error:
                 dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
+                dlg.Destroy()
 
             else:
                 dob = str(dob)[:-9]
@@ -477,12 +480,14 @@ class ViewTeachers(wx.Panel):
                     dlg = wx.MessageDialog(None, "Teacher edited Successfully.", 'Success Message',
                                            wx.OK | wx.ICON_INFORMATION)
                     dlg.ShowModal()
+                    dlg.Destroy()
                     self.cancelEdit("")
                     self.updateControl("")
                 else:
                     dlg = wx.MessageDialog(None, "Edit failed. Try Again.", 'Failed',
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
     def deleteStudent(self, event):
         if not self.dataOlv.GetSelectedObject():
@@ -490,6 +495,7 @@ class ViewTeachers(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             rowObj = self.dataOlv.GetSelectedObject()
 
@@ -507,13 +513,14 @@ class ViewTeachers(wx.Panel):
                         dlg = wx.MessageDialog(None, "Teacher deleted successfully.", 'Success Message.',
                                                wx.OK | wx.ICON_EXCLAMATION)
                         dlg.ShowModal()
+                        dlg.Destroy()
 
                         self.updateControl("")
 
                         rowObj = ""
                 else:
-                    dlg.Destroy()
                     rowObj = ""
-            else:
                 dlg.Destroy()
+            else:
                 rowObj = ""
+            dlg.Destroy()

@@ -65,7 +65,7 @@ class ViewStudents(wx.Panel):
         self.products = getStudents()
 
         self.dataOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
-        self.setBooks()
+        self.setStudents()
 
         # Allow the cell values to be edited when double-clicked
         # self.dataOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
@@ -111,6 +111,17 @@ class ViewStudents(wx.Panel):
         bSizer.Add(self.user_id, 4, wx.ALL, 5)
 
         sbSizer2.Add(bSizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 10)
+
+        reg_no_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.reg_no_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Reg. No.", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.reg_no_label.Wrap(-1)
+        reg_no_sizer.Add(self.reg_no_label, 1, wx.ALL, 8)
+
+        self.reg_no = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        reg_no_sizer.Add(self.reg_no, 2, wx.ALL, 5)
+
+        sbSizer2.Add(reg_no_sizer, 1, wx.ALL | wx.EXPAND | wx.TOP, 3)
 
         fname_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -291,9 +302,10 @@ class ViewStudents(wx.Panel):
         self.dataOlv.SetObjects(data)
 
     # ----------------------------------------------------------------------
-    def setBooks(self, data=None):
+    def setStudents(self, data=None):
         self.dataOlv.SetColumns([
             ColumnDefn("ID", "center", 50, "user_id"),
+            ColumnDefn("Reg. No.", "center", 50, "reg_no"),
             ColumnDefn("Full Name", "left", 180, "full_names"),
             ColumnDefn("Form", "center", 50, "form"),
             ColumnDefn("Stream", "center", 70, "class"),
@@ -316,6 +328,7 @@ class ViewStudents(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             rowObj = self.dataOlv.GetSelectedObject()
 
@@ -324,6 +337,7 @@ class ViewStudents(wx.Panel):
             studentData = getStudentByIDAllDetails(user_id)
 
             self.user_id.SetValue(str(studentData['user_id']))
+            self.reg_no.SetValue(str(studentData['reg_no']))
             self.first_name.SetValue(studentData['first_name'])
             self.last_name.SetValue(studentData['last_name'])
             self.surname.SetValue(studentData['surname'])
@@ -347,6 +361,7 @@ class ViewStudents(wx.Panel):
 
     def cancelEdit(self, event):
         self.user_id.SetValue("")
+        self.reg_no.SetValue("")
         self.first_name.SetValue("")
         self.last_name.SetValue("")
         self.surname.SetValue("")
@@ -375,6 +390,7 @@ class ViewStudents(wx.Panel):
 
     def editStudent(self, event):
         user_id = self.user_id.GetLineText(0)
+        reg_no = self.reg_no.GetLineText(0)
         first_name = self.first_name.GetLineText(0)
         last_name = self.last_name.GetLineText(0)
         surname = self.surname.GetLineText(0)
@@ -387,6 +403,7 @@ class ViewStudents(wx.Panel):
         kcpe_marks = self.kcpe_marks.GetLineText(0)
 
         # Remove white spaces
+        reg_no = reg_no.replace(" ", "")
         first_name = first_name.replace(" ", "")
         last_name = last_name.replace(" ", "")
         surname = surname.replace(" ", "")
@@ -397,7 +414,15 @@ class ViewStudents(wx.Panel):
         if user_id == "":  # Check that a student has been selected before starting validation
             dlg = wx.MessageDialog(None, "Please select a student to edit.", 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
+
         else:
+            if reg_no == "":
+                error = error + "The Reg. No. field is required.\n"
+            else:
+                if not reg_no.isdigit():
+                    error = error + "The Reg. No. field expects a number.\n"
+
             if first_name == "" or last_name == "" or surname == "":
                 error = error + "All name fields are required.\n"
 
@@ -449,7 +474,7 @@ class ViewStudents(wx.Panel):
             if error:
                 dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
-                self.cancelEdit("")
+                dlg.Destroy()
             else:
                 dob = str(dob)[:-9]
                 dob = datetime.strptime(dob, "%d/%m/%Y").date()
@@ -465,6 +490,7 @@ class ViewStudents(wx.Panel):
 
                 student_data = {
                     "user_id": user_id,
+                    "reg_no": reg_no,
                     "first_name": first_name,
                     "last_name": last_name,
                     "surname": surname,
@@ -481,12 +507,14 @@ class ViewStudents(wx.Panel):
                     dlg = wx.MessageDialog(None, "Student Edited Successfully.", 'Success Message.',
                                            wx.OK | wx.ICON_INFORMATION)
                     dlg.ShowModal()
+                    dlg.Destroy()
                     self.updateControl("")
                     self.cancelEdit("")
                 else:
                     dlg = wx.MessageDialog(None, "Please check all fields and try again.", 'Edit Failed.',
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
     def deleteStudent(self, event):
         if not self.dataOlv.GetSelectedObject():
@@ -494,6 +522,7 @@ class ViewStudents(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             rowObj = self.dataOlv.GetSelectedObject()
 
@@ -511,16 +540,18 @@ class ViewStudents(wx.Panel):
                         dlg = wx.MessageDialog(None, "Student deleted successfully.", 'Success Message.',
                                                wx.OK | wx.ICON_EXCLAMATION)
                         dlg.ShowModal()
+                        dlg.Destroy()
 
                         self.updateControl("")
 
                         rowObj = ""
                 else:
-                    dlg.Destroy()
                     rowObj = ""
-            else:
+
                 dlg.Destroy()
+            else:
                 rowObj = ""
+            dlg.Destroy()
 
 
 

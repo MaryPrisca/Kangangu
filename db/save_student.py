@@ -26,15 +26,15 @@ def saveStudent(data):
 
     # Prepare SQL query to INSERT a record into the database.
     sql = """
-            INSERT INTO `users`(`user_id`, `first_name`, `last_name`, `surname`, `dob`, `gender`, `username`,
+            INSERT INTO `users`(`user_id`, `reg_no`, `first_name`, `last_name`, `surname`, `dob`, `gender`, `username`,
                 `password`, `role`, `class_id`, `kcpe_marks`, `birth_cert_no`, `next_of_kin_name`, `next_of_kin_phone`, 
                 `address`, `status`, `created_at`, `deleted`)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
     try:
         # Execute the SQL command
-        cursor.execute(sql, (data["user_id"], data["first_name"], data["last_name"], data["surname"], data["dob"], data["gender"],
+        cursor.execute(sql, (data["user_id"], data["reg_no"], data["first_name"], data["last_name"], data["surname"], data["dob"], data["gender"],
                              data["username"], data["password"], data["role"], data["class_id"], data["kcpe_marks"], data["birth_cert_no"],
                              data["kin_names"], data["kin_phone"], data["address"], data["status"], data["created_at"], data["deleted"] ))
         # Commit your changes in the database
@@ -59,6 +59,7 @@ def editStudent(data):
     cursor = db.cursor()
 
     sql = """ UPDATE users SET
+                    reg_no = %s,
                     first_name = %s,
                     last_name = %s,
                     surname = %s,
@@ -71,7 +72,7 @@ def editStudent(data):
                     next_of_kin_phone = %s                                     
                     WHERE user_id = %s """
 
-    data = (data["first_name"], data["last_name"], data["surname"], data["dob"], data["gender"], data["class_id"],
+    data = (data["reg_no"], data["first_name"], data["last_name"], data["surname"], data["dob"], data["gender"], data["class_id"],
             data["kcpe_marks"], data["birth_cert_no"], data["kin_names"], data["kin_phone"], data["user_id"])
 
     try:

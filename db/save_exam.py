@@ -4,6 +4,23 @@ from datetime import datetime
 
 
 def saveExam(data):
+    forms = []
+    if data['form'] == "0": # Representing the "All" Option
+        forms = ['1', '2', '3', '4']
+    else:
+        forms = [data['form']]
+
+    all_saved = True
+
+    for exam in forms:
+        data['form'] = exam
+        if not saveOneExam(data):
+            all_saved = False
+
+    return all_saved
+
+
+def saveOneExam(data):
     c = datetime.now()
     data["created_at"] = c.strftime('%Y-%m-%d')
 

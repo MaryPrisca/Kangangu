@@ -217,35 +217,31 @@ class ExamResults(wx.Panel):
 
                 self.exam_data['year'] = 0
                 self.exam_data['term'] = ""
+            dlg.Destroy()
 
     #
     # ---------------------------------------------------------
     def examSelected(self, event):
-
-        if not self.form_panel_created:
-            self.select_form = SelectForm(self)
-            self.sbSizer2.Add(self.select_form, 0, wx.EXPAND | wx.ALL, 5)
-            self.Layout()
-
-            self.form_panel_created = 1  # change to 1 so it's not created again
-
         exam = self.select_exam.exam_name.GetCurrentSelection()  # get index of exam selected
         exam_id = self.select_exam.examDets['ids'][exam]
+        form = self.select_exam.examDets['forms'][exam]
 
         exam_name = self.select_exam.exam_name.GetStringSelection()
 
         self.exam_data['exam_id'] = exam_id
         self.exam_data['exam_name'] = exam_name
-
-    #
-    # ---------------------------------------------------------
-    def formSelected(self, event):
-        form = self.select_form.form.GetCurrentSelection() + 1
-
         self.exam_data['form'] = form
 
+        # Add Form and class panels concurrently because form will be disabled.
+        if not self.form_panel_created:
+            self.select_form = SelectForm(self, form)
+            self.sbSizer2.Add(self.select_form, 0, wx.EXPAND | wx.ALL, 5)
+            self.Layout()
+
+            self.form_panel_created = 1  # change to 1 so it's not created again
+
         if not self.class_panel_created:
-            self.select_class = SelectClass(self, form)
+            self.select_class = SelectClass(self, int(form))
             self.sbSizer2.Add(self.select_class, 0, wx.EXPAND | wx.ALL, 5)
             self.Layout()
 
@@ -254,6 +250,25 @@ class ExamResults(wx.Panel):
             #  Disable changing exam and form to avoid inconsistency
             self.select_exam.exam_name.Enable(False)
             self.select_form.form.Enable(False)
+
+    #
+    # ---------------------------------------------------------
+    def formSelected(self, event):
+        """"""
+        # form = self.select_form.form.GetCurrentSelection() + 1
+        #
+        # self.exam_data['form'] = form
+        #
+        # if not self.class_panel_created:
+        #     self.select_class = SelectClass(self, form)
+        #     self.sbSizer2.Add(self.select_class, 0, wx.EXPAND | wx.ALL, 5)
+        #     self.Layout()
+        #
+        #     self.class_panel_created = 1  # change to 1 so it's not created again
+        #
+        #     #  Disable changing exam and form to avoid inconsistency
+        #     self.select_exam.exam_name.Enable(False)
+        #     self.select_form.form.Enable(False)
 
     #
     # ---------------------------------------------------------
@@ -365,17 +380,19 @@ class ExamResults(wx.Panel):
         # 1. Get previous exam's exam_id
         prev_exam_dets = getPreviousExam(self.exam_data)
 
-        # Switch exam id
-        prev_exam_data = {
-            "year": prev_exam_dets['year'],
-            "term": prev_exam_dets['term'],
-            "exam_id": prev_exam_dets['exam_id'],
-            "exam_name": prev_exam_dets['exam_name'],
-            "form": self.exam_data['form'],
-            "class_id": self.exam_data['class_id'],
-            "class_name": self.exam_data['class_name'],
-            "subject_alias": self.exam_data['subject_alias'],
-        }
+        # If
+        if prev_exam_dets:
+            # Switch exam id
+            prev_exam_data = {
+                "year": prev_exam_dets['year'],
+                "term": prev_exam_dets['term'],
+                "exam_id": prev_exam_dets['exam_id'],
+                "exam_name": prev_exam_dets['exam_name'],
+                "form": prev_exam_dets['form'],
+                "class_id": self.exam_data['class_id'],
+                "class_name": self.exam_data['class_name'],
+                "subject_alias": self.exam_data['subject_alias'],
+            }
 
         # check if there are results
         if self.exam_data["subject_alias"] == "All":
@@ -384,10 +401,13 @@ class ExamResults(wx.Panel):
 
             mean = getClassMean(self.exam_data, subjects)
 
-            prev_mean = getClassMean(prev_exam_data, subjects)
+            if prev_exam_dets:
+                prev_mean = getClassMean(prev_exam_data, subjects)
 
-            # get deviation before concatenating grade to mean
-            deviation = calculateDeviation(prev_mean, mean)
+                # get deviation before concatenating grade to mean
+                deviation = calculateDeviation(prev_mean, mean)
+            else:
+                deviation = ""
 
             mean = getGradePlusMark(mean)
 
@@ -396,17 +416,22 @@ class ExamResults(wx.Panel):
 
             mean = getSubjectMean(self.exam_data)
 
-            prev_mean = getSubjectMean(prev_exam_data)
+            if prev_exam_dets:
+                prev_mean = getSubjectMean(prev_exam_data)
 
-            # get deviation before concatenating grade to mean
-            deviation = calculateDeviation(prev_mean, mean)
+                # get deviation before concatenating grade to mean
+                deviation = calculateDeviation(prev_mean, mean)
+            else:
+                deviation = ""
 
             mean = getGradePlusMark(mean)
 
         exam_data = getExamResults(self.exam_data, subjects)
-        mostImproved = getMostImproved(prev_exam_data, self.exam_data, subjects)
 
-        # mostImprovedStud = getStudentByID(mostImproved['student_id'])
+        if prev_exam_dets:
+            mostImproved = getMostImproved(prev_exam_data, self.exam_data, subjects)
+        else:
+            mostImproved = ""
 
         if exam_data:
             if self.results_panel_created == 0:
@@ -428,6 +453,7 @@ class ExamResults(wx.Panel):
         else:
             dlg = wx.MessageDialog(None, "No results found. Try a different class.", 'Error Message.', wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
             self.select_class.class_name.SetSelection(-1)
 
 
@@ -451,7 +477,7 @@ class SelectExam(wx.Panel):
 
         self.examDets = getExamsinTerm(self.data['term'], self.data['year'])
 
-        self.exam_nameChoices = self.examDets['names']
+        self.exam_nameChoices = self.examDets['names_n_form']
 
         self.exam_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                      self.exam_nameChoices, wx.CB_READONLY)
@@ -466,7 +492,8 @@ class SelectExam(wx.Panel):
 
 class SelectForm(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, form):
+
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
@@ -477,9 +504,11 @@ class SelectForm(wx.Panel):
         self.form_label.Wrap(-1)
         form_sizer.Add(self.form_label, 0, wx.ALL, 5)
 
-        formChoices = [u"One", u"Two", u"Three", u"Four"]
+        formChoices = [u"1", u"2", u"3", u"4"]
         self.form = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, formChoices,
                                 wx.CB_READONLY)
+        self.form.SetStringSelection(form)
+        self.form.Enable(False)
         form_sizer.Add(self.form, 0, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(form_sizer)
@@ -605,10 +634,10 @@ class ViewResults(wx.Panel):
 
             mostImprvdPts = str(mostImprovedData['mark']) + " Points"
 
-        if self.exam_data['class_id'] == 0:
-            exam_title = "FORM " + str(self.exam_data['form']) + "              " + self.exam_data['exam_name'] + " RESULTS"
+        if 'Form' in self.exam_data['class_name']:
+            exam_title = "              " + self.exam_data['exam_name'] + " RESULTS"
         else:
-            exam_title = "FORM " + str(self.exam_data['form']) + " " + self.exam_data['class_name'] + "              " + self.exam_data['exam_name'] + " RESULTS"
+            exam_title = str(self.exam_data['form']) + " " + self.exam_data['class_name'] + "              " + self.exam_data['exam_name'] + " RESULTS"
 
         self.exam_title = exam_title.upper()
         self.term = "TERM " + self.exam_data['term'].upper()
@@ -704,21 +733,22 @@ class ViewResults(wx.Panel):
 
         #
         # DEVIATION
-        deviation_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        if deviation:
+            deviation_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.dev_label = wx.StaticText(self, wx.ID_ANY, u"Deviation:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.dev_label.Wrap(-1)
-        self.dev_label.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+            self.dev_label = wx.StaticText(self, wx.ID_ANY, u"Deviation:", wx.DefaultPosition, wx.DefaultSize, 0)
+            self.dev_label.Wrap(-1)
+            self.dev_label.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
 
-        deviation_sizer.Add(self.dev_label, 1, wx.ALL, 5)
+            deviation_sizer.Add(self.dev_label, 1, wx.ALL, 5)
 
-        self.dev_text = wx.StaticText(self, wx.ID_ANY, str(self.deviation), wx.DefaultPosition, wx.DefaultSize, 0)
-        self.dev_text.Wrap(-1)
-        self.dev_text.SetFont(wx.Font(10, 70, 90, 90, False, wx.EmptyString))
+            self.dev_text = wx.StaticText(self, wx.ID_ANY, str(self.deviation), wx.DefaultPosition, wx.DefaultSize, 0)
+            self.dev_text.Wrap(-1)
+            self.dev_text.SetFont(wx.Font(10, 70, 90, 90, False, wx.EmptyString))
 
-        deviation_sizer.Add(self.dev_text, 4, wx.ALL, 5)
+            deviation_sizer.Add(self.dev_text, 4, wx.ALL, 5)
 
-        examStatsSizer.Add(deviation_sizer, 0, wx.EXPAND, 5)
+            examStatsSizer.Add(deviation_sizer, 0, wx.EXPAND, 5)
 
         # Show only if there are points in mostImprovedData['mark']
         if mostImprovedData and mostImprovedData['mark'] != "--":
@@ -770,7 +800,7 @@ class ViewResults(wx.Panel):
             ColumnDefn("POS", "center", 50, "number"),
             ColumnDefn("ID", "center", 50, "student_id"),
             ColumnDefn("STUDENT", "left", 100, "names"),
-            ColumnDefn("CLASS", "left", 50, "form"),
+            ColumnDefn("CLASS", "left", 50, "class_name"),
         ]
 
         if self.parent.exam_data['subject_alias'] != "":

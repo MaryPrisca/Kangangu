@@ -1,6 +1,8 @@
 import MySQLdb
 from connect import db
 
+from login import getSchoolDetails
+
 
 def getGradePlusMark(mark):
     grade = ""
@@ -66,8 +68,17 @@ def getGrade(mark):
     return grade
 
 
-def getStudentMean(marks_array):
-    avg = sum(marks_array) / 5
+def getStudentMean(marks_array, form):
+    schDets = getSchoolDetails()
+
+    subjects_lower_forms = schDets['lower_subjects']
+
+    if form == 1 or 2:
+        no_of_subjects = subjects_lower_forms
+    else:
+        no_of_subjects = 8
+
+    avg = sum(marks_array) / no_of_subjects
     return avg
 
 
@@ -131,6 +142,15 @@ def getSubjectMean(data):
 
 
 def getClassMean(data, columns):
+    schDets = getSchoolDetails()
+
+    subjects_lower_forms = schDets['lower_subjects']
+
+    if data['form'] == 1 or 2:
+        no_of_subjects = subjects_lower_forms
+    else:
+        no_of_subjects = 8
+
     columnStr = ''
     for x in columns:
         columnStr = columnStr + x + ', '
@@ -149,19 +169,19 @@ def getClassMean(data, columns):
 
     # To get all classes ie if class_id =0, exam_id > 0 ie exam has been selected
     if data["class_id"] == 0 and data["exam_id"] > 0:
-        sql = "SELECT SUM(%s)/5 AS mean \
+        sql = "SELECT SUM(%s)/%s AS mean \
                     FROM exam_results er \
                     JOIN exams e ON e.exam_id = er.exam_id \
                     JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                     JOIN classes c ON c.class_id = u.class_id AND c.form_name = %d AND u.deleted = %d \
-                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (sum_cols, 0, int(data['form']), 0, data['exam_id'])
+                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (no_of_subjects, sum_cols, 0, int(data['form']), 0, data['exam_id'])
     else:
-        sql = "SELECT SUM(%s)/5 AS mean  \
+        sql = "SELECT SUM(%s)/%s AS mean  \
                     FROM exam_results er \
                     JOIN exams e ON e.exam_id = er.exam_id \
                     JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                     JOIN classes c ON c.class_id = u.class_id AND c.class_id = %d AND u.deleted = %d \
-                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (sum_cols, 0, int(data['class_id']), 0, data['exam_id'])
+                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (no_of_subjects, sum_cols, 0, int(data['class_id']), 0, data['exam_id'])
 
     try:
         cursor.execute(sql)
@@ -199,7 +219,6 @@ def allSubjectsMean(data, subjects, prev_data):
         prev_exam_data['term'] = "2"
     if prev_exam_data['term'] == "Three":
         prev_exam_data['term'] = "3"
-
 
     subject_mean = {
         'subject': "T" + exam_data['term'] + " " + exam_data['exam_name'] + ", " + str(exam_data['year']) + " "

@@ -147,6 +147,7 @@ class ViewSubjects(wx.Panel):
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             self.rowData = self.subjectsOLV.GetSelectedObject()
             rowObj = self.subjectsOLV.GetSelectedObject()
@@ -168,17 +169,19 @@ class ViewSubjects(wx.Panel):
                     dlg = wx.MessageDialog(None, "Subject deleted successfully.", 'Success Message.',
                                            wx.OK | wx.ICON_EXCLAMATION)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
                     self.updateSubjectsOLV("")
             else:
-                dlg.Destroy()
                 rowObj=""
+            dlg.Destroy()
 
 
         else:
             dlg = wx.MessageDialog(None, "Click on a row to delete a subject.", 'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
+            dlg.Destroy()
 
 
 class EditSubject(wx.Panel):
@@ -328,6 +331,7 @@ class EditSubject(wx.Panel):
             if error:
                 dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
                 dlg.ShowModal()
+                dlg.Destroy()
 
             else:
                 compulsory = self.compulsory.GetString(compulsory_index)
@@ -350,15 +354,18 @@ class EditSubject(wx.Panel):
                     dlg = wx.MessageDialog(None, "Subject Edited Successfully.", 'Success Message',
                                            wx.OK | wx.ICON_INFORMATION)
                     dlg.ShowModal()
+                    dlg.Destroy()
                     self.parent.updateSubjectsOLV("")
                     self.cancelEditSubject("")
                 else:
                     dlg = wx.MessageDialog(None, "Edit Failed. Try Again.", 'Failed.',
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
+                    dlg.Destroy()
 
         else:
             dlg = wx.MessageDialog(None, "Please select subject to edit.", 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
 

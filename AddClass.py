@@ -132,6 +132,7 @@ class AddClass(wx.Panel):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error.', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
         else:
             data = {
                 "class_name": class_name,
@@ -143,8 +144,10 @@ class AddClass(wx.Panel):
                 retCode = dlg.ShowModal()
                 if retCode == wx.ID_OK:
                     self.cancelAddClass("")
+                dlg.Destroy()
 
             else:
                 dlg = wx.MessageDialog(None, "Class not saved. Try again.", 'Error Message.', wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
+                dlg.Destroy()
 

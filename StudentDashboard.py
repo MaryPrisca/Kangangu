@@ -59,6 +59,7 @@ class StudentDashboard(wx.Panel):
         #
         sample_student = {
             'user_id': 0,
+            'reg_no': 0,
             'first_name': "",
             'last_name': "",
             'surname': "",
@@ -179,7 +180,11 @@ class OneSearchResult(wx.Panel):
         self.parent = parent
         self.user_id = user_id
 
-        full_name = student_name + ", " + str(form) + " " + class_name
+        # To avoid an instance of form = 1 Form 1 ie if the form has only on stream hence nno class name
+        if "Form" in class_name:
+            full_name = student_name + ", " + class_name
+        else:
+            full_name = student_name + ", " + str(form) + " " + class_name
 
         name_sizer = wx.BoxSizer(wx.VERTICAL)
 

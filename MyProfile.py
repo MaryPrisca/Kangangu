@@ -333,6 +333,7 @@ class MyProfile(wx.Panel):
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
+            dlg.Destroy()
 
         else:
             gen = self.gender.GetString(genderIndex)
@@ -360,8 +361,10 @@ class MyProfile(wx.Panel):
                 dlg = wx.MessageDialog(None, "Profile Edited Successfully.", 'Success Message',
                                        wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
                 self.cancelEditProfile("")
             else:
                 dlg = wx.MessageDialog(None, "Edit Failed. Try Again.", 'Failed',
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
+                dlg.Destroy()
