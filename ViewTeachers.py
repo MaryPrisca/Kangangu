@@ -465,9 +465,9 @@ class ViewTeachers(wx.Panel):
 
                 data = {
                     "user_id": user_id,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "surname": surname,
+                    "first_name": first_name.lower().capitalize(),
+                    "last_name": last_name.lower().capitalize(),
+                    "surname": surname.lower().capitalize(),
                     "email": email,
                     "username": username,
                     "dob": dob,

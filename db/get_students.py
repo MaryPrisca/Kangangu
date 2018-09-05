@@ -24,8 +24,8 @@ def getStudents(class_id=0, search=""):
         if search != "":
             cursor.execute("SELECT user_id, first_name, last_name, surname, dob, gender, u.class_id, class_name, form_name, reg_no \
                            FROM `users` u JOIN classes c ON c.class_id = u.class_id AND c.deleted = 0 \
-                           WHERE u.deleted = 0 AND role=%s AND (first_name LIKE %s OR last_name LIKE %s OR surname LIKE %s OR dob LIKE %s or class_name LIKE %s or form_name LIKE %s)", \
-                           ('student', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%',))
+                           WHERE u.deleted = 0 AND role=%s AND (reg_no LIKE %s OR first_name LIKE %s OR last_name LIKE %s OR surname LIKE %s OR dob LIKE %s or class_name LIKE %s or form_name LIKE %s)", \
+                           ('student', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%', '%' + search + '%',))
         else:
             cursor.execute(sql)
 

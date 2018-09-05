@@ -16,26 +16,36 @@ class ProfilePanel(wx.Panel):
                           style=wx.TAB_TRAVERSAL)
 
         self.userdata = userdata
+        self.parent = parent
 
         container = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_toolBar7 = wx.ToolBar(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-                                     wx.TB_FLAT | wx.TB_HORIZONTAL | wx.TB_TEXT)
-        self.m_tool14 = self.m_toolBar7.AddLabelTool(wx.ID_ANY, u"My Profile",
-                                                     wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_TOOLBAR),
+        toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.toolbar = wx.ToolBar(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+                                  wx.TB_FLAT | wx.TB_HORIZONTAL | wx.TB_TEXT)
+        self.m_tool14 = self.toolbar.AddLabelTool(wx.ID_ANY, u"My Profile",
+                                                  wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_TOOLBAR),
+                                                  wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString, None)
+
+        self.toolbar.AddSeparator()
+
+        self.m_tool13 = self.toolbar.AddLabelTool(wx.ID_ANY, u"Change Password",
+                                                  wx.ArtProvider.GetBitmap(wx.ART_FIND_AND_REPLACE, wx.ART_TOOLBAR),
+                                                  wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString, None)
+
+        self.toolbar.AddSeparator()
+
+        self.logout_tool = self.toolbar.AddLabelTool(wx.ID_ANY, u"Logout",
+                                                     wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_TOOLBAR),
                                                      wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString,
                                                      None)
 
-        self.m_toolBar7.AddSeparator()
+        self.toolbar.Realize()
 
-        self.m_tool13 = self.m_toolBar7.AddLabelTool(wx.ID_ANY, u"Change Password",
-                                                     wx.ArtProvider.GetBitmap(wx.ART_FIND_AND_REPLACE, wx.ART_TOOLBAR),
-                                                     wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString,
-                                                     None)
+        toolbar_sizer.Add(self.toolbar, 1, wx.EXPAND, 5)
 
-        self.m_toolBar7.Realize()
-
-        container.Add(self.m_toolBar7, 0, wx.EXPAND, 5)
+        container.Add(toolbar_sizer, 0, wx.EXPAND, 5)
 
         # Add Panels
         self.my_profile = MyProfile(self, self.userdata)
@@ -51,6 +61,7 @@ class ProfilePanel(wx.Panel):
         # Connect Events
         self.Bind(wx.EVT_TOOL, self.swtichToMyProfile, id=self.m_tool14.GetId())
         self.Bind(wx.EVT_TOOL, self.switchToChangePassword, id=self.m_tool13.GetId())
+        self.Bind(wx.EVT_TOOL, self.parent.Logout, id=self.logout_tool.GetId())
 
     def __del__(self):
         pass

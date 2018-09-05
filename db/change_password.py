@@ -1,8 +1,14 @@
 import MySQLdb
 from connect import db
-from datetime import datetime
+
+import hashlib
+
 
 def checkOldPassword(user_id, old_password):
+    m = hashlib.md5()
+    m.update(old_password)
+    old_password = m.hexdigest()
+
     cursor = db.cursor()
 
     # binary keyword to perform case sensitive search
@@ -22,11 +28,16 @@ def checkOldPassword(user_id, old_password):
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         ret = False
+        db.rollback()
 
     return ret
 
 
 def changePassword(data):
+    m = hashlib.md5()
+    m.update(data['password'])
+    data['password'] = m.hexdigest()
+
     cursor = db.cursor()
 
     sql = """ UPDATE users SET password = %s WHERE user_id = %s """

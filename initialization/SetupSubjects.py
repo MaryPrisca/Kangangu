@@ -1,6 +1,8 @@
 import wx
 import wx.xrc
 
+from system_setup import getSubjectGroups
+
 
 ###########################################################################
 # Class SetupSubjects
@@ -56,9 +58,21 @@ class SetupSubjects(wx.Panel):
                                                    wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER)
         left_Sizer.Add(self.subject_alias_textfield, 0, wx.ALL | wx.EXPAND, 5)
 
+        self.subject_group_label = wx.StaticText(left_Sizer.GetStaticBox(), wx.ID_ANY, u"Group", wx.DefaultPosition,
+                                                 wx.DefaultSize, 0)
+        self.subject_group_label.Wrap(-1)
+        left_Sizer.Add(self.subject_group_label, 0, wx.ALL, 5)
+
+        self.groups = getSubjectGroups()
+
+        subject_group_textfieldChoices = self.groups['names']
+        self.subject_group_textfield = wx.ComboBox(left_Sizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
+                                                   wx.DefaultPosition, wx.DefaultSize, subject_group_textfieldChoices, wx.CB_READONLY)
+        left_Sizer.Add(self.subject_group_textfield, 0, wx.ALL | wx.EXPAND, 5)
+
         checkboxes_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        compulsory_radio_boxChoices = [u"Yes", u"No", u"Partially (Only in lower forms)"]
+        compulsory_radio_boxChoices = [u"No (N)", u"Yes (Y)", u"Partially (P) - (Only in lower forms)"]
         self.compulsory_radio_box = wx.RadioBox(left_Sizer.GetStaticBox(), wx.ID_ANY, u"Subject Compulsory?",
                                                 wx.DefaultPosition, wx.DefaultSize, compulsory_radio_boxChoices, 1, 0)
         self.compulsory_radio_box.SetSelection(0)
@@ -122,7 +136,9 @@ class SetupSubjects(wx.Panel):
     def subjectAdded(self, event):
         subject_name = self.subject_textfield.GetLineText(0)
         subject_alias = self.subject_alias_textfield.GetLineText(0)
-        compulsory = self.compulsory_radio_box.GetSelection()
+        compulsory = self.compulsory_radio_box.GetSelection()  # 0 = No, 1 = Yes, 2 = Partially
+        groupIndex = self.subject_group_textfield.GetCurrentSelection()
+        groupName = self.subject_group_textfield.GetStringSelection()
 
         # ----- VALIADATION -----
         error = ""
@@ -136,6 +152,14 @@ class SetupSubjects(wx.Panel):
             if subject_name.strip() == subject_alias.strip():
                 error = error + "The subject name and alias cannot be the same.\n"
 
+        if groupIndex == -1:
+            error = error + "The Group field is required.\n"
+        else:
+            if groupName == "Mathematics" and (compulsory == 0 or compulsory == 2):
+                error = error + "Mathematics is a compulsory subject.\n"
+            if groupName == "Language" and (compulsory == 0 or compulsory == 2):
+                error = error + "Languages are compulsory subjects.\n"
+
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
@@ -143,7 +167,9 @@ class SetupSubjects(wx.Panel):
             subject = {
                 'name': subject_name,
                 'alias': subject_alias,
-                'compulsory': compulsory
+                'compulsory': compulsory,
+                'group_id': self.groups['ids'][groupIndex],
+                'group_name': groupName
             }
 
             self.subjects.append(subject)
@@ -151,6 +177,7 @@ class SetupSubjects(wx.Panel):
             self.subject_textfield.SetValue("")
             self.subject_alias_textfield.SetValue("")
             self.compulsory_radio_box.SetSelection(0)
+            self.subject_group_textfield.SetSelection(-1)
 
             self.subject_textfield.SetFocus()
 
@@ -212,18 +239,18 @@ class OneSubjectPreviewPanel(wx.Panel):
 
         compulsory = ""
         if subject['compulsory'] == 0:
-            compulsory = "Compulsory"
+            compulsory = "(N)"
         elif subject['compulsory'] == 1:
-            compulsory = "Optional"
+            compulsory = "(Y)"
         elif subject['compulsory'] == 2:
-            compulsory = "Partial"
+            compulsory = "(P)"
 
-        subject_name = str(count) + ". " + subject['name'] + " - " + subject['alias'] + ", " + compulsory
+        subject_name = str(count) + ". " + subject['name'] + " - " + subject['alias'] + " " + compulsory + " - " + subject['group_name']
 
         subjectSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.remove_btn = wx.BitmapButton(self, wx.ID_ANY,
-                                          wx.Bitmap(u"../images/minus_12x12.bmp", wx.BITMAP_TYPE_ANY),
+                                          wx.Bitmap(u"images/minus_12x12.bmp", wx.BITMAP_TYPE_ANY),
                                           wx.DefaultPosition, wx.DefaultSize, 0 | wx.NO_BORDER)
         subjectSizer.Add(self.remove_btn, 0, wx.ALL, 6)
 

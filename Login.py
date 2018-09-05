@@ -195,46 +195,47 @@ class LoginFrame(wx.Frame):
 #     app.MainLoop()
 
 
-class MySplashScreen(wx.SplashScreen):
-    """
-        Create a splash screen widget.
-    """
-    def __init__(self, parent=None):
-        aBitmap = wx.Image(name = "images/Kangangu.jpg").ConvertToBitmap()
-        splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT
-        splashDuration = 2800 # milliseconds
-
-        wx.SplashScreen.__init__(self, aBitmap, splashStyle,
-                                 splashDuration, parent)
-        self.Bind(wx.EVT_CLOSE, self.OnExit)
-
-        wx.Yield()
-# ---------------------------------------------------------------------- #
-
-    def OnExit(self, evt):
-        self.Hide()
-        # LoginFrame is the main frame.
-        loginFrame = LoginFrame(None)
-        app.SetTopWindow(loginFrame)
-        loginFrame.Show()
-        # The program will freeze without this line.
-        evt.Skip()  # Make sure the default handler runs too...
-# ---------------------------------------------------------------------- #
-
-
-class MyApp(wx.App):
-    def OnInit(self):
-        MySplash = MySplashScreen()
-        MySplash.Show()
-
-        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-
-        return True
-# ---------------------------------------------------------------------- #
+# class MySplashScreen(wx.SplashScreen):
+#     """
+#         Create a splash screen widget.
+#     """
+#     def __init__(self, parent=None):
+#         aBitmap = wx.Image(name = "images/Kangangu.jpg").ConvertToBitmap()
+#         splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT
+#         splashDuration = 2800 # milliseconds
+#
+#         wx.SplashScreen.__init__(self, aBitmap, splashStyle,
+#                                  splashDuration, parent)
+#         self.Bind(wx.EVT_CLOSE, self.OnExit)
+#
+#         wx.Yield()
+# # ---------------------------------------------------------------------- #
+#
+#     def OnExit(self, evt):
+#         self.Hide()
+#         # LoginFrame is the main frame.
+#         loginFrame = LoginFrame(None)
+#         app.SetTopWindow(loginFrame)
+#         loginFrame.Show()
+#         # The program will freeze without this line.
+#         evt.Skip()  # Make sure the default handler runs too...
+# # ---------------------------------------------------------------------- #
 
 
-# app = MyApp(redirect=True, filename = "demo.log")
-app = MyApp(False)
-app.MainLoop()
+# class MyApp(wx.App):
+#     def OnInit(self):
+#         MySplash = MySplashScreen()
+#         MySplash.Show()
+#
+#         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+#
+#         return True
+#
+# # ---------------------------------------------------------------------- #
+#
+#
+# # app = MyApp(redirect=True, filename = "demo.log")
+# app = MyApp(False)
+# app.MainLoop()
 
 

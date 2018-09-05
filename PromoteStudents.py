@@ -36,17 +36,19 @@ class PromoteStudents(wx.Panel):
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        btnSizer.AddSpacer((0, 0), 1, wx.EXPAND, 5)
+        btnSizer.AddSpacer((0, 0), 2, wx.EXPAND, 5)
 
         self.promote_students_btn = wx.Button(self, wx.ID_ANY, u"Move all students to the next class",
                                               wx.DefaultPosition, wx.DefaultSize, 0)
+        self.promote_students_btn.SetFont(wx.Font(12, 70, 90, 90, False, wx.EmptyString))
+
         btnSizer.Add(self.promote_students_btn, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL | wx.EXPAND, 5)
 
-        btnSizer.AddSpacer((0, 0), 1, wx.EXPAND, 5)
+        btnSizer.AddSpacer((0, 0), 2, wx.EXPAND, 5)
 
         content_sizer.Add(btnSizer, 1, wx.EXPAND, 5)
 
-        content_sizer.AddSpacer((0, 0), 1, wx.EXPAND, 5)
+        content_sizer.AddSpacer((0, 0), 3, wx.EXPAND, 5)
 
         container.Add(content_sizer, 1, wx.EXPAND, 5)
 
@@ -61,6 +63,17 @@ class PromoteStudents(wx.Panel):
 
     # Virtual event handlers, overide them in your derived class
     def promoteStudents(self, event):
-        promoteStudents()
+        dlg = wx.MessageDialog(None, "Confirm promoting all students.", 'Confirm Action.', wx.YES_NO | wx.ICON_INFORMATION)
+        retCode = dlg.ShowModal()
+
+        if retCode == wx.ID_YES:
+            dlg = wx.MessageDialog(None, "Are you sure? This action cannot be reversed.", 'Warning Message.',
+                                   wx.YES_NO | wx.ICON_WARNING)
+            retCode = dlg.ShowModal()
+
+            if retCode == wx.ID_YES:
+                promoteStudents()
+            dlg.Destroy()
+        dlg.Destroy()
 
 

@@ -6,8 +6,9 @@ def getSubjects(search=""):
     cursor = db.cursor()
 
     if search == "":
-        sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, `deleted` 
-                    FROM `subjects` 
+        sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, `deleted`, group_name
+                    FROM subjects s 
+                    JOIN subject_groups g ON g.group_id = s.group_id
                     WHERE deleted = 0"""
     else:
         sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, `deleted` 
@@ -32,7 +33,8 @@ def getSubjects(search=""):
                 'subject_id': row[0],
                 'subject_name': row[1],
                 'subject_alias': row[2],
-                'compulsory': compulsory
+                'compulsory': compulsory,
+                'group': row[5]
             }
 
             dataArray.append(data)
@@ -45,10 +47,10 @@ def getSubjects(search=""):
     return ret
 
 
-def getActiveSubjectAliases():  # To be used in query for exam results
+def getActiveSubjectAliases():  # used in query for exam results
     cursor = db.cursor()
 
-    sql = """SELECT `subject_alias`, `subject_name`, `subject_id`
+    sql = """SELECT `subject_alias`, `subject_name`, `subject_id`, `compulsory`
                 FROM `subjects` 
                 WHERE deleted = 0"""
 
@@ -60,14 +62,46 @@ def getActiveSubjectAliases():  # To be used in query for exam results
         aliases = []
         names = []
         ids = []
+        compulsory = []
 
         for row in cursor:
             aliases.append(row[0].lower().capitalize())
             names.append(row[1])
             ids.append(row[2])
+            compulsory.append(row[3])
 
         data = {
             "aliases": aliases,
+            "names": names,
+            "ids": ids,
+            "compulsory": compulsory,
+        }
+
+        ret = data
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
+def getSubjectGroups():
+    cursor = db.cursor()
+
+    sql = """SELECT `group_id`, `group_name` FROM `subject_groups`"""
+
+    try:
+        cursor.execute(sql)
+
+        names = []
+        ids = []
+
+        for row in cursor:
+            ids.append(row[0])
+            names.append(row[1])
+
+        data = {
             "names": names,
             "ids": ids
         }
@@ -121,8 +155,8 @@ def getOptionalSubjects():  # used in query for subject selection
 def getSubjectsByTeacher(user_id):
     cursor = db.cursor()
 
-    sql = """SELECT u.user_id, s1.subject_id AS subject_id1, s1.subject_name AS subject_name1, s1.subject_alias AS subject_alias1, 
-                    s2.subject_id AS subject_id2, s2.subject_name As subject_name2, s2.subject_alias AS subject_alias2
+    sql = """SELECT u.user_id, s1.subject_id AS subject_id1, s1.subject_name AS subject_name1, s1.subject_alias AS subject_alias1, s1.compulsory AS subject1compulsory, 
+                    s2.subject_id AS subject_id2, s2.subject_name As subject_name2, s2.subject_alias AS subject_alias2, s2.compulsory AS subject2compulsory
                 FROM users u 
                     JOIN subjects s1 ON s1.subject_id = u.subject1 AND s1.deleted = 0
                     LEFT JOIN subjects s2 ON s2.subject_id = u.subject2 AND s2.deleted = 0
@@ -138,9 +172,11 @@ def getSubjectsByTeacher(user_id):
             data['subject_id1'] = row[1]
             data['subject_name1'] = row[2]
             data['subject_alias1'] = row[3]
-            data['subject_id2'] = row[4]
-            data['subject_name2'] = row[5]
-            data['subject_alias2'] = row[6]
+            data['subject1compulsory'] = row[4]
+            data['subject_id2'] = row[5]
+            data['subject_name2'] = row[6]
+            data['subject_alias2'] = row[7]
+            data['subject2compulsory'] = row[8]
 
         ret = data
 

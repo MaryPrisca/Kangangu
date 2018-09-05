@@ -41,27 +41,16 @@ class AddMarks(wx.Panel):
         #
         #
         #
+        reset_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
+        reset_btn_sizer.Add(self.reset_btn, 2, wx.ALL, 5)
 
-        # self.year_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        # year_sizer = wx.BoxSizer(wx.VERTICAL)
-        #
-        # self.year_label = wx.StaticText(self.year_panel, wx.ID_ANY, u"Select Year", wx.DefaultPosition, wx.DefaultSize,
-        #                                 0)
-        # self.year_label.Wrap(-1)
-        # year_sizer.Add(self.year_label, 0, wx.ALL, 5)
-        #
-        # current_year = int(datetime.now().year)
-        # self.year = wx.TextCtrl(self.year_panel, wx.ID_ANY, str(current_year), wx.DefaultPosition,
-        #                         wx.DefaultSize,
-        #                         wx.TE_READONLY)
-        # year_sizer.Add(self.year, 0, wx.ALL | wx.EXPAND, 5)
-        #
-        # self.year_panel.SetSizer(year_sizer)
-        # self.year_panel.Layout()
-        # year_sizer.Fit(self.year_panel)
-        # self.sbSizer2.Add(self.year_panel, 0, wx.EXPAND | wx.ALL, 5)
+        self.sbSizer2.Add(reset_btn_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
+        #
+        #
+        #
         self.year_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         year_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -86,6 +75,7 @@ class AddMarks(wx.Panel):
 
         self.select_subject = SelectSubject(self)
         self.sbSizer2.Add(self.select_subject, 0, wx.EXPAND | wx.ALL, 5)
+        self.subjects_panel_created = 1
 
         #
         #
@@ -136,7 +126,9 @@ class AddMarks(wx.Panel):
             "form":     "",
             "class_id": 0,
             "class": "",
-            "subject_alias": ""
+            "subject_alias": "",
+            "subject_id": 0,
+            "subject_compulsory": 0
         }
 
         #
@@ -180,6 +172,7 @@ class AddMarks(wx.Panel):
         self.Layout()
 
         # Connect Events
+        self.reset_btn.Bind(wx.EVT_BUTTON, self.resetForm)
         self.year.Bind(wx.EVT_COMBOBOX, self.yearSelected)
         self.term.Bind(wx.EVT_COMBOBOX, self.termSelected)
 
@@ -194,9 +187,14 @@ class AddMarks(wx.Panel):
         self.term_panel.Show()
         self.Layout()
 
-        alias = self.select_subject.subject_name.GetStringSelection()
+        subjectIndex = self.select_subject.subject_name.GetSelection()
+        alias = self.select_subject.subjects['aliases'][subjectIndex]
+        subject_id = self.select_subject.subjects['ids'][subjectIndex]
+        subject_compulsory = self.select_subject.subjects['compulsory'][subjectIndex]
 
         self.exam_data['subject_alias'] = alias
+        self.exam_data['subject_id'] = subject_id
+        self.exam_data['subject_compulsory'] = subject_compulsory
 
     def termSelected(self, event):
         year = self.exam_data['year']
@@ -216,8 +214,10 @@ class AddMarks(wx.Panel):
 
                 self.exam_panel_created = 1  # change to 1 so it's not created again
 
-                # Disable changing term to avoid inconsistency
+                # Disable changing year, term and subject to avoid inconsistency
+                self.year.Enable(False)
                 self.term.Enable(False)
+                self.select_subject.subject_name.Enable(False)
         else:
             dlg = wx.MessageDialog(None, "No exams found in " + str(year) + " Term " + term + ".",
                                    'Error Message.',
@@ -232,26 +232,23 @@ class AddMarks(wx.Panel):
             dlg.Destroy()
 
     def examSelected(self, event):
+        exam = self.select_exam.exam_name.GetCurrentSelection()  # get index of exam selected
+        exam_id = self.select_exam.examDets['ids'][exam]
+        form = self.select_exam.examDets['forms'][exam]
 
+        self.exam_data['exam_id'] = exam_id
+        self.exam_data['form'] = form
+
+        # Add Form and class panels concurrently because form will be disabled.
         if not self.form_panel_created:
-            self.select_form = SelectForm(self)
+            self.select_form = SelectForm(self, form)
             self.sbSizer2.Add(self.select_form, 0, wx.EXPAND | wx.ALL, 5)
             self.Layout()
 
             self.form_panel_created = 1  # change to 1 so it's not created again
 
-        exam = self.select_exam.exam_name.GetCurrentSelection()  # get index of exam selected
-        exam_id = self.select_exam.examDets['ids'][exam]
-
-        self.exam_data['exam_id'] = exam_id
-
-    def formSelected(self, event):
-        form = self.select_form.form.GetCurrentSelection() + 1
-
-        self.exam_data['form'] = form
-
         if not self.class_panel_created:
-            self.select_class = SelectClass(self, form)
+            self.select_class = SelectClass(self, int(form))
             self.sbSizer2.Add(self.select_class, 0, wx.EXPAND | wx.ALL, 5)
             self.Layout()
 
@@ -259,7 +256,22 @@ class AddMarks(wx.Panel):
 
             #  Disable changing exam and form to avoid inconsistency
             self.select_exam.exam_name.Enable(False)
-            self.select_form.form.Enable(False)
+
+    # def formSelected(self, event):
+    #     form = self.select_form.form.GetCurrentSelection() + 1
+    #
+    #     self.exam_data['form'] = form
+    #
+    #     if not self.class_panel_created:
+    #         self.select_class = SelectClass(self, form)
+    #         self.sbSizer2.Add(self.select_class, 0, wx.EXPAND | wx.ALL, 5)
+    #         self.Layout()
+    #
+    #         self.class_panel_created = 1  # change to 1 so it's not created again
+    #
+    #         #  Disable changing exam and form to avoid inconsistency
+    #         self.select_exam.exam_name.Enable(False)
+    #         self.select_form.form.Enable(False)
 
     def classSelected(self, event):
 
@@ -280,27 +292,38 @@ class AddMarks(wx.Panel):
 
     def resetForm(self, event):
         self.year.SetSelection(-1)
+        self.year.Enable(True)
+
         self.term.SetSelection(-1)
-        self.select_exam.exam_name.SetSelection(-1)
-        self.select_form.form.SetSelection(-1)
-        self.select_class.class_name.SetSelection(-1)
-        self.select_subject.subject_name.SetSelection(-1)
-
         self.term.Enable(True)
-        self.select_exam.exam_name.Enable(True)
-        self.select_form.form.Enable(True)
-
         self.term_panel.Hide()
-        self.select_exam.Hide()
-        self.select_form.Hide()
-        self.select_class.Hide()
-        self.buttons_panel.Hide()
 
-        self.exam_panel_created = 0
-        self.form_panel_created = 0
-        self.class_panel_created = 0
-        self.subjects_panel_created = 0
-        self.buttons_panel_created = 0
+        self.select_subject.subject_name.Enable(True)
+
+        if self.subjects_panel_created:
+            self.select_subject.subject_name.SetSelection(-1)
+            self.select_subject.subject_name.Enable(True)
+            self.subjects_panel_created = 0
+
+        if self.exam_panel_created:
+            self.select_exam.exam_name.SetSelection(-1)
+            self.select_exam.exam_name.Enable(True)
+            self.select_exam.Hide()
+            self.exam_panel_created = 0
+
+        if self.form_panel_created:
+            self.select_form.form.SetSelection(-1)
+            self.select_form.Hide()
+            self.form_panel_created = 0
+
+        if self.class_panel_created:
+            self.select_class.class_name.SetSelection(-1)
+            self.select_class.Hide()
+            self.class_panel_created = 0
+
+        if self.buttons_panel_created:
+            self.buttons_panel.Hide()
+            self.buttons_panel_created = 0
 
         self.exam_data = {
             "year":     0,
@@ -318,22 +341,38 @@ class AddMarks(wx.Panel):
     def getStudentList(self, event):
         marksExist = checkIfMarksAlreadyEntered(self.exam_data, [self.exam_data['subject_alias']])
 
+        # form 1 & 2 take all subjects that are compulsory / partially optional
+        # So if the compulsory value is 1/2, the subject is compulsory for them
+        if int(self.exam_data['form']) < 3:
+            if self.exam_data['subject_compulsory'] != 0:
+                self.exam_data['subject_compulsory'] = 1
+        # f3&4 take all compulsory subjects, and some optional/partially optional subjects
+        # so if the compulsory value is not equal to 1, then the subject is optional for them.
+        else:
+            if self.exam_data['subject_compulsory'] != 1:
+                self.exam_data['subject_compulsory'] = 0
+
         students = getStudentList(self.exam_data)
         exam_details = getExamDetails(self.exam_data)
+        if len(students):
+            if not self.marks_panel_created:
+                self.show_student_list = MarksForm(self, students, exam_details[0])
+                self.right_container.Add(self.show_student_list, 1, wx.ALL | wx.EXPAND, 15)
 
-        if not self.marks_panel_created:
-            self.show_student_list = MarksForm(self, students, exam_details[0])
-            self.right_container.Add(self.show_student_list, 1, wx.ALL | wx.EXPAND, 15)
+                self.Layout()
 
-            self.Layout()
+                self.marks_panel_created = 1
+            else:
+                self.show_student_list.HideWithEffect(wx.SHOW_EFFECT_ROLL_TO_RIGHT, 1000)
+                self.show_student_list = MarksForm(self, students, exam_details[0])
+                self.right_container.Add(self.show_student_list, 1, wx.ALL | wx.EXPAND, 15)
 
-            self.marks_panel_created = 1
+                self.Layout()
         else:
-            self.show_student_list.HideWithEffect(wx.SHOW_EFFECT_ROLL_TO_RIGHT, 1000)
-            self.show_student_list = MarksForm(self, students, exam_details[0])
-            self.right_container.Add(self.show_student_list, 1, wx.ALL | wx.EXPAND, 15)
-
-            self.Layout()
+            dlg = wx.MessageDialog(None, "There are no students in class/taking subject.", 'Warning Message.',
+                                   wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
 
 
 class SelectSubject(wx.Panel):
@@ -349,19 +388,41 @@ class SelectSubject(wx.Panel):
         self.subject_label.Wrap(-1)
         subject_sizer.Add(self.subject_label, 0, wx.ALL, 5)
 
-        # self.subjects = getActiveSubjectAliases()
-        #
-        # subject_choices = self.subjects['names']
+        self.subjects = {
+            'names': [],
+            'aliases': [],
+            'ids': [],
+            'compulsory': []
+        }
 
-        subject_choices = []
+        # subject_choices = []
 
-        # populate combo box with subjects the teacher logged in teachers
-        teacher_subject_data = getSubjectsByTeacher(self.parent.userdata['user_id'])
+        # This page can be viewed by admins and teachers
 
-        subject_choices.append(teacher_subject_data['subject_alias1'])
+        # If admin is logged in, show all subjects
+        if self.parent.userdata['role'] == 'admin':
+            self.subjects = getActiveSubjectAliases()
 
-        if teacher_subject_data['subject_alias2'] is not None:
-            subject_choices.append(teacher_subject_data['subject_alias2'])
+        # If a teacher is logged in, show the subjects they teach only
+        elif self.parent.userdata['role'] == 'teacher':
+            # populate combo box with subjects the teacher logged in teaches
+            teacher_subject_data = getSubjectsByTeacher(self.parent.userdata['user_id'])
+
+            # subject_choices.append(teacher_subject_data['subject_alias1'])
+            self.subjects['ids'].append(teacher_subject_data['subject_id1'])
+            self.subjects['names'].append(teacher_subject_data['subject_name1'])
+            self.subjects['aliases'].append(teacher_subject_data['subject_alias1'])
+            self.subjects['compulsory'].append(teacher_subject_data['subject1compulsory'])
+
+            if teacher_subject_data['subject_id2'] is not None:
+                # subject_choices.append(teacher_subject_data['subject_alias2'])
+
+                self.subjects['ids'].append(teacher_subject_data['subject_id2'])
+                self.subjects['names'].append(teacher_subject_data['subject_name2'])
+                self.subjects['aliases'].append(teacher_subject_data['subject_alias2'])
+                self.subjects['compulsory'].append(teacher_subject_data['subject2compulsory'])
+
+        subject_choices = self.subjects['names']
 
         self.subject_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                       subject_choices, wx.CB_READONLY)
@@ -394,7 +455,7 @@ class SelectExam(wx.Panel):
 
         self.examDets = getExamsinTerm(self.data['term'], self.data['year'])
 
-        self.exam_nameChoices = self.examDets['names']
+        self.exam_nameChoices = self.examDets['names_n_form']
 
         self.exam_name = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                      self.exam_nameChoices, wx.CB_READONLY)
@@ -409,7 +470,7 @@ class SelectExam(wx.Panel):
 
 class SelectForm(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, form):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                           style=wx.TAB_TRAVERSAL)
         self.parent = parent
@@ -420,16 +481,18 @@ class SelectForm(wx.Panel):
         self.form_label.Wrap(-1)
         form_sizer.Add(self.form_label, 0, wx.ALL, 5)
 
-        formChoices = [u"One", u"Two", u"Three", u"Four"]
+        formChoices = [u"1", u"2", u"3", u"4"]
         self.form = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, formChoices,
                                 wx.CB_READONLY)
+        self.form.SetStringSelection(form)
+        self.form.Enable(False)
         form_sizer.Add(self.form, 0, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(form_sizer)
         self.Layout()
 
         # Connect Events
-        self.form.Bind(wx.EVT_COMBOBOX, self.parent.formSelected)
+        # self.form.Bind(wx.EVT_COMBOBOX, self.parent.formSelected)
 
 
 class SelectClass(wx.Panel):
@@ -476,9 +539,6 @@ class ButtonsPanel(wx.Panel):
         self.spacer.Wrap(-1)
         btns_sizer.Add(self.spacer, 1, wx.ALL, 5)
 
-        self.reset_btn = wx.Button(self, wx.ID_ANY, u"Reset", wx.DefaultPosition, wx.DefaultSize, 0)
-        btns_sizer.Add(self.reset_btn, 0, wx.ALL, 5)
-
         self.save_btn = wx.Button(self, wx.ID_ANY, u"Enter Marks", wx.DefaultPosition, wx.DefaultSize, 0)
         btns_sizer.Add(self.save_btn, 0, wx.ALL, 5)
 
@@ -488,5 +548,4 @@ class ButtonsPanel(wx.Panel):
         self.Layout()
 
         # Connect Events
-        self.reset_btn.Bind(wx.EVT_BUTTON, self.parent.resetForm)
         self.save_btn.Bind(wx.EVT_BUTTON, self.parent.getStudentList)

@@ -2,7 +2,7 @@ import wx
 import wx.xrc
 
 from db.save_subject import saveSubject
-from db.get_subjects import checkIfSubjectExists
+from db.get_subjects import checkIfSubjectExists, getSubjectGroups
 
 # import sys
 # sys.path.insert(0, r'/F:/PythonApps/Kangangu')
@@ -69,10 +69,10 @@ class AddSubject(wx.Panel):
 
         compulsory_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.staticText2 = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Compulsory", wx.DefaultPosition,
+        self.compulsory_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Compulsory", wx.DefaultPosition,
                                          wx.DefaultSize, 0)
-        self.staticText2.Wrap(-1)
-        compulsory_sizer.Add(self.staticText2, 1, wx.ALL, 10)
+        self.compulsory_label.Wrap(-1)
+        compulsory_sizer.Add(self.compulsory_label, 1, wx.ALL, 10)
 
         compulsoryChoices = [u"Yes", u"No", u"Partially"]
         self.compulsory = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
@@ -80,6 +80,22 @@ class AddSubject(wx.Panel):
         compulsory_sizer.Add(self.compulsory, 4, wx.ALL, 10)
 
         sbSizer2.Add(compulsory_sizer, 1, wx.ALL | wx.EXPAND, 10)
+
+        subject_group_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.subject_group_label = wx.StaticText(sbSizer2.GetStaticBox(), wx.ID_ANY, u"Group", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.subject_group_label.Wrap(-1)
+        subject_group_sizer.Add(self.subject_group_label, 1, wx.ALL, 10)
+
+        self.groups = getSubjectGroups()
+        groupChoices = self.groups['names']
+
+        self.subject_group = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                      wx.DefaultSize, groupChoices, wx.CB_READONLY)
+        subject_group_sizer.Add(self.subject_group, 4, wx.ALL, 10)
+
+        sbSizer2.Add(subject_group_sizer, 1, wx.ALL | wx.EXPAND, 10)
 
         btns_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -133,11 +149,15 @@ class AddSubject(wx.Panel):
         self.subject_name.SetValue("")
         self.subject_alias.SetValue("")
         self.compulsory.SetSelection(-1)
+        self.subject_group.SetSelection(-1)
 
     def saveSubject(self, event):
         subject_name = self.subject_name.GetLineText(0)
         subject_alias = self.subject_alias.GetLineText(0)
         compulsory_index = self.compulsory.GetCurrentSelection()
+        compulsory = self.compulsory.GetString(compulsory_index)
+        groupIndex = self.subject_group.GetCurrentSelection()
+        groupName = self.subject_group.GetStringSelection()
 
         subject_alias = subject_alias.replace(" ", "")
 
@@ -153,6 +173,14 @@ class AddSubject(wx.Panel):
         if compulsory_index == -1:
             error = error + "The Compulsory field is required.\n"
 
+        if groupIndex == -1:
+            error = error + "The Group field is required.\n"
+        else:
+            if groupName == "Mathematics" and (compulsory == "No" or compulsory == "Partially"):
+                error = error + "Mathematics is a compulsory subject.\n"
+            if groupName == "Language" and (compulsory == "No" or compulsory == "Partially"):
+                error = error + "Languages are compulsory subjects.\n"
+
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
@@ -165,8 +193,6 @@ class AddSubject(wx.Panel):
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
-                compulsory = self.compulsory.GetString(compulsory_index)
-
                 if compulsory == "Yes":
                     compulsory = 1
                 elif compulsory == "No":
@@ -174,10 +200,13 @@ class AddSubject(wx.Panel):
                 elif compulsory == "Partially":
                     compulsory = 2
 
+                group = self.groups['ids'][groupIndex]
+
                 data = {
                     "subject_name": subject_name,
                     "subject_alias": subject_alias,
-                    "compulsory": compulsory
+                    "compulsory": compulsory,
+                    "group": group
                 }
 
                 if saveSubject(data):

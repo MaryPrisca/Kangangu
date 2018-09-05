@@ -84,7 +84,7 @@ def getStudentMean(marks_array, form):
 
 def calculateMean(marks_array):
     avg = ""
-    if len(marks_array) > 0 :
+    if len(marks_array) > 0:
         avg = sum(marks_array) / len(marks_array)
         avg = round(avg, 3)
 
@@ -137,6 +137,7 @@ def getSubjectMean(data):
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         print e
         ret = False
+        db.rollback()
 
     return ret
 
@@ -196,6 +197,7 @@ def getClassMean(data, columns):
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         # print e
         ret = False
+        db.rollback()
 
     return ret
 

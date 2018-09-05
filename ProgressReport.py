@@ -3,7 +3,7 @@ import wx.xrc
 
 from datetime import datetime
 
-#Reportlab Imports
+# Reportlab Imports
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import letter
@@ -13,7 +13,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from CreatePDF import createReportCard
+# from CreatePDF import createReportCard
 
 from db.get_exams import getExamsInFormAndYear
 from db.get_exam_results import getResultsByStudentAndExamID
@@ -56,7 +56,7 @@ class ProgressReport(wx.Panel):
                                             wx.Bitmap(u"images/download_pdf.bmp", wx.BITMAP_TYPE_ANY),
                                             wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW | wx.NO_BORDER)
         self.download_btn.SetDefault()
-        title_sizer.Add(self.download_btn, 0, wx.TOP|wx.RIGHT|wx.LEFT, 10 )
+        title_sizer.Add(self.download_btn, 0, wx.TOP | wx.RIGHT | wx.LEFT, 15)
 
         container.Add(title_sizer, 0, wx.EXPAND, 5)
 
@@ -81,16 +81,24 @@ class ProgressReport(wx.Panel):
         self.left_sizer.Add(self.select_exam_panel, 0, wx.EXPAND | wx.ALL, 5)
 
         self.exam_data = {
-            "form": 0,
+            "exam_id": 0,
             "exam_name": "",
-            "exam_id": 0
+            'term': "",
+            'year': 0,
+            'student_id': student['user_id'],
+            "form": str(student['form']),
+            'class_id': student['class_id'],
         }
+
+        self.subjects = getActiveSubjectAliases()
+        self.subjects_aliases = self.subjects['aliases']
+        self.subjects_names = self.subjects['names']
 
         outer_sizer.Add(self.left_sizer, 0, wx.EXPAND, 5)
 
         right_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        sbSizer13 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, wx.EmptyString), wx.VERTICAL)
+        self.sbSizer13 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, wx.EmptyString), wx.VERTICAL)
 
         # Get exam to preload on the marks panel
         exam = getExamsInFormAndYear(student['form'], int(datetime.now().year))
@@ -99,19 +107,16 @@ class ProgressReport(wx.Panel):
         if len(exam['ids']):
 
             exam_id = exam['ids'][0]
+            exam_name = exam['exam_names'][0]
+            exam_term = exam['terms'][0]
+            exam_year = exam['years'][0]
 
-            self.subjects = getActiveSubjectAliases()
-            self.subjects_aliases = self.subjects['aliases']
-            self.subjects_names = self.subjects['names']
+            self.exam_data['exam_id'] = exam_id
+            self.exam_data['exam_name'] = exam_name
+            self.exam_data['term'] = exam_term
+            self.exam_data['year'] = exam_year
 
-            self.data = {
-                'exam_id': exam_id,
-                'student_id':student['user_id'],
-                'form': str(student['form']),
-                'class_id': student['class_id']
-            }
-
-            results = getResultsByStudentAndExamID(self.data, self.subjects_aliases, self.subjects_names)
+            results = getResultsByStudentAndExamID(self.exam_data, self.subjects_aliases, self.subjects_names)
         else:
             results = {
                 'subject': "",
@@ -122,9 +127,9 @@ class ProgressReport(wx.Panel):
             results = [results]
 
         self.marks_panel = MarksPanel(self, results)
-        sbSizer13.Add(self.marks_panel, 1, wx.EXPAND, 5)
+        self.sbSizer13.Add(self.marks_panel, 1, wx.EXPAND, 5)
 
-        right_sizer.Add(sbSizer13, 1, wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
+        right_sizer.Add(self.sbSizer13, 1, wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.RIGHT, 15)
 
         outer_sizer.Add(right_sizer, 1, wx.EXPAND, 5)
 
@@ -134,7 +139,7 @@ class ProgressReport(wx.Panel):
         self.Layout()
 
         # Connect Events
-        self.download_btn.Bind( wx.EVT_BUTTON, self.downloadReportCard )
+        self.download_btn.Bind(wx.EVT_BUTTON, self.downloadReportCard)
 
     def __del__(self):
         pass
@@ -167,24 +172,33 @@ class ProgressReport(wx.Panel):
 
         self.Layout()
 
-        # Connect Event
-        self.download_btn.Bind( wx.EVT_BUTTON, self.downloadReportCard )
-
     #
     # --------------------------------------------
     def examSelected(self, event):
-        exam = self.select_exam_panel.exam_name.GetCurrentSelection()  # get index of exam selected
-        exam_id = self.select_exam_panel.examDets['ids'][exam]
+        examIndex = self.select_exam_panel.exam_name.GetCurrentSelection()  # get index of exam selected
+        examName = self.select_exam_panel.exam_name.GetStringSelection()  # get name of exam selected
+        exam_id = self.select_exam_panel.examDets['ids'][examIndex]
+        exam_term = self.select_exam_panel.examDets['terms'][examIndex]
+        exam_year = self.select_exam_panel.examDets['years'][examIndex]
 
-        # print exam_id
+        self.exam_data['exam_id'] = exam_id
+        self.exam_data['exam_name'] = examName
+        self.exam_data['term'] = exam_term
+        self.exam_data['year'] = exam_year
+
+        results = getResultsByStudentAndExamID(self.exam_data, self.subjects_aliases, self.subjects_names)
+
+        self.marks_panel.Destroy()
+
+        self.marks_panel = MarksPanel(self, results)
+        self.sbSizer13.Add(self.marks_panel, 1, wx.EXPAND, 5)
+
+        self.Layout()
 
     #
     # --------------------------------------------
     def downloadReportCard(self, event):
-        print "downloadReportCard Function"
-
-        createReportCard()
-        results = getResultsByStudentAndExamID(self.data, self.subjects_aliases, self.subjects_names)
+        results = getResultsByStudentAndExamID(self.exam_data, self.subjects_aliases, self.subjects_names)
 
         doc = SimpleDocTemplate("report_card.pdf", pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72,
                                 bottomMargin=18)
@@ -201,15 +215,24 @@ class ProgressReport(wx.Panel):
         logo = u"images\\kangangu logo-254x254.bmp"
         school_name = "KANGANGU SECONDARY SCHOOL"
         po_box = "P.O. BOX 183 - 01020 KENOL"
-        term = "3"
-        year = "2018"
-        exam_name = "END TERM" + " REPORT" + "     " + term + "     " + year
-        # time = time.strftime("%d/%m/%Y")
 
-        adm_no = "ADM " + "4612"
-        student_name = "MARY PRISCA WANGUI NGONJO"
-        class_name = "1J"
-        kcpe = "KCPE: " + "389"
+        #
+
+        term = "TERM " + self.exam_data['term'].upper()
+        year = str(self.exam_data['year'])
+        exam_name = self.exam_data['exam_name'].upper() + " REPORT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + term +"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +  year
+
+        #
+
+        adm_no = "ADM NO: " + str(self.student['reg_no'])
+        student_name = self.student['first_name'].upper() + ' ' + self.student['last_name'].upper() + ' ' + self.student['surname'].upper()
+
+        if 'Form' in self.student['class']:
+            class_name = self.student['class']
+        else:
+            class_name = str(self.student['form']) + ' ' + self.student['class']
+
+        kcpe = "KCPE: " + str(self.student['kcpe_marks'])
 
         im = Image(logo, 2 * inch, 2 * inch)  # two inches from the top and two inches from the left.
         Story.append(im)
@@ -221,11 +244,11 @@ class ProgressReport(wx.Panel):
         Story.append(Paragraph(ptext, style=styles['Center']))
 
         Story.append(Spacer(1, 10))
-        ptext = '<font name ="Helvetica-Bold" size=12>%s</font>' % po_box
+        ptext = '<font name ="Helvetica-Bold" size=11>%s</font>' % po_box
         Story.append(Paragraph(ptext, styles["Center"]))
 
         Story.append(Spacer(1, 10))
-        ptext = '<font name ="Helvetica-Bold" size=12>%s</font>' % exam_name
+        ptext = '<font name ="Helvetica-Bold" size=11>%s</font>' % exam_name
         Story.append(Paragraph(ptext, styles["Center"]))
         Story.append(Spacer(1, 15))
 

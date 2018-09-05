@@ -1,7 +1,8 @@
 import MySQLdb
 from connect import db
 from datetime import datetime
-# import pytz
+
+import hashlib
 
 
 def saveStudent(data):
@@ -11,8 +12,16 @@ def saveStudent(data):
     dob = dob[:-9]
     data["dob"] = datetime.strptime(dob, "%d/%m/%Y").date()
 
-    data["username"] = ""
-    data["password"] = ""
+    # student username = their regno@schoolname eg, 7276@kangangu.
+    # student password = next of kin phone number
+    data["username"] = str(data['reg_no'])+"@kangangu"
+
+    data["password"] = data["kin_phone"]
+
+    m = hashlib.md5()
+    m.update(data["password"])
+    data["password"] = m.hexdigest()
+
     data["role"] = "student"
     data["status"] = "Active"
 

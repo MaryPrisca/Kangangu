@@ -366,9 +366,9 @@ class AddStudent(wx.Panel):
 
             student_data = {
                 "reg_no": reg_no,
-                "first_name": first_name,
-                "last_name": last_name,
-                "surname": surname,
+                "first_name": first_name.lower().capitalize(),
+                "last_name": last_name.lower().capitalize(),
+                "surname": surname.lower().capitalize(),
                 "address": address,
                 "dob": dob,
                 "gender": gender,

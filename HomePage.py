@@ -62,10 +62,7 @@ class HomePage(wx.Frame):
         ico = appIcon.getIcon()
         self.SetIcon(ico)
 
-        # Get the logged in user if any
-        # user = get_logged_in_user()
-        # self.userdata = user[0]
-        self.userdata = userdata[0]
+        self.userdata = userdata
 
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
@@ -238,6 +235,19 @@ class HomePage(wx.Frame):
                 self.SetTitle("KANGANGU SECONDARY SCHOOL - MY PROFILE")
                 self.profile_panel.Show()
             self.Layout()
+
+    def Logout(self, event):
+        dlg = wx.MessageDialog(None, "Are you sure you want to exit?", 'Confirm Action.',
+                               wx.YES_NO | wx.ICON_INFORMATION)
+        retCode = dlg.ShowModal()
+
+        if retCode == wx.ID_YES:
+            self.userdata = {}
+            self.Destroy()
+        else:
+            dlg.Close()
+
+        dlg.Destroy()
 
 # # Run the program
 # if __name__ == "__main__":

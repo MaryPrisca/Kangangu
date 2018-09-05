@@ -2,6 +2,7 @@ import MySQLdb
 from connect import db
 
 from datetime import datetime
+import hashlib
 
 
 def checkIfSetupIsComplete():
@@ -25,9 +26,43 @@ def checkIfSetupIsComplete():
     return ret
 
 
+def getSubjectGroups():
+    cursor = db.cursor()
+
+    sql = """SELECT `group_id`, `group_name` FROM `subject_groups`"""
+
+    try:
+        cursor.execute(sql)
+
+        names = []
+        ids = []
+
+        for row in cursor:
+            ids.append(row[0])
+            names.append(row[1])
+
+        data = {
+            "names": names,
+            "ids": ids
+        }
+
+        ret = data
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
 def getSetupData(setup_data):
     # Save admin
-    saveAdminDetails(setup_data['adminDets'])
+    userdata = saveAdminDetails(setup_data['adminDets'])
+
+    userdata['school_details'] = {
+                'school_name': setup_data['school_name'],
+                'lower_subjects': setup_data['subjects_lower_form']
+            }
 
     classes = setup_data['class_names']
 
@@ -47,6 +82,8 @@ def getSetupData(setup_data):
 
     saveSchDetails(setup_data['school_name'], setup_data['subjects_lower_form'])
 
+    return userdata
+
 
 def saveAdminDetails(data):
     data["user_id"] = 0
@@ -54,6 +91,10 @@ def saveAdminDetails(data):
     dob = str(data["dob"])
     dob = dob[:-9]
     data["dob"] = datetime.strptime(dob, "%d/%m/%Y").date()
+
+    m = hashlib.md5()
+    m.update(data['password'])
+    data['password'] = m.hexdigest()
 
     data["role"] = "admin"
     data["status"] = "Active"
@@ -76,7 +117,12 @@ def saveAdminDetails(data):
                              data["username"], data["password"], data["role"], data["status"], data["created_at"], data["deleted"]))
         db.commit()
 
-        ret = True
+        data['user_id'] = cursor.lastrowid
+        data['class_id'] = 0
+        data['reg_no'] = 0
+
+
+        ret = data
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         print(e)
 
@@ -144,24 +190,17 @@ def saveOneSubject(data):
     alias = ''.join(e for e in alias if e.isalnum())
     data['alias'] = alias
 
-    if data['compulsory'] == "Yes":
-        data['compulsory'] = 1
-    elif data['compulsory'] == "No":
-        data['compulsory'] = 0
-    elif data['compulsory'] == "Partial":
-        data['compulsory'] = 2
-
     data["deleted"] = "0"
 
     cursor = db.cursor()
 
     sql = """
-            INSERT INTO `subjects`(`subject_id`, `subject_name`, `subject_alias`, `compulsory`, `deleted`)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO `subjects`(`subject_id`, `subject_name`, `subject_alias`, `compulsory`, `group_id`, `deleted`)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
 
     try:
-        cursor.execute(sql, (0, data["name"], data["alias"], data["compulsory"], data["deleted"]))
+        cursor.execute(sql, (0, data["name"], data["alias"], data["compulsory"], data["group_id"], data["deleted"]))
         db.commit()
 
         # Add subject as column to exam_results table

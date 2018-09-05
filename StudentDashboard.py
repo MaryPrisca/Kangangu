@@ -102,7 +102,7 @@ class StudentDashboard(wx.Panel):
 
     def searchStudents(self, event):
         search_text = self.search_students.GetValue()
-        if len(search_text) > 3:
+        if len(search_text) > 2:
             results = getStudents(search=search_text)
 
             # If the search returns results
@@ -149,7 +149,7 @@ class SearchResultsPanel(wx.Panel):
 
         self.search_results = {}
         for value in self.results:
-            self.search_results[str(value['user_id'])] = OneSearchResult(self, value['user_id'], value['full_names'], value['class'], value['form'])
+            self.search_results[str(value['user_id'])] = OneSearchResult(self, value['user_id'], value['reg_no'], value['full_names'], value['class'], value['form'])
             list_sizer.Add(self.search_results[str(value['user_id'])], 0, wx.EXPAND, 5)
 
         self.spacer = wx.StaticText(self, wx.ID_ANY, u"   ", wx.DefaultPosition, wx.DefaultSize,
@@ -173,7 +173,7 @@ class SearchResultsPanel(wx.Panel):
 
 class OneSearchResult(wx.Panel):
 
-    def __init__(self, parent, user_id, student_name, class_name, form):
+    def __init__(self, parent, user_id, reg_no, student_name, class_name, form):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                           style=wx.TAB_TRAVERSAL)
 
@@ -182,9 +182,9 @@ class OneSearchResult(wx.Panel):
 
         # To avoid an instance of form = 1 Form 1 ie if the form has only on stream hence nno class name
         if "Form" in class_name:
-            full_name = student_name + ", " + class_name
+            full_name = str(reg_no) + " " + student_name + ", " + class_name
         else:
-            full_name = student_name + ", " + str(form) + " " + class_name
+            full_name = str(reg_no) + " " + student_name + ", " + str(form) + " " + class_name
 
         name_sizer = wx.BoxSizer(wx.VERTICAL)
 

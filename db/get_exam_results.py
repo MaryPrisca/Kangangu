@@ -98,19 +98,19 @@ def getExamResults(data, columns):
 
             # To get all classes ie if class_id =0, exam_id > 0 ie exam has been selected
             if data["class_id"] == 0 and data["exam_id"] > 0:
-                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, %s, u.deleted   \
+                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, reg_no, %s, u.deleted   \
                             FROM exam_results er \
                             JOIN exams e ON e.exam_id = er.exam_id \
                             JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                             JOIN classes c ON c.class_id = u.class_id AND c.form_name = %d AND u.deleted = %d \
-                            WHERE e.exam_id = %d ORDER BY %s DESC" % (columnStr, 0, int(data['form']), 0, data['exam_id'], columnStr)
+                            WHERE e.exam_id = %d ORDER BY %s DESC, first_name" % (columnStr, 0, int(data['form']), 0, data['exam_id'], columnStr)
             else:
-                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, %s, u.deleted   \
+                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, reg_no, %s, u.deleted   \
                             FROM exam_results er \
                             JOIN exams e ON e.exam_id = er.exam_id \
                             JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                             JOIN classes c ON c.class_id = u.class_id AND c.class_id = %d AND u.deleted = %d \
-                            WHERE e.exam_id = %d ORDER BY %s DESC" % (columnStr, 0, data['class_id'], 0, data['exam_id'], columnStr)
+                            WHERE e.exam_id = %d ORDER BY %s DESC, first_name" % (columnStr, 0, data['class_id'], 0, data['exam_id'], columnStr)
         else:  # Results for all subjects
             # to create dynamic sum of all subjects eg IFNULL(Eng, 0)+IFNULL(Kis, 0)+IFNULL(Mat, 0)+...
             sum_cols = ''
@@ -124,19 +124,19 @@ def getExamResults(data, columns):
 
             # To get all classes ie if class_id =0, exam_id > 0 ie exam has been selected
             if data["class_id"] == 0 and data["exam_id"] > 0:
-                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, %s u.deleted, SUM(%s) AS sum   \
+                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, reg_no, %s u.deleted, SUM(%s) AS sum   \
                                 FROM exam_results er \
                                 JOIN exams e ON e.exam_id = er.exam_id \
                                 JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                                 JOIN classes c ON c.class_id = u.class_id AND c.form_name = %d AND u.deleted = %d \
-                                WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY sum DESC" % (columnStr, sum_cols, 0, int(data['form']), 0, data['exam_id'])
+                                WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY sum DESC, first_name" % (columnStr, sum_cols, 0, int(data['form']), 0, data['exam_id'])
             else:
-                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, %s u.deleted, SUM(%s) AS sum  \
+                sql = "SELECT `exam_result_id`, er.exam_id, e.exam_name, e.term, `student_id`, u.first_name, u.last_name, u.class_id, c.class_name, c.form_name, reg_no, %s u.deleted, SUM(%s) AS sum  \
                                 FROM exam_results er \
                                 JOIN exams e ON e.exam_id = er.exam_id \
                                 JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                                 JOIN classes c ON c.class_id = u.class_id AND c.class_id = %d AND u.deleted = %d \
-                                WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY sum DESC" % (columnStr, sum_cols, 0, int(data['class_id']), 0, data['exam_id'])
+                                WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY sum DESC, first_name" % (columnStr, sum_cols, 0, int(data['class_id']), 0, data['exam_id'])
 
     try:
         cursor.execute(sql)
@@ -160,13 +160,14 @@ def getExamResults(data, columns):
             data['class_id'] = row[7]
             data['class_name'] = row[8]
             data['form'] = str(row[9]) + str(row[8])[0]
+            data['reg_no'] = row[10]
 
             all_marks = []
             for i, val in enumerate(columns):  # adding columns dynamically
-                # the 9 + i + 1 because the previous item in row before subjects start is 10, + 1 bcoz index starts at 0
-                data[columns[i]] = getGradePlusMark(row[9 + i + 1])
+                # the 10 + i + 1 because the previous item in row before subjects start is 10, + 1 bcoz index starts at 0
+                data[columns[i]] = getGradePlusMark(row[10 + i + 1])
 
-                all_marks.append(row[9+i+1] if row[9+i+1] is not None else 0)
+                all_marks.append(row[10+i+1] if row[10+i+1] is not None else 0)
 
             data['student_mean'] = getGradePlusMark(getStudentMean(all_marks, data['form']))
 
@@ -213,11 +214,14 @@ def getResultsByStudentAndExamID(data, columns, subject_names):
                     'grade': getGrade(row[1 + 1 + key])
                 }
 
-                # Get position in class
-                class_results = getExamResults(data, [val])
-                for result in class_results:
-                    if result['student_id'] == data['student_id']:
-                        resultData['rank'] = result['number']
+                if row[1 + 1 + key] is not None:
+                    # Get position in class
+                    class_results = getExamResults(data, [val])
+                    for result in class_results:
+                        if result['student_id'] == data['student_id']:
+                            resultData['rank'] = result['number']
+                else:
+                    resultData['rank'] = ""
 
                 dataArray.append(resultData)
 
@@ -397,22 +401,25 @@ def getClassMean(data, columns):
                     JOIN exams e ON e.exam_id = er.exam_id \
                     JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                     JOIN classes c ON c.class_id = u.class_id AND c.form_name = %d AND u.deleted = %d \
-                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (no_of_subjects, sum_cols, 0, int(data['form']), 0, data['exam_id'])
+                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (sum_cols, no_of_subjects, 0, int(data['form']), 0, data['exam_id'])
     else:
         sql = "SELECT SUM(%s)/%s AS mean  \
                     FROM exam_results er \
                     JOIN exams e ON e.exam_id = er.exam_id \
                     JOIN users u ON u.user_id = er.student_id AND u.deleted = %d \
                     JOIN classes c ON c.class_id = u.class_id AND c.class_id = %d AND u.deleted = %d \
-                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (no_of_subjects, sum_cols, 0, int(data['class_id']), 0, data['exam_id'])
+                    WHERE e.exam_id = %d GROUP BY er.exam_result_id ORDER BY mean DESC" % (sum_cols, no_of_subjects, 0, int(data['class_id']), 0, data['exam_id'])
 
     try:
         cursor.execute(sql)
 
         data = [item[0] for item in cursor.fetchall()]
 
-        mean = calculateMean(data)
-        # mean = getGrade(mean)
+        if data[0] is not None:
+            mean = calculateMean(data)
+            # mean = getGrade(data[0])
+        else:
+            mean = ""
 
         ret = mean
 
@@ -505,13 +512,13 @@ def getMarksAndStudentId(data, columns):
 
             all_marks = []
             for i, val in enumerate(columns):  # adding columns dynamically
-                # the 9 + i + 1 because the previous item in row before subjects start is 10, + 1 bcoz index starts at 0
+                # the 2 + i + 1 because the previous item in row before subjects start is 2, + 1 bcoz index starts at 0
                 # data[columns[i]] = row[2 + i + 1]
 
                 all_marks.append(row[2 + i + 1] if row[2 + i + 1] is not None else 0)
 
             if len(columns) > 1:
-                data[row[1]] = getStudentMean(all_marks)
+                data[row[1]] = getStudentMean(all_marks, 1)
             else:
                 data[row[1]] = all_marks[0]
 

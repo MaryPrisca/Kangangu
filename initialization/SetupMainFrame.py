@@ -11,8 +11,7 @@ from SetupClasses import SetupClasses
 from SetupSubjects import SetupSubjects
 from PreviewSetup import PreviewSetup
 
-import sys
-sys.path.insert(0, r'/F:/PythonApps/Kangangu/initialization')
+from HomePage import HomePage
 
 from system_setup import *
 
@@ -389,6 +388,9 @@ class SetupMainFrame(wx.Frame):
 
         if conf_password != password:
             error = error + "Passwords do not match.\n"
+        else:
+            if len(password) < 5:
+                error = error + "The Password should have at least 5 characters.\n"
 
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)
@@ -492,7 +494,7 @@ class SetupMainFrame(wx.Frame):
 
         navigate = True
         if len(form_streams) == 0:
-            dlg = wx.MessageDialog(None, "Proceed without adding streams?\n The system will default to one stream per form.", 'Warning Message.',
+            dlg = wx.MessageDialog(None, "Proceed without adding streams?\nThe system will default to one stream per form.", 'Warning Message.',
                                    wx.YES_NO | wx.ICON_WARNING)
             retCode = dlg.ShowModal()
 
@@ -579,7 +581,7 @@ class SetupMainFrame(wx.Frame):
     #
     # --------------------------------------------------
     def saveSetupSubjects(self):
-        if len(self.subjectsTab.subjects) < 2:
+        if len(self.subjectsTab.subjects) < 8:
             dlg = wx.MessageDialog(None, "At least 8 subjects expected, " + str(len(self.subjectsTab.subjects)) + " given", 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
         else:
@@ -600,18 +602,22 @@ class SetupMainFrame(wx.Frame):
 
                 if retCode == wx.ID_YES:
                     # Save all setup data to Database
-                    getSetupData(self.setup_data)
+                    loggedInUser = getSetupData(self.setup_data)
 
                     self.setup_data['saved'] = True
+
+                    self.gauge_pos += self.range
+                    self.setup_gauge.SetValue(self.gauge_pos)
 
                     dlg = wx.MessageDialog(None, "Data saved successfully.", 'Success Message.',
                                            wx.OK | wx.ICON_EXCLAMATION)
                     dlg.ShowModal()
 
-                    self.gauge_pos += self.range
-                    self.setup_gauge.SetValue(self.gauge_pos)
-
                     self.Close()
+
+                    hp = HomePage(None, loggedInUser)
+                    hp.Show()
+                    self.Destroy()
                 else:
                     dlg.Destroy()
 
@@ -638,18 +644,18 @@ class SetupMainFrame(wx.Frame):
             #     self.notebook.SetSelection(5)
 
 
-class MyApp(wx.App):
-    def OnInit(self):
-
-        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-
-        return True
-
-
-# Run the program
-if __name__ == "__main__":
-    app = MyApp()
-    frame = SetupMainFrame(None)
-    frame.Show()
-    app.MainLoop()
+# class MyApp(wx.App):
+#     def OnInit(self):
+#
+#         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+#
+#         return True
+#
+#
+# # Run the program
+# if __name__ == "__main__":
+#     app = MyApp()
+#     frame = SetupMainFrame(None)
+#     frame.Show()
+#     app.MainLoop()
 

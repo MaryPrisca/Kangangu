@@ -1,6 +1,11 @@
 import MySQLdb
 from connect import db
 
+from get_subjects import getActiveSubjectAliases
+from get_exams import getFormsInExam
+from get_classes import getFormClasses
+from login import getSchoolDetails
+
 
 def getStudentList(data):
     cursor = db.cursor()
@@ -10,18 +15,23 @@ def getStudentList(data):
     for x in columns:
         columnStr = columnStr + x
 
-    # sql = """SELECT user_id, first_name, last_name, surname
-    #                 FROM `users` u
-    #                 JOIN classes c
-    #                     ON c.class_id = u.class_id AND c.class_id='%s'
-    #                 WHERE u.deleted = 0 AND c.deleted = 0 AND role='%s'""" % (data['class_id'], 'student')
-
-    sql = """SELECT user_id, first_name, last_name, surname, %s AS mark, er.exam_result_id
+    # If the subject is compulsory get all students in class, else filter those taking subject
+    if data['subject_compulsory']:
+        sql = """SELECT user_id, first_name, last_name, surname, %s AS mark, er.exam_result_id
+                            FROM `users` u
+                            JOIN classes c
+                                ON c.class_id = u.class_id AND c.class_id='%s'
+                            LEFT JOIN exam_results er ON er.student_id = u.user_id AND er.exam_id = '%s'
+                            WHERE u.deleted = 0 AND c.deleted = 0 AND role='%s'""" \
+              % (columnStr, data['class_id'], data['exam_id'], 'student')
+    else:
+        sql = """SELECT user_id, first_name, last_name, surname, %s AS mark, er.exam_result_id
                     FROM `users` u
                     JOIN classes c
                         ON c.class_id = u.class_id AND c.class_id='%s'
                     LEFT JOIN exam_results er ON er.student_id = u.user_id AND er.exam_id = '%s'
-                    WHERE u.deleted = 0 AND c.deleted = 0 AND role='%s'""" % (columnStr, data['class_id'], data['exam_id'], 'student')
+                    WHERE FIND_IN_SET(%s, subjects_taken) != 0 AND u.deleted = 0 AND c.deleted = 0 AND role='%s'""" \
+          % (columnStr, data['class_id'], data['exam_id'], data['subject_id'], 'student')
 
     try:
         cursor.execute(sql)
@@ -37,7 +47,6 @@ def getStudentList(data):
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         print e
-        # ret = e
         ret = False
 
     return ret
@@ -76,8 +85,7 @@ def getExamDetails(data):
         ret = data
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        print e
-        # ret = e
+        # print e
         ret = False
 
     return ret
@@ -138,22 +146,35 @@ def checkIfMarksAlreadyEntered(data, columns):  # For at least One Student
                 ret = dataArray
 
         except(MySQLdb.Error, MySQLdb.Warning) as e:
-            print e
+            # print e
             ret = False
 
         return ret
 
 
-def saveMarks(insert_data, update_data):
+def saveMarks(insert_data, update_data, exam_id):
     save_complete = True
 
+    # Store all exam_result_ids of rows that are inserted/updated
+    # in order to update the total & pos columns in those repective rows
+
+    exam_result_ids = []
+
     for (k, v) in insert_data.iteritems():
-        if not saveMarksOneRecord(v['exam_id'], v['subject'], v['student_id'], v['mark']):
+        inserted_id = saveMarksOneRecord(v['exam_id'], v['subject'], v['student_id'], v['mark'])
+        if inserted_id:
+            exam_result_ids.append(inserted_id)
+        else:
             save_complete = False
 
     for (k, v) in update_data.iteritems():
-        if not updateMarksOneRecord(v['exam_result_id'], v['mark'], v['subject']):
+        if updateMarksOneRecord(v['exam_result_id'], v['mark'], v['subject']):
+            exam_result_ids.append(v['exam_result_id'])
+        else:
             save_complete = False
+
+    # calculate & update totals and pos in affected rows
+    updateTotalsAndPositionsInExam(exam_result_ids, exam_id)
 
     return save_complete
 
@@ -168,9 +189,9 @@ def saveMarksOneRecord(exam_id, subject, student_id, mark):
         cursor.execute(sql)
         db.commit()
 
-        ret = True
+        ret = cursor.lastrowid
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        print(e)
+        # print(e)
 
         db.rollback()
 
@@ -179,7 +200,7 @@ def saveMarksOneRecord(exam_id, subject, student_id, mark):
     return ret
 
 
-def updateMarksOneRecord(exam_result_id, mark, subject ):
+def updateMarksOneRecord(exam_result_id, mark, subject):
     cursor = db.cursor()
 
     sql = """UPDATE `exam_results` SET %s = '%s' WHERE exam_result_id = '%s'""" % (subject, mark, exam_result_id)
@@ -190,10 +211,302 @@ def updateMarksOneRecord(exam_result_id, mark, subject ):
 
         ret = True
     except(MySQLdb.Error, MySQLdb.Warning) as e:
-        print(e)
+        # print(e)
 
         db.rollback()
 
+        ret = False
+
+    return ret
+
+
+def updateTotalsAndPositionsInExam(result_ids, exam_id):
+    # get subject columns in the exam_results table, equivalent to active subjects (aliases)
+    subjects = getActiveSubjectAliases()
+    subjects = subjects['aliases']
+
+    # get form in question
+    form = getFormsInExam(exam_id)
+
+    # to create dynamic sum of all subjects in one row eg IFNULL(Eng, 0)+IFNULL(Kis, 0)+IFNULL(Mat, 0)+...
+    sum_cols = ''
+
+    indexes = len(subjects) - 1  # -1 because first index is 0
+    for key, val in enumerate(subjects):
+        if key == indexes:  # To avoid adding + after the last subject
+            sum_cols = sum_cols + 'IFNULL(' + val + ', 0)'
+        else:
+            sum_cols = sum_cols + 'IFNULL(' + val + ', 0)' + '+'
+
+    completeRowIDs = []
+
+    # For each exam result row affected...
+    for result in result_ids:
+        # get total for result
+        total = calculateTotalForOneRowExamResults(result, sum_cols)
+
+        # update total
+        updateTotalForOneRowExamResults(result, total)
+
+        # check if al the columns have values so that the row can be marked ready for upload (totalled = 1)
+        if checkIfAllSubjectsAreFilledOneRow(result, subjects, form):
+            # all exam_result_ids who's rows have all columns filled
+            completeRowIDs.append(result)
+
+    if len(completeRowIDs):
+        # Set totalled  = 1 in all those rows
+        updateTotalledFieldManyRows(completeRowIDs)
+
+    # get form positions with new totals
+    form_pos_data = getFormPositionsInExam(exam_id)
+
+    # loop through array updating the form_pos
+    for result in form_pos_data:
+        updateFormPosition(result)
+
+    # get class positions
+    class_pos_data = getClassPositions(exam_id, form)
+
+    # Update class_pos field
+    for result in class_pos_data:
+        updateClassPosition(result)
+
+
+def calculateTotalForOneRowExamResults(result_id, subject_sum_string):  # returns the sum of all marks in that row
+    cursor = db.cursor()
+
+    sql = """SELECT %s AS total FROM `exam_results` WHERE exam_result_id = %s""" % (subject_sum_string, result_id)
+
+    try:
+        cursor.execute(sql)
+
+        data = [row[0] for row in cursor.fetchall()]
+
+        ret = data[0]
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        # print e
+        ret = False
+
+    return ret
+
+
+def updateTotalForOneRowExamResults(result_id, total):
+    cursor = db.cursor()
+
+    sql = """ UPDATE `exam_results` SET total = %s WHERE exam_result_id = %s """ % (total, result_id)
+
+    try:
+        cursor.execute(sql)
+        db.commit()
+
+        ret = True
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        # print e
+        db.rollback()
+        ret = False
+
+    return ret
+
+
+def getFormPositionsInExam(exam_id):
+    cursor = db.cursor()
+
+    # Order by firstname in case totals are equal
+    sql = """SELECT `exam_result_id`, `total` 
+                FROM exam_results e
+                JOIN users u ON u.user_id = e.student_id
+                WHERE exam_id = %s ORDER BY total DESC, first_name""" % exam_id
+
+    try:
+        cursor.execute(sql)
+
+        dataArray = []
+
+        count = 1
+        for row in cursor.fetchall():
+            data = {
+                'exam_result_id': row[0],
+                'form_position': count
+            }
+
+            count += 1
+
+            dataArray.append(data)
+
+        ret = dataArray
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
+def updateFormPosition(data):
+    cursor = db.cursor()
+
+    sql = """ UPDATE `exam_results` SET form_pos = %s WHERE exam_result_id = %s """ % (data['form_position'], data['exam_result_id'])
+
+    try:
+        cursor.execute(sql)
+        db.commit()
+
+        ret = True
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        db.rollback()
+        ret = False
+
+    return ret
+
+
+def getClassPositions(exam_id, form):
+    classes_in_form = getFormClasses(int(form))
+
+    class_ids = classes_in_form['ids']
+
+    classes_pos_data = []
+
+    for class_id in class_ids:
+        one_class_pos_data = getPositionsOneClass(exam_id, class_id)  # returns array of dicts
+
+        if len(one_class_pos_data):
+            # add dicts to classes_pos_data array one by one
+            for record in one_class_pos_data:
+                classes_pos_data.append(record)
+
+    return classes_pos_data
+
+
+def getPositionsOneClass(exam_id, class_id):
+    cursor = db.cursor()
+
+    # Order by firstname in case totals are equal
+    sql = """SELECT `exam_result_id`, `total`
+                FROM exam_results e
+                JOIN users u ON u.user_id = e.student_id
+                JOIN classes c ON c.class_id = u.class_id AND c.class_id = %s
+                WHERE exam_id = %s ORDER BY total DESC, first_name""" % (class_id, exam_id)
+
+    try:
+        cursor.execute(sql)
+
+        dataArray = []
+
+        count = 1
+        for row in cursor.fetchall():
+            data = {
+                'exam_result_id': row[0],
+                'class_position': count
+            }
+
+            count += 1
+
+            dataArray.append(data)
+
+        ret = dataArray
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
+def updateClassPosition(data):
+    cursor = db.cursor()
+
+    sql = """ UPDATE `exam_results` SET class_pos = %s WHERE exam_result_id = %s """ % (data['class_position'], data['exam_result_id'])
+
+    try:
+        cursor.execute(sql)
+        db.commit()
+
+        ret = True
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        db.rollback()
+        ret = False
+
+    return ret
+
+
+def checkIfAllSubjectsAreFilledOneRow(result_id, subjects, form):
+    form = int(form)
+    schDets = getSchoolDetails()
+    subjects_lower_forms = schDets['lower_subjects']
+
+    get_cols = ''
+
+    indexes = len(subjects) - 1  # -1 because first index is 0
+    for key, val in enumerate(subjects):
+        if key == indexes:  # To avoid adding , after the last subject
+            get_cols = get_cols + val
+        else:
+            get_cols = get_cols + val + ', '
+
+    cursor = db.cursor()
+
+    sql = """SELECT %s FROM `exam_results` WHERE exam_result_id = %s""" % (get_cols, result_id)
+
+    try:
+        cursor.execute(sql)
+
+        dataArray = []
+
+        # Get all column values that aren't null in order to count how many subjects have been filled
+        for row in cursor.fetchall():
+            for key, value in enumerate(subjects):
+                if row[key] is not None:
+                    dataArray.append(row[key])
+
+        no_of_subjects_filled = len(dataArray)
+
+        if form < 3:
+            if no_of_subjects_filled < subjects_lower_forms:
+                ret = False
+            else:
+                ret = True
+        else:
+            if no_of_subjects_filled < 8:
+                ret = False
+            else:
+                ret = True
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
+def updateTotalledFieldManyRows(result_ids):
+    result_ids_string = ''
+
+    indexes = len(result_ids) - 1  # -1 because first index is 0
+    for key, val in enumerate(result_ids):
+        if key == indexes:  # To avoid adding + or , after the last subject
+            result_ids_string = result_ids_string + str(val)
+        else:
+            result_ids_string = result_ids_string + str(val) + ', '
+
+    cursor = db.cursor()
+
+    sql = """ UPDATE `exam_results` SET `totalled`= 1 WHERE exam_result_id IN (%s) """ % result_ids_string
+
+    try:
+        cursor.execute(sql)
+        db.commit()
+
+        ret = True
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        db.rollback()
         ret = False
 
     return ret

@@ -3,7 +3,6 @@ from connect import db
 
 
 def getFormClasses(form):
-    # form = int(form) + 1
     cursor = db.cursor()
 
     sql = "SELECT class_id, class_name FROM classes \

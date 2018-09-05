@@ -8,8 +8,18 @@ from db.get_subjects import getActiveSubjectAliases
 from db.get_exams import getPreviousExam
 from db.exam_statistics import getGradePlusMark, calculateDeviation
 from db.get_students import getStudentByID
-# import sys
-# sys.path.insert(0, r'/F:/PythonApps/Kangangu')
+
+#
+
+# Reportlab Imports
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 
 ###########################################################################
@@ -25,12 +35,12 @@ class ExamResults(wx.Panel):
 
         container = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_staticText98 = wx.StaticText(self, wx.ID_ANY, u"Exam Results", wx.DefaultPosition, wx.DefaultSize,
-                                            wx.ALIGN_CENTRE)
-        self.m_staticText98.Wrap(-1)
-        self.m_staticText98.SetFont(wx.Font(16, 70, 90, 92, False, wx.EmptyString))
+        self.title_label = wx.StaticText(self, wx.ID_ANY, u"Exam Results", wx.DefaultPosition, wx.DefaultSize,
+                                         wx.ALIGN_CENTRE)
+        self.title_label.Wrap(-1)
+        self.title_label.SetFont(wx.Font(16, 70, 90, 92, False, wx.EmptyString))
 
-        container.Add(self.m_staticText98, 0, wx.EXPAND | wx.TOP, 25)
+        container.Add(self.title_label, 0, wx.EXPAND | wx.TOP, 25)
 
         horizontal_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -67,7 +77,7 @@ class ExamResults(wx.Panel):
         self.year_panel.SetSizer(year_sizer)
         self.year_panel.Layout()
         year_sizer.Fit(self.year_panel)
-        self.sbSizer2.Add(self.year_panel, 0, wx.EXPAND | wx.ALL, 5)
+        self.sbSizer2.Add(self.year_panel, 0, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 5)
 
         #
         #
@@ -273,13 +283,6 @@ class ExamResults(wx.Panel):
     #
     # ---------------------------------------------------------
     def classSelected(self, event):
-
-        if not self.subjects_panel_created:
-            self.select_subject = SelectSubject(self)
-            self.sbSizer2.Add(self.select_subject, 0, wx.EXPAND | wx.ALL, 5)
-            self.Layout()
-            self.subjects_panel_created = 1  # change to 1 so it's not created again
-
         # get index of class selected in order to match with ID's list
         classIndex = self.select_class.class_name.GetCurrentSelection()
 
@@ -293,6 +296,17 @@ class ExamResults(wx.Panel):
 
         self.exam_data['class_id'] = class_id
         self.exam_data['class_name'] = class_name
+
+        #
+
+        if not self.subjects_panel_created:
+            self.select_subject = SelectSubject(self)
+            self.sbSizer2.Add(self.select_subject, 0, wx.EXPAND | wx.ALL, 5)
+            self.Layout()
+            self.subjects_panel_created = 1  # change to 1 so it's not created again
+        else:
+            if self.select_subject.subject_name.GetCurrentSelection() != -1:
+                self.getResults("")
 
     #
     # ---------------------------------------------------------
@@ -356,6 +370,7 @@ class ExamResults(wx.Panel):
 
         if self.buttons_panel_created:
             self.buttons_panel.Hide()
+            self.buttons_panel_created = 0
 
         self.exam_data = {
             "year":     0,
@@ -609,6 +624,7 @@ class ButtonsPanel(wx.Panel):
 
 
 class ViewResults(wx.Panel):
+    #
     # ----------------------------------------------------------------------
     def __init__(self, parent, mean, exam_data, deviation, mostImprovedData):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -637,7 +653,10 @@ class ViewResults(wx.Panel):
         if 'Form' in self.exam_data['class_name']:
             exam_title = "              " + self.exam_data['exam_name'] + " RESULTS"
         else:
-            exam_title = str(self.exam_data['form']) + " " + self.exam_data['class_name'] + "              " + self.exam_data['exam_name'] + " RESULTS"
+            if self.exam_data['class_id'] == 0:
+                exam_title = "              " + self.exam_data['exam_name'] + " RESULTS"
+            else:
+                exam_title = str(self.exam_data['form']) + " " + self.exam_data['class_name'] + "              " + self.exam_data['exam_name'] + " RESULTS"
 
         self.exam_title = exam_title.upper()
         self.term = "TERM " + self.exam_data['term'].upper()
@@ -704,6 +723,19 @@ class ViewResults(wx.Panel):
         self.year_title.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
 
         title_sizer.Add(self.year_title, 0, wx.ALL, 5)
+
+        # space after  year
+        self.after_yr_spacer = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.after_yr_spacer.Wrap(-1)
+        self.after_yr_spacer.SetFont(wx.Font(10, 70, 90, 92, False, wx.EmptyString))
+
+        title_sizer.Add(self.after_yr_spacer, 1, wx.ALL, 5)
+
+        # Download Button
+        self.download_pdf_button = wx.BitmapButton(self, wx.ID_ANY,
+                                                   wx.Bitmap(u"images/download_pdf.bmp", wx.BITMAP_TYPE_ANY),
+                                                   wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW | wx.NO_BORDER)
+        title_sizer.Add(self.download_pdf_button, 0, wx.RIGHT | wx.LEFT, 10)
 
         mainSizer.Add(title_sizer, 0, wx.EXPAND, 5)
 
@@ -780,6 +812,10 @@ class ViewResults(wx.Panel):
 
         self.SetSizer(mainSizer)
 
+        # Connect events
+        self.download_pdf_button.Bind(wx.EVT_BUTTON, self.downloadReportCard)
+
+    #
     # ----------------------------------------------------------------------
     def updateResultsOLV(self, event):
         subjects = []
@@ -793,12 +829,14 @@ class ViewResults(wx.Panel):
         data = getExamResults(self.parent.exam_data, subjects)
         self.resultsOLV.SetObjects(data)
 
+    #
     # ----------------------------------------------------------------------
     def setExamResults(self, data=None):
 
         columns_array = [
             ColumnDefn("POS", "center", 50, "number"),
-            ColumnDefn("ID", "center", 50, "student_id"),
+            ColumnDefn("REG NO", "center", 50, "reg_no"),
+            # ColumnDefn("ID", "center", 50, "student_id"),
             ColumnDefn("STUDENT", "left", 100, "names"),
             ColumnDefn("CLASS", "left", 50, "class_name"),
         ]
@@ -822,4 +860,76 @@ class ViewResults(wx.Panel):
 
         self.resultsOLV.SetObjects(self.results)
 
+    #
+    # --------------------------------------------
+    def downloadReportCard(self, event):
+        subjects = []
+        if self.parent.exam_data['subject_alias'] != "":
+            if self.parent.exam_data['subject_alias'] == "All":
+                subjects = getActiveSubjectAliases()
+                subjects = subjects['aliases']
+            else:
+                subjects = [self.parent.exam_data['subject_alias']]
+
+        results = getExamResults(self.parent.exam_data, subjects)
+
+        #
+
+        doc = SimpleDocTemplate("marksheet.pdf", pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72,
+                                bottomMargin=18)
+
+        # Register Helvetica bold font
+        helvetica_bold_font = r"fonts/Helvetica Bold.ttf"
+        pdfmetrics.registerFont(TTFont("Helvetica-Bold", helvetica_bold_font))
+
+        # Register Helvetica normal font
+        helvetica_normal_font = r"fonts/Helvetica-Normal.ttf"
+        pdfmetrics.registerFont(TTFont("Helvetica-Normal", helvetica_normal_font))
+
+        Story = []
+        logo = u"images\\kangangu logo-254x254.bmp"
+        school_name = "KANGANGU SECONDARY SCHOOL"
+        po_box = "P.O. BOX 183 - 01020 KENOL"
+        term = "3"
+        year = "2018"
+        exam_name = "END TERM" + " REPORT" + "     " + term + "     " + year
+
+        adm_no = "ADM " + "4612"
+        student_name = "MARY PRISCA WANGUI NGONJO"
+        class_name = "1J"
+        kcpe = "KCPE: " + "389"
+
+        im = Image(logo, 2 * inch, 2 * inch)  # two inches from the top and two inches from the left.
+        Story.append(im)
+
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
+
+        ptext = '<font name ="Helvetica-Bold" size=14>%s</font>' % school_name
+        Story.append(Paragraph(ptext, style=styles['Center']))
+
+        Story.append(Spacer(1, 10))
+        ptext = '<font name ="Helvetica-Bold" size=12>%s</font>' % po_box
+        Story.append(Paragraph(ptext, styles["Center"]))
+
+        Story.append(Spacer(1, 10))
+        ptext = '<font name ="Helvetica-Bold" size=12>%s</font>' % exam_name
+        Story.append(Paragraph(ptext, styles["Center"]))
+        Story.append(Spacer(1, 15))
+
+        styleSheet = getSampleStyleSheet()
+
+        # data = [['00', '01', '02', '03', '04'],
+        #         ['10', '11', '12', '13', '14'],
+        #         ['20', '21', '22', '23', '24'],
+        #         ['30', '31', '32', '33', '34']]
+        # t = Table(data)
+        # t.setStyle(TableStyle([('BACKGROUND', (1, 1), (-2, -2), colors.green),
+        #                        ('TEXTCOLOR', (0, 0), (1, -1), colors.red)]))
+        # Story.append(t)
+
+        if doc.build(Story):
+            print "created"
+        else:
+            print "failed to create pdf"
 

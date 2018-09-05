@@ -410,6 +410,9 @@ class AddTeacher(wx.Panel):
 
         if conf_password != password:
             error = error + "Passwords do not match.\n"
+        else:
+            if len(password) < 5:
+                error = error + "The Password should have at least 5 characters.\n"
 
         # check that date has been changed
         td = datetime.today()
@@ -456,9 +459,9 @@ class AddTeacher(wx.Panel):
                 subjectTwoid = subject_ids[subjectTwoIndex]
 
             data = {
-                "first_name": first_name,
-                "last_name": last_name,
-                "surname": surname,
+                "first_name": first_name.lower().capitalize(),
+                "last_name": last_name.lower().capitalize(),
+                "surname": surname.lower().capitalize(),
                 "email": email,
                 "phone": phone,
                 "address": address,

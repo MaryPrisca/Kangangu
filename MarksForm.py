@@ -248,7 +248,7 @@ class MarksForm(wx.Panel):
                 }
                 update_data[str(k)] = data
 
-        if saveMarks(insert_data, update_data):
+        if saveMarks(insert_data, update_data, exam_id):
             dlg = wx.MessageDialog(None, "Marks Entered Successfully.", 'Success Message',
                                    wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
@@ -312,9 +312,9 @@ class SaveMarksButtons(wx.Panel):
                 self.left_spacer.Wrap(-1)
                 btns_sizer.Add(self.left_spacer, 4, wx.ALL, 5)
 
-                self.cancel_btn = wx.Button(self, wx.ID_ANY, u"Cancel", wx.DefaultPosition, wx.DefaultSize,
-                                            0)
-                btns_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
+                # self.cancel_btn = wx.Button(self, wx.ID_ANY, u"Cancel", wx.DefaultPosition, wx.DefaultSize,
+                #                             0)
+                # btns_sizer.Add(self.cancel_btn, 0, wx.ALL, 5)
 
                 self.save_button = wx.Button(self, wx.ID_ANY, u"Save", wx.DefaultPosition, wx.DefaultSize, 0)
                 btns_sizer.Add(self.save_button, 0, wx.BOTTOM | wx.LEFT | wx.TOP, 5)
@@ -328,5 +328,5 @@ class SaveMarksButtons(wx.Panel):
                 self.Layout()
 
                 # Connect Events
-                self.cancel_btn.Bind(wx.EVT_BUTTON, self.parent.cancelAddMarksForm)
+                # self.cancel_btn.Bind(wx.EVT_BUTTON, self.parent.cancelAddMarksForm)
                 self.save_button.Bind(wx.EVT_BUTTON, self.parent.saveMarks)

@@ -1,15 +1,21 @@
 import MySQLdb
 from connect import db
 
+import hashlib
+
 
 def login(data):
+    m = hashlib.md5()
+    m.update(data['password'])
+    data['password'] = m.hexdigest()
+
     cursor = db.cursor()
 
     # binary keyword to perform case sensitive search
     sql = """SELECT `user_id`, `first_name`, `last_name`, `surname`, `email`, `dob`, `gender`, `username`, 
                 `role`, `class_id`, `status`, `created_at`, `reg_no`
             FROM `users`
-            WHERE deleted = 0 AND binary username = %s AND binary password = %s """
+            WHERE deleted = 0 AND binary username = %s AND binary password = %s AND role NOT IN ('student')"""
 
     try:
         cursor.execute(sql, (data['username'], data['password'], ))
@@ -35,7 +41,7 @@ def login(data):
                 'reg_no': row[12],
                 'school_details': getSchoolDetails()} for row in cursor.fetchall()]
 
-            ret = data
+            ret = data[0]
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         ret = False

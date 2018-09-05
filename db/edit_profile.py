@@ -1,7 +1,6 @@
 import MySQLdb
 from connect import db
-from datetime import datetime
-# import pytz
+
 
 def editProfile(data):
     cursor = db.cursor()

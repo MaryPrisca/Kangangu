@@ -163,7 +163,7 @@ class ChangePassword(wx.Panel):
         else:
             # Check if password matches to that in DB
             if not checkOldPassword(user_id, old_password):
-                error = error + "Old Password does not match your current password.\n"
+                error = error + "The Password youy keyed in does not match your current password.\n"
 
         if new_password == "":
             error = error + "The New Password field is required.\n"
@@ -173,6 +173,9 @@ class ChangePassword(wx.Panel):
 
         if conf_password != new_password:
             error = error + "Passwords do not match.\n"
+        else:
+            if len(new_password) < 5:
+                error = error + "The Password should have at least 5 characters.\n"
 
         if error:
             dlg = wx.MessageDialog(None, error, 'Validation Error', wx.OK | wx.ICON_WARNING)

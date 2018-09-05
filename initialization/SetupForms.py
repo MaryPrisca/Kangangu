@@ -186,7 +186,7 @@ class OneStreamPanel(wx.Panel):
         streamSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.remove_btn = wx.BitmapButton(self, wx.ID_ANY,
-                                          wx.Bitmap(u"../images/minus_12x12.bmp", wx.BITMAP_TYPE_ANY),
+                                          wx.Bitmap(u"images/minus_12x12.bmp", wx.BITMAP_TYPE_ANY),
                                           wx.DefaultPosition, wx.DefaultSize, 0 | wx.NO_BORDER)
         streamSizer.Add(self.remove_btn, 0, wx.ALL, 6)
 

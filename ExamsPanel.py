@@ -19,6 +19,7 @@ class ExamsPanel(wx.Panel):
                           style=wx.TAB_TRAVERSAL)
 
         self.userdata = userdata
+        self.parent = parent
 
         container = wx.BoxSizer(wx.VERTICAL)
 
@@ -49,7 +50,7 @@ class ExamsPanel(wx.Panel):
                                                      wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString,
                                                      None)
 
-        if self.userdata['role'] == "teacher":
+        if self.userdata['role'] == "teacher" or self.userdata['role'] == "admin":
             self.m_toolBar3.AddSeparator()
 
             self.m_tool9 = self.m_toolBar3.AddLabelTool(wx.ID_ANY, u"Add Marks",
@@ -64,9 +65,10 @@ class ExamsPanel(wx.Panel):
 
         self.m_toolBar4 = wx.ToolBar(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
                                      wx.TB_FLAT | wx.TB_HORIZONTAL | wx.TB_TEXT)
-        self.m_tool5 = self.m_toolBar4.AddLabelTool(wx.ID_ANY, u"My Profile",
-                                                    wx.ArtProvider.GetBitmap(wx.ART_TIP, wx.ART_TOOLBAR), wx.NullBitmap,
-                                                    wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString, None)
+        self.logout_tool = self.m_toolBar4.AddLabelTool(wx.ID_ANY, u"Logout",
+                                                        wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_TOOLBAR),
+                                                        wx.NullBitmap, wx.ITEM_NORMAL, wx.EmptyString, wx.EmptyString,
+                                                        None)
 
         self.m_toolBar4.Realize()
 
@@ -82,8 +84,8 @@ class ExamsPanel(wx.Panel):
 
         self.add_marks_panel_added = 0
 
-        # Add Marks only for teachers
-        if self.userdata['role'] == "teacher":
+        # Add Marks tab only for teachers and admins
+        if self.userdata['role'] == "teacher" or self.userdata['role'] == "admin":
             self.add_marks = AddMarks(self, self.userdata)
             self.add_marks.Hide()
             container.Add(self.add_marks, 1, wx.EXPAND)
@@ -107,8 +109,11 @@ class ExamsPanel(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.switchToAddExam, id=self.m_tool6.GetId())
         self.Bind(wx.EVT_TOOL, self.switchToAllResults, id=self.m_tool8.GetId())
         self.Bind(wx.EVT_TOOL, self.switchToExamStatistics, id=self.m_tool14.GetId())
-        if self.userdata['role'] == "teacher":
+
+        if self.userdata['role'] == "teacher" or self.userdata['role'] == "admin":
             self.Bind(wx.EVT_TOOL, self.switchToAddMarks, id=self.m_tool9.GetId())
+
+        self.Bind(wx.EVT_TOOL, self.parent.Logout, id=self.logout_tool.GetId())
 
     def __del__(self):
         pass

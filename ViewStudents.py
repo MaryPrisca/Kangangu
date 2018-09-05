@@ -491,9 +491,9 @@ class ViewStudents(wx.Panel):
                 student_data = {
                     "user_id": user_id,
                     "reg_no": reg_no,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "surname": surname,
+                    "first_name": first_name.lower().capitalize(),
+                    "last_name": last_name.lower().capitalize(),
+                    "surname": surname.lower().capitalize(),
                     "dob": dob,
                     "gender": gender,
                     "class_id": class_id,
