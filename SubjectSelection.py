@@ -2,8 +2,9 @@ import wx
 import wx.xrc
 
 from db.get_classes import getClassNamesWithForm
-from db.get_subjects import getOptionalSubjects
+from db.get_subjects import getOptionalSubjects, getNumberOfCompulsorySubjects
 from db.subject_selection import *
+from db.login import getSchoolDetails
 
 ###########################################################################
 # Class SubjectSelection
@@ -173,6 +174,7 @@ class SubjectSelection(wx.Panel):
 
         else:
             class_id = self.classes['ids'][classIndex]
+            form = self.classes['forms'][classIndex]
             class_name = self.class_name.GetStringSelection()
             subject_id = self.subjects['ids'][subjectIndex]
             subject_name = self.subject.GetStringSelection()
@@ -181,11 +183,27 @@ class SubjectSelection(wx.Panel):
             preview_students = students['students_present']
             selection_students = students['student_list']
 
+            # Calculate the limit of subject choices
+            schDets = getSchoolDetails()
+
+            # Get number of compulsory subjects in system
+            compulsory_subjects = getNumberOfCompulsorySubjects(form)
+
+            # Subjects must be 8 for upper forms, for lower forms we get from the system
+            if int(form) < 3:
+                # Get number of subjects done by lower forms
+                subjects_lower_forms = schDets['lower_subjects']
+                subject_limit = int(subjects_lower_forms) - compulsory_subjects
+
+            else:
+                subject_limit = 8 - int(compulsory_subjects)
+
             data = {
                 "class_id": class_id,
                 "class_name": class_name,
                 "subject_id": subject_id,
                 "subject_name": subject_name,
+                "subject_limit": subject_limit
             }
 
             self.selection_panel.Hide()
@@ -347,18 +365,27 @@ class SelectionPanel(wx.Panel):
 
         # Check if there's data to be updated
         if stud_subject_data:
-            if chooseSubjects(stud_subject_data):
-                dlg = wx.MessageDialog(None, "Students' subjects updated successfully.",
-                                       'Success Message.',
-                                       wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
+            dlg = wx.MessageDialog(None, "Save changes?", 'Confirm Action.',
+                                   wx.YES_NO | wx.ICON_INFORMATION)
+            retCode = dlg.ShowModal()
+
+            if retCode == wx.ID_YES:
+                if chooseSubjects(stud_subject_data):
+                    dlg = wx.MessageDialog(None, "Students' subjects updated successfully.",
+                                           'Success Message.',
+                                           wx.OK | wx.ICON_INFORMATION)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    self.cancelChosenSubjects("")
+                else:
+                    dlg = wx.MessageDialog(None, "Some students' subjects may not have been saved. Try again later.",
+                                           'Warning Message.',
+                                           wx.OK | wx.ICON_WARNING)
+                    dlg.ShowModal()
+                    dlg.Destroy()
             else:
-                dlg = wx.MessageDialog(None, "Some students' subjects may not have been saved. Try again later.",
-                                       'Warning Message.',
-                                       wx.OK | wx.ICON_WARNING)
-                dlg.ShowModal()
-                dlg.Destroy()
+                dlg.Close()
+            dlg.Destroy()
 
 
 #
@@ -392,7 +419,7 @@ class OneStudent(wx.Panel):
 
     # If there's no slot to add subject, and the subject in question isn't in array so one needs to be dropped first
     def checkboxClicked(self, event):
-        if len(self.subjects) == 4 and self.subjects.count(str(self.parent.subject_id)) == 0:
+        if len(self.subjects) == self.parent.data['subject_limit'] and self.subjects.count(str(self.parent.subject_id)) == 0:
             dlg = wx.MessageDialog(None, "Maximum number of subjects chosen for student, drop some to continue.",
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)

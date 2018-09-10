@@ -217,6 +217,7 @@ class MarksForm(wx.Panel):
         """"""
 
     def saveMarks(self, event):
+        self.saveButtons.save_button.Enable(False)
         exam_id = self.exam_id.GetLineText(0)
         subject = self.subject_alias.GetLineText(0)
 
@@ -258,6 +259,8 @@ class MarksForm(wx.Panel):
                                    wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
             dlg.Destroy()
+
+        self.saveButtons.save_button.Enable(True)
 
 
 class StudentMarks(wx.Panel):

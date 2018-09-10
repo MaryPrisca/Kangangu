@@ -145,6 +145,8 @@ class ChangePassword(wx.Panel):
         self.confirm_pwd.SetValue("")
 
     def changePassword(self, event):
+        self.change_pwd_btn.Enable(False)
+
         user_id = self.user_id.GetLineText(0)
         old_password = self.old_pwd.GetLineText(0)
         new_password = self.new_pwd.GetLineText(0)
@@ -199,5 +201,7 @@ class ChangePassword(wx.Panel):
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+
+        self.change_pwd_btn.Enable(True)
 
 

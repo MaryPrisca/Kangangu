@@ -268,6 +268,8 @@ class AddStudent(wx.Panel):
         return any(char.isdigit() for char in inputString)
 
     def saveStudent(self, event):
+        self.save_student.Enable(False)
+
         reg_no = self.reg_no.GetLineText(0)
         first_name = self.first_name.GetLineText(0)
         last_name = self.last_name.GetLineText(0)
@@ -389,3 +391,5 @@ class AddStudent(wx.Panel):
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+
+        self.save_student.Enable(True)

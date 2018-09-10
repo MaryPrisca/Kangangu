@@ -104,6 +104,8 @@ class StudentsPanel(wx.Panel):
         self.student_dashboard.Hide()
         self.promote_students.Hide()
 
+        self.add_student.Destroy()
+
         self.add_student = AddStudent(self)
         self.container.Add(self.add_student, 1, wx.EXPAND)
         self.Layout()

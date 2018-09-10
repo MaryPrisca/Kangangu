@@ -185,7 +185,7 @@ class HomePage(wx.Frame):
         main_content.Add(self.exams_panel, 1, wx.EXPAND)
         main_content.Add(self.profile_panel, 1, wx.EXPAND)
 
-        content.Add(main_content, 5, wx.EXPAND, 5)
+        content.Add(main_content, 7, wx.EXPAND, 5)
 
         outer_sizer.Add(content, 1, wx.EXPAND, 5)
 

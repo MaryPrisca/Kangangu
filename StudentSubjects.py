@@ -92,9 +92,6 @@ class StudentSubjects(wx.Panel):
             dlg.Destroy()
         else:
             subject_id = self.subjectsIDs[subjectIndex]
-            print subjectIndex
-            print self.subjectsIDs
-            print subject_id
 
             original_subjects_ids = self.subjects_ids[:]
 

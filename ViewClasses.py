@@ -339,6 +339,8 @@ class EditClass(wx.Panel):
         self.class_name.SetValue("")
 
     def editClass(self, event):
+        self.edit_class_btn.Enable(False)
+
         class_id = self.class_id.GetLineText(0)
         class_name = self.class_name.GetLineText(0)
         formIndex = self.form.GetCurrentSelection()
@@ -382,6 +384,8 @@ class EditClass(wx.Panel):
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
                     dlg.Destroy()
+
+        self.edit_class_btn.Enable(True)
 
 
 class ViewClassStudents(wx.Panel):

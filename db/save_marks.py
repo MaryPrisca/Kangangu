@@ -5,6 +5,7 @@ from get_subjects import getActiveSubjectAliases
 from get_exams import getFormsInExam
 from get_classes import getFormClasses
 from login import getSchoolDetails
+from get_subjects import getCompulsorySciencesHumanities, getSubjectsInGroup, getSubjectsTakenByStudent
 
 
 def getStudentList(data):
@@ -243,7 +244,10 @@ def updateTotalsAndPositionsInExam(result_ids, exam_id):
     # For each exam result row affected...
     for result in result_ids:
         # get total for result
-        total = calculateTotalForOneRowExamResults(result, sum_cols)
+        if int(form) < 3:
+            total = getTotalOneRowLowerForms(sum_cols, result)
+        else:
+            total = getTotalOneRowUpperForms(result, subjects)
 
         # update total
         updateTotalForOneRowExamResults(result, total)
@@ -272,7 +276,7 @@ def updateTotalsAndPositionsInExam(result_ids, exam_id):
         updateClassPosition(result)
 
 
-def calculateTotalForOneRowExamResults(result_id, subject_sum_string):  # returns the sum of all marks in that row
+def getTotalOneRowLowerForms(subject_sum_string, result_id):
     cursor = db.cursor()
 
     sql = """SELECT %s AS total FROM `exam_results` WHERE exam_result_id = %s""" % (subject_sum_string, result_id)
@@ -281,11 +285,166 @@ def calculateTotalForOneRowExamResults(result_id, subject_sum_string):  # return
         cursor.execute(sql)
 
         data = [row[0] for row in cursor.fetchall()]
-
         ret = data[0]
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         # print e
+        ret = False
+
+    return ret
+
+
+def getTotalOneRowUpperForms(result_id, subjects):
+    data = getMarksAndStudentIDOneRow(result_id, subjects)
+    marks = data['marks']
+    student_id = data['student_id']
+
+    total = 0
+
+    # get compulsory subjects i.e. maths & languages
+    # maths
+    maths = getSubjectsInGroup('Mathematics')
+    math_col_name = maths[0]['alias'].lower()
+
+    total += marks[math_col_name]
+
+    # languages
+    languages = getSubjectsInGroup('Language')
+    for lang in languages:
+        lang_col_name = lang['alias'].lower()
+        total += marks[lang_col_name]
+
+    #
+    # OPTIONAL SUBJECTS
+    #
+
+    # get sciences and humanities that are compulsory in the school
+    compulsory_subjects = getCompulsorySciencesHumanities()
+
+    # find the sort of choices student has e.g. 3 sciences 1 hum 1 tech / 3 sci 2 hum etc etc
+    sciences = []
+    humanities = []
+    technicals = []
+
+    no_of_sciences = 0
+    no_of_humanities = 0
+    no_of_technicals = 0
+
+    for key, value in enumerate(compulsory_subjects['group_names']):
+        if value == 'Science':
+            no_of_sciences += 1
+            sciences.append(compulsory_subjects['aliases'][key])
+
+        elif value == 'Humanity':
+            no_of_humanities += 1
+            humanities.append(compulsory_subjects['aliases'][key])
+
+        elif value == 'Applied/Technical':
+            no_of_technicals += 1
+            technicals.append(compulsory_subjects['aliases'][key])
+
+    #
+    # get subjects the student takes
+    subjects_taken = getSubjectsTakenByStudent(student_id)
+    if len(subjects_taken):
+        for key, value in enumerate(subjects_taken['group_names']):
+            if value == 'Science':
+                no_of_sciences += 1
+                sciences.append(subjects_taken['aliases'][key])
+
+            elif value == 'Humanity':
+                no_of_humanities += 1
+                humanities.append(subjects_taken['aliases'][key])
+
+            elif value == 'Applied/Technical':
+                no_of_technicals += 1
+                technicals.append(subjects_taken['aliases'][key])
+
+    # LOGIC OF DROPPING ONE SUBJECT
+
+    # Three possibilities
+    #     1. 3 sciences, 1 humanity, 1 technical    # 1 humanity + highest 3
+    #     2. 3 sciences, 2 humanities, 0 technical  # get the highest 4
+    #     3. 2 sciences, 2 humanities, 1 technical  # 2 sciences + highest 2
+
+    #
+
+    # 3 SCIENCES OPTION
+    if no_of_sciences == 3:
+
+        # NB the sciences, humanities and technicals arrays are holding the alias names of the subjects, not marks
+
+        # 3 SCIENCES 1 HUMANITY, 1 TECHNICAL
+        if no_of_humanities == 1:  # First possibility
+            # Add the humanity
+            total += marks[humanities[0]]
+
+            # put the other four in an array in order to get the highest 3
+            marks_array = [marks[sciences[0]], marks[sciences[1]], marks[sciences[2]], marks[technicals[0]]]
+
+            lowest_mark = min(marks_array)
+
+            sum_of_top_three = sum(marks_array) - lowest_mark
+            total += sum_of_top_three
+
+        # 3 SCIENCES 2 HUMANITIES NO TECHNICAL
+        elif no_of_humanities == 2:  # Second possibility
+            # put all the five in an array in order to get the highest 4
+            marks_array = [marks[sciences[0]], marks[sciences[1]], marks[sciences[2]], marks[humanities[0]], marks[humanities[1]]]
+
+            lowest_mark = min(marks_array)
+
+            sum_of_top_four = sum(marks_array) - lowest_mark
+            total += sum_of_top_four
+
+    # 2 SCIENCES OPTION. 2 HUMANITIES 1 TECHNICAL
+    else:  # Third possibility
+        # Add the two sciences
+        total = total + marks[sciences[0]] + marks[sciences[1]]
+
+        # put the other three in an array in order to get the highest 2
+        marks_array = [marks[humanities[0]], marks[humanities[1]], marks[technicals[0]]]
+
+        lowest_mark = min(marks_array)
+
+        sum_of_top_two = sum(marks_array) - lowest_mark
+        total += sum_of_top_two
+
+    return total
+
+
+def getMarksAndStudentIDOneRow(result_id, subjects):  # returns the sum of all marks in that row
+    subjects_string = ''
+
+    indexes = len(subjects) - 1  # -1 because first index is 0
+    for key, val in enumerate(subjects):
+        if key == indexes:  # To avoid adding + after the last subject
+            subjects_string = subjects_string + val
+        else:
+            subjects_string = subjects_string + val + ', '
+
+    cursor = db.cursor()
+
+    sql = """SELECT %s, student_id FROM `exam_results` WHERE exam_result_id = %s""" % (subjects_string, result_id)
+
+    try:
+        cursor.execute(sql)
+
+        marks = {}
+
+        for row in cursor.fetchall():
+            for key, value in enumerate(subjects):
+                marks[value.lower()] = 0 if row[key] is None else row[key]
+            student_id = row[len(subjects)]
+
+        data = {
+            'marks': marks,
+            'student_id': student_id
+        }
+        ret = data
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
         ret = False
 
     return ret

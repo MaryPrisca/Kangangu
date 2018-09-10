@@ -61,14 +61,17 @@ def getClassNamesWithForm():
 
         ids = []
         names = []
+        forms = []
 
         for row in cursor:
             ids.append(row[0])
-            names.append(str(row[2]) + " " + row[1])
+            names.append(row[1] if 'Form' in row[1] else str(row[2]) + " " + row[1])  # To avoid having '1 Form 1'
+            forms.append(row[2])
 
         data = {
             "ids": ids,
-            "names": names
+            "names": names,
+            "forms": forms,
         }
 
         ret = data

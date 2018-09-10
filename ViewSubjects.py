@@ -252,7 +252,7 @@ class EditSubject(wx.Panel):
         self.compulsory_label.Wrap(-1)
         compulsory_sizer.Add(self.compulsory_label, 1, wx.ALL, 10)
 
-        compulsoryChoices = [u"Yes", u"No", u"Partially"]
+        compulsoryChoices = [u"No (Not compulsory in any form)", u"Yes (In all forms)", u"Partially (Only in lower forms)"]
         self.compulsory = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                       wx.DefaultSize, compulsoryChoices, wx.CB_READONLY)
         compulsory_sizer.Add(self.compulsory, 4, wx.ALL, 10)
@@ -325,6 +325,8 @@ class EditSubject(wx.Panel):
         self.subject_group.SetSelection(-1)
 
     def saveEditSubject(self, event):
+        self.edit_subject.Enable(False)
+
         subject_id = self.subject_id.GetLineText(0)
         subject_name = self.subject_name.GetLineText(0)
         subject_alias = self.subject_alias.GetLineText(0)
@@ -363,12 +365,12 @@ class EditSubject(wx.Panel):
                 dlg.Destroy()
 
             else:
-                if compulsory == "Yes":
-                    compulsory = 1
-                elif compulsory == "No":
-                    compulsory = 0
-                else:  # Partialy
-                    compulsory = 2
+                # if compulsory == "Yes":
+                #     compulsory = 1
+                # elif compulsory == "No":
+                #     compulsory = 0
+                # else:  # Partialy
+                #     compulsory = 2
 
                 group = self.groups['ids'][groupIndex]
 
@@ -376,7 +378,7 @@ class EditSubject(wx.Panel):
                     "subject_id": subject_id,
                     "subject_name": subject_name,
                     "subject_alias": subject_alias,
-                    "compulsory": compulsory,
+                    "compulsory": compulsory_index,
                     "group": group
                 }
 
@@ -397,5 +399,7 @@ class EditSubject(wx.Panel):
             dlg = wx.MessageDialog(None, "Please select subject to edit.", 'Validation Error', wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
             dlg.Destroy()
+
+        self.edit_subject.Enable(True)
 
 

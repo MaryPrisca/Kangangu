@@ -150,6 +150,7 @@ class AddExam(wx.Panel):
         self.term.SetSelection(-1)
 
     def saveExam(self, event):
+        self.save_exam.Enable(False)
         exam_name = self.exam_name.GetLineText(0)
         year = self.year.GetLineText(0)
         termIndex = self.term.GetCurrentSelection()
@@ -199,6 +200,7 @@ class AddExam(wx.Panel):
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+        self.save_exam.Enable(True)
 
 
 

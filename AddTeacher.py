@@ -336,6 +336,8 @@ class AddTeacher(wx.Panel):
         return any(char.isdigit() for char in inputString)
 
     def saveTeacher(self, event):
+        self.save_teacher.Enable(False)
+
         first_name = self.first_name.GetLineText(0)
         last_name = self.last_name.GetLineText(0)
         surname = self.surname.GetLineText(0)
@@ -486,3 +488,5 @@ class AddTeacher(wx.Panel):
                                        wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+
+        self.save_teacher.Enable(True)

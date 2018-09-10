@@ -80,9 +80,9 @@ class ViewStudents(wx.Panel):
 
         left_btns_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.edit_class_btn = wx.Button(self, wx.ID_ANY, u"Edit Student", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.edit_class_btn.Bind(wx.EVT_BUTTON, self.getStudentInfo)
-        left_btns_sizer.Add(self.edit_class_btn, 0, wx.EXPAND | wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
+        self.edit_student_btn = wx.Button(self, wx.ID_ANY, u"Edit Student", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.edit_student_btn.Bind(wx.EVT_BUTTON, self.getStudentInfo)
+        left_btns_sizer.Add(self.edit_student_btn, 0, wx.EXPAND | wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
         self.delete_class_btn = wx.Button(self, wx.ID_ANY, u"Delete", wx.DefaultPosition, wx.DefaultSize, 0)
         self.delete_class_btn.Bind(wx.EVT_BUTTON, self.deleteStudent)
@@ -389,6 +389,8 @@ class ViewStudents(wx.Panel):
         return any(char.isdigit() for char in inputString)
 
     def editStudent(self, event):
+        self.save_student.Enable(False)
+
         user_id = self.user_id.GetLineText(0)
         reg_no = self.reg_no.GetLineText(0)
         first_name = self.first_name.GetLineText(0)
@@ -515,6 +517,8 @@ class ViewStudents(wx.Panel):
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
                     dlg.Destroy()
+
+        self.save_student.Enable(True)
 
     def deleteStudent(self, event):
         if not self.dataOlv.GetSelectedObject():

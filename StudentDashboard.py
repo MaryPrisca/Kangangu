@@ -13,21 +13,21 @@ from db.get_students import getStudents, getStudentByIDAllDetails
 class StudentDashboard(wx.Panel):
 
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(669, 458),
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
                           style=wx.TAB_TRAVERSAL)
 
         self.container = wx.BoxSizer(wx.VERTICAL)
 
-        self.page_title = wx.StaticText(self, wx.ID_ANY, u"Student Dashboard", wx.DefaultPosition, wx.DefaultSize,
-                                        wx.ALIGN_CENTRE)
-        self.page_title.Wrap(-1)
-        self.page_title.SetFont(wx.Font(14, 70, 90, 92, False, wx.EmptyString))
-
-        self.container.Add(self.page_title, 0, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 10)
+        # self.page_title = wx.StaticText(self, wx.ID_ANY, u"Student Dashboard", wx.DefaultPosition, wx.DefaultSize,
+        #                                 wx.ALIGN_CENTRE)
+        # self.page_title.Wrap(-1)
+        # self.page_title.SetFont(wx.Font(14, 70, 90, 92, False, wx.EmptyString))
+        #
+        # self.container.Add(self.page_title, 0, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL, 5)
 
         search_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        search_sizer.AddSpacer((0, 0), 7, wx.EXPAND, 5)
+        search_sizer.AddSpacer((0, 0), 9, wx.EXPAND, 5)
 
         self.search_students = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.search_students.ShowSearchButton(True)

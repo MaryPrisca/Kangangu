@@ -373,6 +373,8 @@ class ViewTeachers(wx.Panel):
         return any(char.isdigit() for char in inputString)
 
     def editTeacher(self, event):
+        self.edit_teacher.Enable(False)
+
         user_id = self.user_id.GetLineText(0)
         first_name = self.first_name.GetLineText(0)
         last_name = self.last_name.GetLineText(0)
@@ -488,6 +490,8 @@ class ViewTeachers(wx.Panel):
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
                     dlg.Destroy()
+
+        self.edit_teacher.Enable(True)
 
     def deleteStudent(self, event):
         if not self.dataOlv.GetSelectedObject():

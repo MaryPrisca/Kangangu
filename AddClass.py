@@ -119,6 +119,7 @@ class AddClass(wx.Panel):
         self.class_name.SetValue("")
 
     def saveClass(self, event):
+        self.save_class.Enable(False)
         class_name = self.class_name.GetLineText(0)
         formIndex = self.form.GetCurrentSelection()
 
@@ -150,4 +151,5 @@ class AddClass(wx.Panel):
                 dlg = wx.MessageDialog(None, "Class not saved. Try again.", 'Error Message.', wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+        self.save_class.Enable(True)
 

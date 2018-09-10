@@ -63,6 +63,8 @@ class PromoteStudents(wx.Panel):
 
     # Virtual event handlers, overide them in your derived class
     def promoteStudents(self, event):
+        self.promote_students_btn.Enable(False)
+
         dlg = wx.MessageDialog(None, "Confirm promoting all students.", 'Confirm Action.', wx.YES_NO | wx.ICON_INFORMATION)
         retCode = dlg.ShowModal()
 
@@ -75,5 +77,7 @@ class PromoteStudents(wx.Panel):
                 promoteStudents()
             dlg.Destroy()
         dlg.Destroy()
+
+        self.promote_students_btn.Enable(True)
 
 

@@ -123,3 +123,7 @@ def getStudentByID(id):
         ret = False
 
     return ret
+
+
+# def getNumberOfStudentsTakingSubject(subject_id, form, compulsory):
+#     """"""

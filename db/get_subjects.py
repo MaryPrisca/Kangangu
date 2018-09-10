@@ -52,7 +52,7 @@ def getActiveSubjectAliases():  # used in query for exam results
 
     sql = """SELECT `subject_alias`, `subject_name`, `subject_id`, `compulsory`
                 FROM `subjects` 
-                WHERE deleted = 0"""
+                WHERE deleted = 0 ORDER BY group_id ASC, subject_id"""
 
     try:
         cursor.execute(sql)
@@ -104,6 +104,117 @@ def getSubjectGroups():
         data = {
             "names": names,
             "ids": ids
+        }
+
+        ret = data
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
+def getSubjectsInGroup(group_name):
+    cursor = db.cursor()
+
+    sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, group_name 
+                FROM subjects s
+                JOIN subject_groups g ON g.group_id = s.group_id
+                WHERE deleted = 0 and group_name = '%s'""" % group_name
+
+    try:
+        cursor.execute(sql)
+
+        dataArray = []
+
+        for row in cursor:
+            data = {
+                'id': row[0],
+                'name': row[1],
+                'alias': row[2],
+                'compulsory': row[1],
+            }
+
+            dataArray.append(data)
+
+        ret = dataArray
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print e
+        ret = False
+
+    return ret
+
+
+def getCompulsorySciencesHumanities():
+    cursor = db.cursor()
+
+    sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, group_name 
+                FROM subjects s
+                JOIN subject_groups g ON g.group_id = s.group_id
+                WHERE deleted = 0 AND compulsory = 1 AND group_name NOT IN ('Mathematics', 'Language')"""
+
+    try:
+        cursor.execute(sql)
+
+        ids = []
+        names = []
+        aliases = []
+        group_names = []
+
+        for row in cursor:
+            ids.append(row[0])
+            names.append(row[1])
+            aliases.append(row[2].lower())
+            group_names.append(row[4])
+
+        data = {
+            'ids': ids,
+            'names': names,
+            'aliases': aliases,
+            'group_names': group_names,
+        }
+
+        ret = data
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        print 'getCompulsorySciencesHumanities'
+        print e
+        ret = False
+
+    return ret
+
+
+def getSubjectsTakenByStudent(student_id):
+    cursor = db.cursor()
+
+    # sql = """SELECT subjects_taken FROM `users` WHERE user_id=%s""" % student_id
+    sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, group_name 
+                FROM subjects s
+                JOIN users u ON user_id = %s
+                JOIN subject_groups g ON g.group_id = s.group_id
+                WHERE s.deleted = 0 AND FIND_IN_SET(s.subject_id, subjects_taken) != 0""" % student_id
+
+    try:
+        cursor.execute(sql)
+
+        ids = []
+        names = []
+        aliases = []
+        group_names = []
+
+        for row in cursor:
+            ids.append(row[0])
+            names.append(row[1])
+            aliases.append(row[2].lower())
+            group_names.append(row[4])
+
+        data = {
+            'ids': ids,
+            'names': names,
+            'aliases': aliases,
+            'group_names': group_names,
         }
 
         ret = data
@@ -212,8 +323,9 @@ def checkIfSubjectExists(col):
 def getSubjectByID(id):
     cursor = db.cursor()
 
-    sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, `deleted` 
-                            FROM `subjects` 
+    sql = """SELECT `subject_id`, `subject_name`, `subject_alias`, `compulsory`, s.group_id, `group_name`
+                            FROM subjects s
+                            JOIN subject_groups g ON g.group_id = s.group_id
                             WHERE deleted = 0 AND subject_id = %s""" % id
     try:
         cursor.execute(sql)
@@ -222,13 +334,37 @@ def getSubjectByID(id):
             'subject_id': row[0],
             'subject_name': row[1],
             'subject_alias': row[2],
-            'compulsory': "Yes" if row[3] == 1 else "No"
+            'compulsory': "Yes" if row[3] == 1 else "No",
+            'group_id': row[4],
+            'group_name': row[5],
         } for row in cursor.fetchall()]
 
         ret = data[0]
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         print e
+        ret = False
+
+    return ret
+
+
+def getNumberOfCompulsorySubjects(form):
+    cursor = db.cursor()
+
+    if int(form) < 3:
+        sql = """SELECT COUNT(subject_id) as count FROM `subjects` WHERE compulsory != 0"""
+    else:
+        sql = "SELECT COUNT(subject_id) as count FROM `subjects` WHERE compulsory = 1"
+
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+
+        data = [item[0] for item in cursor.fetchall()]
+
+        ret = data[0]
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
         ret = False
 
     return ret

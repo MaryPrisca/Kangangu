@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 31, 2018 at 10:35 AM
+-- Generation Time: Sep 10, 2018 at 11:29 AM
 -- Server version: 10.1.28-MariaDB
 -- PHP Version: 7.1.10
 
@@ -40,7 +40,7 @@ CREATE TABLE `classes` (
 --
 
 INSERT INTO `classes` (`class_id`, `class_name`, `form_name`, `deleted`) VALUES
-(1, 'Form 1', 1, 0),
+(1, 'Alpha', 1, 0),
 (2, 'Central', 1, 0),
 (3, 'South', 2, 0),
 (4, 'Alpha', 3, 0),
@@ -99,43 +99,55 @@ CREATE TABLE `exam_results` (
   `exam_result_id` int(11) NOT NULL,
   `exam_id` int(11) NOT NULL,
   `student_id` int(11) NOT NULL,
+  `total` double NOT NULL,
+  `class_pos` int(11) NOT NULL DEFAULT '0',
+  `form_pos` int(11) NOT NULL DEFAULT '0',
+  `totalled` int(11) NOT NULL DEFAULT '0',
+  `uploaded` tinyint(1) NOT NULL DEFAULT '0',
   `eng` double DEFAULT NULL,
   `mat` double DEFAULT NULL,
   `kis` double DEFAULT NULL,
   `bio` double DEFAULT NULL,
   `geo` double DEFAULT NULL,
-  `chem` double DEFAULT NULL
+  `chem` double DEFAULT NULL,
+  `hsc` double DEFAULT NULL,
+  `phy` double DEFAULT NULL,
+  `cre` double DEFAULT NULL,
+  `his` double DEFAULT NULL,
+  `bs` double DEFAULT NULL,
+  `msc` double DEFAULT NULL,
+  `comp` double DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `exam_results`
 --
 
-INSERT INTO `exam_results` (`exam_result_id`, `exam_id`, `student_id`, `eng`, `mat`, `kis`, `bio`, `geo`, `chem`) VALUES
-(1, 3, 1, 30, 20, 40, 50, 75, NULL),
-(2, 3, 2, 58, 96, 34, 75, 61, NULL),
-(3, 3, 3, 85, 20, 63, 50, 42, NULL),
-(4, 3, 4, 47, 96, 65, 75, 25, NULL),
-(5, 3, 5, 85, 20, 63, 50, 42, NULL),
-(6, 3, 6, 47, 96, 65, 75, 25, NULL),
-(7, 3, 7, 36, 45, 65, 48, 52, NULL),
-(8, 3, 8, 47, 96, 65, 75, 25, NULL),
-(9, 3, 9, 41, 69, 49, 75, 45, NULL),
-(10, 3, 10, 36, 30, 48, 80, 74, NULL),
-(11, 3, 11, 20, 30, 85, 45, 82, NULL),
-(12, 3, 12, 18, 36, 24, 48, 62, NULL),
-(13, 2, 6, 25, 35, 45, 55, 65, NULL),
-(14, 2, 5, 44, 84, 75, 96, 58, NULL),
-(15, 5, 6, 59, 35, 45, 85, 56, NULL),
-(16, 3, 5, 25, 48, 57, 63, 28, NULL),
-(17, 5, 1, 0, 0, 69, 0, NULL, NULL),
-(18, 5, 11, 0, 0, 58, 0, NULL, NULL),
-(19, 1, 2, 40, 62, 54, 70, 25, NULL),
-(20, 1, 3, 74, 48, 59, 62, 35, NULL),
-(21, 1, 5, 52, 59, 68, 70, 36, NULL),
-(22, 1, 6, 40, 62, 54, 62, 53, NULL),
-(23, 1, 1, 63, 59, 61, 60, 45, NULL),
-(24, 1, 11, 50, 51, 43, 72, 42, NULL);
+INSERT INTO `exam_results` (`exam_result_id`, `exam_id`, `student_id`, `total`, `class_pos`, `form_pos`, `totalled`, `uploaded`, `eng`, `mat`, `kis`, `bio`, `geo`, `chem`, `hsc`, `phy`, `cre`, `his`, `bs`, `msc`, `comp`) VALUES
+(1, 3, 1, 530, 1, 2, 1, 0, 65, 78, 70, 50, NULL, 67, NULL, 70, 55, NULL, 75, NULL, NULL),
+(2, 3, 2, 521, 2, 3, 1, 0, 58, 96, 56, 75, 61, 59, NULL, 60, 56, NULL, NULL, NULL, NULL),
+(3, 3, 3, 536, 1, 1, 1, 0, 85, 60, 63, NULL, NULL, 70, 67, 71, 78, 42, NULL, NULL, NULL),
+(4, 3, 4, 308, 5, 6, 1, 0, 47, 96, 65, 75, 25, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(5, 3, 5, 260, 6, 9, 0, 0, 85, 20, 63, 50, 42, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(6, 3, 6, 308, 4, 5, 0, 0, 47, 96, 65, 75, 25, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(7, 3, 7, 246, 7, 10, 0, 0, 36, 45, 65, 48, 52, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(8, 3, 8, 308, 3, 4, 0, 0, 47, 96, 65, 75, 25, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(9, 3, 9, 279, 0, 0, 0, 0, 41, 69, 49, 75, 45, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(10, 3, 10, 268, 0, 7, 0, 0, 36, 30, 48, 80, 74, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, 3, 11, 262, 2, 8, 0, 0, 20, 30, 85, 45, 82, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(12, 3, 12, 188, 9, 12, 0, 0, 18, 36, 24, 48, 62, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(13, 2, 6, 225, 0, 0, 0, 0, 25, 35, 45, 55, 65, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(14, 2, 5, 357, 0, 0, 0, 0, 44, 84, 75, 96, 58, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(15, 5, 6, 280, 0, 0, 0, 0, 59, 35, 45, 85, 56, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(16, 3, 5, 221, 8, 11, 0, 0, 25, 48, 57, 63, 28, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(17, 5, 1, 69, 0, 0, 0, 0, 0, 0, 69, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(18, 5, 11, 58, 0, 0, 0, 0, 0, 0, 58, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(19, 1, 2, 251, 0, 0, 0, 0, 40, 62, 54, 70, 25, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(20, 1, 3, 278, 0, 0, 0, 0, 74, 48, 59, 62, 35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(21, 1, 5, 285, 0, 0, 0, 0, 52, 59, 68, 70, 36, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(22, 1, 6, 271, 0, 0, 0, 0, 40, 62, 54, 62, 53, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(23, 1, 1, 288, 0, 0, 0, 0, 63, 59, 61, 60, 45, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(24, 1, 11, 258, 0, 0, 0, 0, 50, 51, 43, 72, 42, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -218,6 +230,7 @@ CREATE TABLE `subjects` (
   `subject_name` varchar(45) DEFAULT NULL,
   `subject_alias` varchar(9) NOT NULL,
   `compulsory` tinyint(4) DEFAULT NULL,
+  `group_id` int(11) NOT NULL,
   `deleted` tinyint(4) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -225,13 +238,42 @@ CREATE TABLE `subjects` (
 -- Dumping data for table `subjects`
 --
 
-INSERT INTO `subjects` (`subject_id`, `subject_name`, `subject_alias`, `compulsory`, `deleted`) VALUES
-(1, 'English', 'ENG', 1, 0),
-(2, 'Kiswahili', 'KIS', 1, 0),
-(3, 'Mathematics', 'MAT', 1, 0),
-(4, 'Biology', 'BIO', 2, 0),
-(5, 'Geography', 'GEO', 2, 0),
-(6, 'Chemistry', 'CHEM', 1, 0);
+INSERT INTO `subjects` (`subject_id`, `subject_name`, `subject_alias`, `compulsory`, `group_id`, `deleted`) VALUES
+(1, 'English', 'ENG', 1, 2, 0),
+(2, 'Kiswahili', 'KIS', 1, 2, 0),
+(3, 'Mathematics', 'MAT', 1, 1, 0),
+(4, 'Biology', 'BIO', 2, 3, 0),
+(5, 'Geography', 'GEO', 2, 4, 0),
+(6, 'Chemistry', 'CHEM', 1, 3, 0),
+(7, 'Home Science', 'Hsc', 0, 5, 0),
+(8, 'Physics', 'Phy', 2, 3, 0),
+(9, 'C.R.E.', 'CRE', 1, 4, 0),
+(10, 'History', 'His', 2, 4, 0),
+(11, 'Business Studies', 'Bs', 0, 5, 0),
+(12, 'Music', 'Msc', 0, 5, 0),
+(13, 'Computer Studies', 'comp', 0, 5, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `subject_groups`
+--
+
+CREATE TABLE `subject_groups` (
+  `group_id` int(11) NOT NULL,
+  `group_name` varchar(25) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `subject_groups`
+--
+
+INSERT INTO `subject_groups` (`group_id`, `group_name`) VALUES
+(1, 'Mathematics'),
+(2, 'Language'),
+(3, 'Science'),
+(4, 'Humanity'),
+(5, 'Applied/Technical');
 
 -- --------------------------------------------------------
 
@@ -251,7 +293,7 @@ CREATE TABLE `system_setup` (
 --
 
 INSERT INTO `system_setup` (`id`, `school_name`, `subjects_lower_forms`, `setup_complete`) VALUES
-(1, 'Kangangu', 10, 1);
+(1, 'Kangangu', 11, 1);
 
 -- --------------------------------------------------------
 
@@ -294,9 +336,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `reg_no`, `first_name`, `last_name`, `surname`, `email`, `phone_number`, `dob`, `gender`, `username`, `password`, `role`, `alumnus`, `class_id`, `subjects_taken`, `subject1`, `subject2`, `kcpe_marks`, `birth_cert_no`, `next_of_kin_name`, `next_of_kin_phone`, `address`, `national_id`, `tsc_no`, `status`, `created_at`, `deleted`) VALUES
-(1, 0, 'Ngonjo', 'Mary...', 'Prisca', 'example@gmail.com', NULL, '1996-12-22', 'F', NULL, NULL, 'student', 0, 1, '4,2,5,3', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-11 00:00:00', 0),
-(2, 0, 'Jane', 'Doe', 'Doe..', 'example@gmail.com', NULL, '0000-00-00', 'M', '', '', 'student', 0, 2, '1,2,3,4', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-23 19:00:00', 0),
-(3, 0, 'Joy', 'Wangu', 'Kamau', 'example@gmail.com', NULL, '0000-00-00', 'M', '', '', 'student', 0, 2, '1,2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '0000-00-00 00:00:00', 0),
+(1, 0, 'Ngonjo', 'Mary...', 'Prisca', 'example@gmail.com', NULL, '1996-12-22', 'F', NULL, NULL, 'student', 0, 1, '11,7', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-11 00:00:00', 0),
+(2, 0, 'Jane', 'Doe', 'Doe..', 'example@gmail.com', NULL, '0000-00-00', 'M', '', '', 'student', 0, 2, '4,8,5', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-23 19:00:00', 0),
+(3, 0, 'Joy', 'Wangu', 'Kamau', 'example@gmail.com', NULL, '0000-00-00', 'M', '', '', 'student', 0, 2, '8,10,7', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '0000-00-00 00:00:00', 0),
 (4, 0, 'k', 'o', 'k', 'example@gmail.com', NULL, '0000-00-00', 'M', '', '', 'student', 0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '0000-00-00 00:00:00', 1),
 (5, 0, 'Prisca', 'Mary', 'Ngonjo', 'example@gmail.com', NULL, '2018-05-23', 'F', '', '', 'student', 0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '0000-00-00 00:00:00', 0),
 (6, 0, 'Jay ', 'Joy', 'Toy', 'example@gmail.com', NULL, '2018-05-23', 'M', '', '', 'student', 0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-23 00:00:00', 0),
@@ -305,16 +347,17 @@ INSERT INTO `users` (`user_id`, `reg_no`, `first_name`, `last_name`, `surname`, 
 (10, 0, 'Tess', 'Hunter', 'Hathaway', 'example@gmail.com', NULL, '1996-05-28', 'F', '', '', 'student', 0, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-28 22:03:13', 0),
 (11, 0, 'Peris', 'Kate', 'Hunter', 'example@gmail.com', NULL, '1995-07-12', 'F', '', '', 'student', 0, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-28 22:15:42', 0),
 (12, 0, 'Jake', 'Take', 'Hex', 'example@gmail.com', NULL, '2018-05-02', 'M', '', '', 'student', 0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-05-28 22:18:16', 0),
-(13, 0, 'Abdul...', 'Kashem...', 'Kashim', 'example@gmail.com', NULL, '2000-07-12', 'F', 'abdul', 'kashem', 'admin', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-28 09:27:18', 0),
-(14, 0, 'Joshua', 'Kiama', 'Kihara', 'josh@email.com', NULL, '1995-07-13', 'F', 'joshua', 'joshua', 'teacher', 0, 1, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-03 19:55:11', 0),
-(15, 0, 'Harrison', 'Ouma', 'Oteke', 'harrison@email.com', NULL, '2018-03-06', 'M', 'harrison', 'harrison', 'teacher', 0, NULL, NULL, 5, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-05 21:21:25', 0),
-(16, 0, 'David', 'Kiama', 'Mwangi', 'david@gmail.com', NULL, '1996-02-02', 'F', 'david', 'david', 'teacher', 0, NULL, NULL, 4, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-07 21:16:14', 0),
-(17, 0, 'Natasha', 'Tash', 'Sambu', 'nat@gmail.com', NULL, '1995-07-04', 'F', 'tash', 'tash', 'teacher', 0, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-07-06 11:46:32', 0),
-(18, 0, 'Celian', 'Celine', 'Ngonjo', 'celine@gmail.com', NULL, '2002-09-10', 'F', 'celine', 'celine', 'teacher', 0, NULL, NULL, 3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-07-06 12:22:01', 0),
-(19, 0, 'Tabitha', 'Kalondu', 'Mutuko', 'tabs@gmail.com', '0756478934', '1994-06-14', 'F', 'tabitha', 'tabitha', 'teacher', 0, NULL, NULL, 1, 2, NULL, NULL, NULL, NULL, '1234Thika', '22565487', '74858', 'Active', '2018-07-31 12:39:08', 0),
-(20, 0, 'Jessica', 'Wambui', 'Mwangi', '', NULL, '2000-07-11', 'F', '', '', 'student', 1, 7, '1,3,5', NULL, NULL, 400, '3453466797', 'Kennedy', '0745678945', '1678 Nairobi', NULL, NULL, 'Active', '2018-07-31 14:03:13', 0),
-(21, 0, 'Hudson', 'Hubbins', 'Hud', NULL, NULL, '2010-08-25', 'M', '', '', 'student', 1, 8, NULL, NULL, NULL, 400, 'qwe', 'qwer', '0718016164', '1234', NULL, NULL, 'Active', '2018-08-25 15:46:04', 0),
-(22, 7276, 'Celine', 'Waithera', 'Ngonjo', NULL, NULL, '2002-09-10', 'F', '', '', 'student', 0, 4, NULL, NULL, NULL, 400, '235643443', 'Stephen', '0726765176', '1771', NULL, NULL, 'Active', '2018-08-31 11:06:00', 0);
+(13, 0, 'Abdul...', 'Kashem...', 'Kashim', 'example@gmail.com', NULL, '2000-07-12', 'F', 'abdul', '617eb9cdc5dee39804ff0b7ea0047a4a', 'admin', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-28 09:27:18', 0),
+(14, 0, 'Joshua', 'Kiama', 'Kihara', 'josh@email.com', NULL, '1995-07-13', 'F', 'joshua', '5f4dcc3b5aa765d61d8327deb882cf99', 'teacher', 0, 1, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-03 19:55:11', 0),
+(15, 0, 'Harrison', 'Ouma', 'Oteke', 'harrison@email.com', NULL, '2018-03-06', 'M', 'harrison', '5f4dcc3b5aa765d61d8327deb882cf99', 'teacher', 0, NULL, NULL, 5, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-05 21:21:25', 0),
+(16, 0, 'David', 'Kiama', 'Mwangi', 'david@gmail.com', NULL, '1996-02-02', 'F', 'david', '5f4dcc3b5aa765d61d8327deb882cf99', 'teacher', 0, NULL, NULL, 4, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-06-07 21:16:14', 0),
+(17, 0, 'Natasha', 'Tash', 'Sambu', 'nat@gmail.com', NULL, '1995-07-04', 'F', 'tash', '5f4dcc3b5aa765d61d8327deb882cf99', 'teacher', 0, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-07-06 11:46:32', 0),
+(18, 0, 'Celian', 'Celine', 'Ngonjo', 'celine@gmail.com', NULL, '2002-09-10', 'F', 'celine', '5f4dcc3b5aa765d61d8327deb882cf99', 'teacher', 0, NULL, NULL, 3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', '2018-07-06 12:22:01', 0),
+(19, 0, 'Tabitha', 'Kalondu', 'Mutuko', 'tabs@gmail.com', '0756478934', '1994-06-14', 'F', 'tabitha', '5f4dcc3b5aa765d61d8327deb882cf99', 'teacher', 0, NULL, NULL, 1, 2, NULL, NULL, NULL, NULL, '1234Thika', '22565487', '74858', 'Active', '2018-07-31 12:39:08', 0),
+(20, 0, 'Jessica', 'Wambui', 'Mwangi', '', NULL, '2000-07-11', 'F', '', '', 'student', 0, 7, '1,3,5', NULL, NULL, 400, '3453466797', 'Kennedy', '0745678945', '1678 Nairobi', NULL, NULL, 'Active', '2018-07-31 14:03:13', 0),
+(21, 0, 'Hudson', 'Hubbins', 'Hud', NULL, NULL, '2010-08-25', 'M', '', '', 'student', 0, 4, NULL, NULL, NULL, 400, 'qwe', 'qwer', '0718016164', '1234', NULL, NULL, 'Active', '2018-08-25 15:46:04', 0),
+(22, 7276, 'Celine', 'Waithera', 'Ngonjo', NULL, NULL, '2002-09-10', 'F', '', '', 'student', 0, 8, NULL, NULL, NULL, 400, '235643443', 'Stephen', '0726765176', '1771', NULL, NULL, 'Active', '2018-08-31 11:06:00', 0),
+(23, 4612, 'valerius', 'gacheru', 'ngonjo', NULL, NULL, '1994-02-17', 'M', '4612@kangangu', '32fa863cbbff5d7962f62363d379de37', 'student', 0, 7, NULL, NULL, NULL, 405, '7565432456', 'Stephen', '0726765176', '1771', NULL, NULL, 'Active', '2018-08-31 17:27:09', 0);
 
 --
 -- Indexes for dumped tables
@@ -367,6 +410,12 @@ ALTER TABLE `subjects`
   ADD UNIQUE KEY `subject_name` (`subject_name`);
 
 --
+-- Indexes for table `subject_groups`
+--
+ALTER TABLE `subject_groups`
+  ADD PRIMARY KEY (`group_id`);
+
+--
 -- Indexes for table `system_setup`
 --
 ALTER TABLE `system_setup`
@@ -416,7 +465,13 @@ ALTER TABLE `results`
 -- AUTO_INCREMENT for table `subjects`
 --
 ALTER TABLE `subjects`
-  MODIFY `subject_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `subject_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- AUTO_INCREMENT for table `subject_groups`
+--
+ALTER TABLE `subject_groups`
+  MODIFY `group_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `system_setup`
@@ -428,7 +483,7 @@ ALTER TABLE `system_setup`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- Constraints for dumped tables

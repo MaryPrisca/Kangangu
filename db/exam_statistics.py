@@ -79,7 +79,7 @@ def getStudentMean(marks_array, form):
         no_of_subjects = 8
 
     avg = sum(marks_array) / no_of_subjects
-    return avg
+    return round(avg, 2)
 
 
 def calculateMean(marks_array):

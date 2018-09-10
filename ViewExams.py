@@ -141,11 +141,11 @@ class ViewExams(wx.Panel):
     # ------------------------------------------------------------------------------
     def setExamData(self, data=None):
         self.examsOLV.SetColumns([
-            ColumnDefn("ID", "left", 60, "exam_id"),
-            ColumnDefn("Year", "center", 70, "year"),
-            ColumnDefn("Name", "center", 100, "exam_name"),
-            ColumnDefn("Form", "center", 100, "form"),
-            ColumnDefn("Term", "center", 70, "term"),
+            ColumnDefn("ID", "left", 45, "exam_id"),
+            ColumnDefn("Year", "center", 65, "year"),
+            ColumnDefn("Name", "center", 70, "exam_name"),
+            ColumnDefn("Form", "center", 40, "form"),
+            ColumnDefn("Term", "center", 65, "term"),
         ])
 
         self.examsOLV.SetObjects(self.exams)
@@ -172,88 +172,95 @@ class ViewExams(wx.Panel):
     #
     # ------------------------------------------------------------------------------
     def fetchExamResults(self, event):
-        rowObj = self.examsOLV.GetSelectedObject()
-
-        form = getFormsInExam(rowObj['exam_id'])
-
-        if form == "All":
-            choices =[u"Form 1", u"Form 2", u"Form 3", u"Form 4"]
-
-            formChosen = wx.GetSingleChoice(message="Select Form to View Results", caption="Exam Results.",
-                                            choices=choices, parent=None)
-        else:
-            formChosen = form
-
-        if formChosen == "Form 1" or formChosen == "One":
-            formChosen = 1
-        elif formChosen == "Form 2" or formChosen == "Two":
-            formChosen = 2
-        elif formChosen == "Form 3" or formChosen == "Three":
-            formChosen = 3
-        elif formChosen == "Form 4" or formChosen == "Four":
-            formChosen = 4
-
-        subjectChoices = getActiveSubjectAliases()
-        subjectChoices = subjectChoices['aliases']
-        subjectChoices.insert(0, "All Subjects")
-
-        subjectChosen = wx.GetSingleChoice(message="Select Subject.", caption="Exam Results.",
-                                        choices=subjectChoices, parent=None)
-
-        if subjectChosen == "All Subjects":
-            alias = "All"
-            subjects = getActiveSubjectAliases()
-            subjects = subjects['aliases']
-        else:
-            alias = subjectChosen
-            subjects = [subjectChosen]
-
-        self.exam_data = {
-            "exam_id": rowObj['exam_id'],
-            "class_id": 0,
-            "form": formChosen,
-            "subject_alias": alias,
-            "year": rowObj['year'],
-            "term": rowObj['term'],
-            "exam_name": rowObj['exam_name'],
-        }
-
-        data = getExamResults(self.exam_data, subjects)
-        if data:
-            self.edit_exam_panel.Hide()
-            # self.show_results.Hide()
-            #
-            # self.show_results = ViewResults(self, self.exam_data)
-            # self.show_results.setExamResults()
-            # self.show_results.updateResultsOLV("")
-            # self.show_results.Show()
-            #
-            # self.Layout()
-
-            if self.show_results_panel_added == 0:
-                self.show_results = ViewResults(self, self.exam_data)
-                self.right_sizer.Add(self.show_results, 1, wx.EXPAND)
-
-                self.Layout()
-
-                self.show_results_panel_added = 1
-            else:
-                self.show_results.Destroy()
-                self.show_results = ViewResults(self, self.exam_data)
-                self.right_sizer.Add(self.show_results, 1, wx.EXPAND)
-
-                self.Layout()
-        else:
-            dlg = wx.MessageDialog(None, "No results for selected exam.",
+        if not self.examsOLV.GetSelectedObject():
+            dlg = wx.MessageDialog(None, "Click on a row first in order to view exam results.",
                                    'Error Message.',
                                    wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
+        else:
+            rowObj = self.examsOLV.GetSelectedObject()
 
-            self.show_results.Hide()
-            self.edit_exam_panel.Show()
+            form = getFormsInExam(rowObj['exam_id'])
 
-            self.Layout()
+            if form == "All":
+                choices =[u"Form 1", u"Form 2", u"Form 3", u"Form 4"]
+
+                formChosen = wx.GetSingleChoice(message="Select Form to View Results", caption="Exam Results.",
+                                                choices=choices, parent=None)
+            else:
+                formChosen = form
+
+            if formChosen == "Form 1" or formChosen == "One":
+                formChosen = 1
+            elif formChosen == "Form 2" or formChosen == "Two":
+                formChosen = 2
+            elif formChosen == "Form 3" or formChosen == "Three":
+                formChosen = 3
+            elif formChosen == "Form 4" or formChosen == "Four":
+                formChosen = 4
+
+            subjectChoices = getActiveSubjectAliases()
+            subjectChoices = subjectChoices['aliases']
+            subjectChoices.insert(0, "All Subjects")
+
+            subjectChosen = wx.GetSingleChoice(message="Select Subject.", caption="Exam Results.",
+                                            choices=subjectChoices, parent=None)
+
+            if subjectChosen == "All Subjects":
+                alias = "All"
+                subjects = getActiveSubjectAliases()
+                subjects = subjects['aliases']
+            else:
+                alias = subjectChosen
+                subjects = [subjectChosen]
+
+            self.exam_data = {
+                "exam_id": rowObj['exam_id'],
+                "class_id": 0,
+                "form": formChosen,
+                "subject_alias": alias,
+                "year": rowObj['year'],
+                "term": rowObj['term'],
+                "exam_name": rowObj['exam_name'],
+            }
+
+            data = getExamResults(self.exam_data, subjects)
+            if data:
+                self.edit_exam_panel.Hide()
+                # self.show_results.Hide()
+                #
+                # self.show_results = ViewResults(self, self.exam_data)
+                # self.show_results.setExamResults()
+                # self.show_results.updateResultsOLV("")
+                # self.show_results.Show()
+                #
+                # self.Layout()
+
+                if self.show_results_panel_added == 0:
+                    self.show_results = ViewResults(self, self.exam_data)
+                    self.right_sizer.Add(self.show_results, 1, wx.EXPAND)
+
+                    self.Layout()
+
+                    self.show_results_panel_added = 1
+                else:
+                    self.show_results.Destroy()
+                    self.show_results = ViewResults(self, self.exam_data)
+                    self.right_sizer.Add(self.show_results, 1, wx.EXPAND)
+
+                    self.Layout()
+            else:
+                dlg = wx.MessageDialog(None, "No results for selected exam.",
+                                       'Error Message.',
+                                       wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+
+                self.show_results.Hide()
+                self.edit_exam_panel.Show()
+
+                self.Layout()
 
     #
     # ------------------------------------------------------------------------------
@@ -451,6 +458,8 @@ class EditExam(wx.Panel):
     #
     # ------------------------------------------------------------
     def editExam(self, event):
+        self.edit_exam_btn.Enable(False)
+
         exam_id = self.exam_id.GetLineText(0)
 
         if exam_id == "":  # Check that a class has been selected before starting validation
@@ -513,6 +522,8 @@ class EditExam(wx.Panel):
                                            wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
                     dlg.Destroy()
+
+        self.edit_exam_btn.Enable(True)
 
 
 class ViewResults(wx.Panel):
@@ -632,9 +643,9 @@ class ViewResults(wx.Panel):
     def setExamResults(self, data=None):
 
         columns_array = [
-            ColumnDefn("ID", "center", 50, "exam_result_id"),
-            ColumnDefn("Student", "left", 100, "names"),
-            ColumnDefn("Class", "left", 50, "form"),
+            ColumnDefn("ID", "center", 45, "exam_result_id"),
+            ColumnDefn("STUDENT", "left", 130, "names"),
+            ColumnDefn("CLASS", "left", 50, "form"),
         ]
 
         if self.parent.exam_data['subject_alias'] != "":

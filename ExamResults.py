@@ -14,7 +14,7 @@ from db.get_students import getStudentByID
 # Reportlab Imports
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -146,7 +146,7 @@ class ExamResults(wx.Panel):
         #
         #
         #
-        left_container.Add(self.sbSizer2, 1, wx.ALL | wx.EXPAND, 15)
+        left_container.Add(self.sbSizer2, 1, wx.ALL | wx.EXPAND, 8)
 
         horizontal_sizer.Add(left_container, 0, wx.EXPAND, 5)
 
@@ -160,7 +160,7 @@ class ExamResults(wx.Panel):
 
         self.show_results = ViewResults(self, "", self.exam_data, "", sample_most_improved_data)
         self.show_results.Hide()
-        self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
+        self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 8)
 
         self.results_panel_created = 0
 
@@ -451,7 +451,7 @@ class ExamResults(wx.Panel):
         if exam_data:
             if self.results_panel_created == 0:
                 self.show_results = ViewResults(self, mean, self.exam_data, deviation, mostImproved)
-                self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
+                self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 8)
 
                 self.Layout()
 
@@ -459,7 +459,7 @@ class ExamResults(wx.Panel):
             else:
                 self.show_results.Destroy()
                 self.show_results = ViewResults(self, mean, self.exam_data, deviation, mostImproved)
-                self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 15)
+                self.right_container.Add(self.show_results, 1, wx.ALL | wx.EXPAND, 8)
 
                 self.Layout()
 
@@ -834,11 +834,11 @@ class ViewResults(wx.Panel):
     def setExamResults(self, data=None):
 
         columns_array = [
-            ColumnDefn("POS", "center", 50, "number"),
+            ColumnDefn("POS", "center", 45, "number"),
             ColumnDefn("REG NO", "center", 50, "reg_no"),
             # ColumnDefn("ID", "center", 50, "student_id"),
-            ColumnDefn("STUDENT", "left", 100, "names"),
-            ColumnDefn("CLASS", "left", 50, "class_name"),
+            ColumnDefn("STUDENT", "left", 130, "names"),
+            ColumnDefn("CLASS", "left", 45, "form"),
         ]
 
         if self.parent.exam_data['subject_alias'] != "":
@@ -863,6 +863,35 @@ class ViewResults(wx.Panel):
     #
     # --------------------------------------------
     def downloadReportCard(self, event):
+        # Set up the variables
+
+        logo = u"images\\appIcon-96x96.bmp"
+        school_name = "KANGANGU SECONDARY SCHOOL"
+        po_box = "P.O. BOX 183 - 01020 KENOL"
+        term = self.term
+        year = self.year
+        # exam_name = "END TERM" + " REPORT" + "     " + term + "     " + year
+        # exam_name = self.pdf_title
+
+        if 'Form' in self.exam_data['class_name']:
+            exam_name = " " + self.exam_data['exam_name'] + " RESULTS"
+        else:
+            if self.exam_data['class_id'] == 0:
+                exam_name = " " + self.exam_data['exam_name'] + " RESULTS"
+            else:
+                exam_name = str(self.exam_data['form']) + " " + self.exam_data['class_name'] + " " + self.exam_data['exam_name'] + " RESULTS"
+
+        exam_name = exam_name.upper() + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + term + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + year
+
+        adm_no = "ADM " + "4612"
+        student_name = "MARY PRISCA WANGUI NGONJO"
+        class_name = "1J"
+        kcpe = "KCPE: " + "389"
+
+        #
+        #
+        #
+
         subjects = []
         if self.parent.exam_data['subject_alias'] != "":
             if self.parent.exam_data['subject_alias'] == "All":
@@ -874,36 +903,53 @@ class ViewResults(wx.Panel):
         results = getExamResults(self.parent.exam_data, subjects)
 
         #
+        # TABLE DATA
+        #
 
-        doc = SimpleDocTemplate("marksheet.pdf", pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72,
+        first_table_row = ['POS', 'ADM', 'STUDENT', 'CLASS']
+
+        for subject in subjects:
+            first_table_row.append(subject.upper())
+
+        if len(subjects) > 1:
+            first_table_row.append('MEAN')
+
+        tableData = [first_table_row]
+
+        for result in results:
+            row = [result['number'], result['reg_no'], result['names'], result['form'] ]
+
+            for subject in subjects:
+                row.append(result[subject])
+
+            if len(subjects) > 1:
+                row.append(result['student_mean'])
+
+            tableData.append(row)
+
+        #
+        #
+        #
+
+        doc = SimpleDocTemplate("marksheet.pdf", pagesize=(11*inch, 8.5*inch), rightMargin=72, leftMargin=72, topMargin=8,
                                 bottomMargin=18)
 
         # Register Helvetica bold font
-        helvetica_bold_font = r"fonts/Helvetica Bold.ttf"
+        helvetica_bold_font = r"F:/PythonApps/Kangangu/fonts/Helvetica Bold.ttf"
         pdfmetrics.registerFont(TTFont("Helvetica-Bold", helvetica_bold_font))
 
         # Register Helvetica normal font
-        helvetica_normal_font = r"fonts/Helvetica-Normal.ttf"
+        helvetica_normal_font = r"F:/PythonApps/Kangangu/fonts/Helvetica-Normal.ttf"
         pdfmetrics.registerFont(TTFont("Helvetica-Normal", helvetica_normal_font))
 
         Story = []
-        logo = u"images\\kangangu logo-254x254.bmp"
-        school_name = "KANGANGU SECONDARY SCHOOL"
-        po_box = "P.O. BOX 183 - 01020 KENOL"
-        term = "3"
-        year = "2018"
-        exam_name = "END TERM" + " REPORT" + "     " + term + "     " + year
 
-        adm_no = "ADM " + "4612"
-        student_name = "MARY PRISCA WANGUI NGONJO"
-        class_name = "1J"
-        kcpe = "KCPE: " + "389"
-
-        im = Image(logo, 2 * inch, 2 * inch)  # two inches from the top and two inches from the left.
+        im = Image(logo, 1 * inch, 1 * inch)  # two inches from the top and two inches from the left.
         Story.append(im)
 
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
+        # bold_center = ParagraphStyle(name="myStyle", alignment="TA_CENTER", fontName="Helvetica-Bold")
 
         ptext = '<font name ="Helvetica-Bold" size=14>%s</font>' % school_name
         Story.append(Paragraph(ptext, style=styles['Center']))
@@ -919,17 +965,19 @@ class ViewResults(wx.Panel):
 
         styleSheet = getSampleStyleSheet()
 
-        # data = [['00', '01', '02', '03', '04'],
-        #         ['10', '11', '12', '13', '14'],
-        #         ['20', '21', '22', '23', '24'],
-        #         ['30', '31', '32', '33', '34']]
-        # t = Table(data)
-        # t.setStyle(TableStyle([('BACKGROUND', (1, 1), (-2, -2), colors.green),
-        #                        ('TEXTCOLOR', (0, 0), (1, -1), colors.red)]))
-        # Story.append(t)
+        style = [
+            ('LINEABOVE', (0, 0), (-1, -1), 0.75, colors.black),
+            ('LINEAFTER', (0, 0), (-1, -1), 0.75, colors.black),
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
+            # ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Make first row Bold
+            ('LEFTPADDING', (0, 0), (-1, -1), 3),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+        ]
+        table = Table(tableData)
+        table.setStyle(TableStyle(style))
 
-        if doc.build(Story):
-            print "created"
-        else:
-            print "failed to create pdf"
+        Story.append(table)
+
+        doc.build(Story)
 

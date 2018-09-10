@@ -50,6 +50,7 @@ class AddSubject(wx.Panel):
 
         self.subject_name = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                         wx.DefaultSize, 0)
+        self.subject_name.SetToolTipString(u"E.g. English")
         full_name_sizer.Add(self.subject_name, 4, wx.ALL, 10)
 
         sbSizer2.Add(full_name_sizer, 1, wx.ALL | wx.EXPAND, 10)
@@ -63,6 +64,7 @@ class AddSubject(wx.Panel):
 
         self.subject_alias = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                        wx.DefaultSize, 0)
+        self.subject_alias.SetToolTipString(u"E.g. Eng")
         alias_sizer.Add(self.subject_alias, 4, wx.ALL, 10)
 
         sbSizer2.Add(alias_sizer, 1, wx.ALL | wx.EXPAND, 10)
@@ -74,7 +76,7 @@ class AddSubject(wx.Panel):
         self.compulsory_label.Wrap(-1)
         compulsory_sizer.Add(self.compulsory_label, 1, wx.ALL, 10)
 
-        compulsoryChoices = [u"Yes", u"No", u"Partially"]
+        compulsoryChoices = [u"No (Not compulsory in any form)", u"Yes (Compulsory in all forms)", u"Partially (Only in lower forms)"]
         self.compulsory = wx.ComboBox(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                       wx.DefaultSize, compulsoryChoices, wx.CB_READONLY)
         compulsory_sizer.Add(self.compulsory, 4, wx.ALL, 10)
@@ -152,6 +154,8 @@ class AddSubject(wx.Panel):
         self.subject_group.SetSelection(-1)
 
     def saveSubject(self, event):
+        self.save_subject.Enable(False)
+
         subject_name = self.subject_name.GetLineText(0)
         subject_alias = self.subject_alias.GetLineText(0)
         compulsory_index = self.compulsory.GetCurrentSelection()
@@ -193,19 +197,13 @@ class AddSubject(wx.Panel):
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
-                if compulsory == "Yes":
-                    compulsory = 1
-                elif compulsory == "No":
-                    compulsory = 0
-                elif compulsory == "Partially":
-                    compulsory = 2
 
                 group = self.groups['ids'][groupIndex]
 
                 data = {
                     "subject_name": subject_name,
                     "subject_alias": subject_alias,
-                    "compulsory": compulsory,
+                    "compulsory": compulsory_index,
                     "group": group
                 }
 
@@ -221,4 +219,5 @@ class AddSubject(wx.Panel):
                     dlg.ShowModal()
                     dlg.Destroy()
 
+        self.save_subject.Enable(True)
 
