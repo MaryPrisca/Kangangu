@@ -229,28 +229,19 @@ def updateTotalsAndPositionsInExam(result_ids, exam_id):
     # get form in question
     form = getFormsInExam(exam_id)
 
-    # to create dynamic sum of all subjects in one row eg IFNULL(Eng, 0)+IFNULL(Kis, 0)+IFNULL(Mat, 0)+...
-    sum_cols = ''
-
-    indexes = len(subjects) - 1  # -1 because first index is 0
-    for key, val in enumerate(subjects):
-        if key == indexes:  # To avoid adding + after the last subject
-            sum_cols = sum_cols + 'IFNULL(' + val + ', 0)'
-        else:
-            sum_cols = sum_cols + 'IFNULL(' + val + ', 0)' + '+'
-
     completeRowIDs = []
 
     # For each exam result row affected...
     for result in result_ids:
+
         # get total for result
         if int(form) < 3:
-            total = getTotalOneRowLowerForms(sum_cols, result)
+            stats = getTotalOneRowLowerForms(result, subjects)
         else:
-            total = getTotalOneRowUpperForms(result, subjects)
+            stats = getTotalOneRowUpperForms(result, subjects)
 
         # update total
-        updateTotalForOneRowExamResults(result, total)
+        updateTotalForOneRowExamResults(result, stats)
 
         # check if al the columns have values so that the row can be marked ready for upload (totalled = 1)
         if checkIfAllSubjectsAreFilledOneRow(result, subjects, form):
@@ -276,16 +267,104 @@ def updateTotalsAndPositionsInExam(result_ids, exam_id):
         updateClassPosition(result)
 
 
-def getTotalOneRowLowerForms(subject_sum_string, result_id):
+def getPointsF3nF4(mark):
+    points = 0
+    if mark is not None:
+        # mark = int(mark)
+        if mark >= 75:
+            points = 12
+        elif 70 <= mark < 75:
+            points = 11
+        elif 65 <= mark < 70:
+            points = 10
+        elif 60 <= mark < 65:
+            points = 9
+        elif 55 <= mark < 60:
+            points = 8
+        elif 50 <= mark < 55:
+            points = 7
+        elif 45 <= mark < 50:
+            points = 6
+        elif 40 <= mark < 45:
+            points = 5
+        elif 35 <= mark < 40:
+            points = 4
+        elif 30 <= mark < 35:
+            points = 3
+        elif 25 <= mark < 30:
+            points = 2
+        elif mark < 25:
+            points = 1
+
+    return points
+
+
+def getPointsF1nF2(mark):
+    points = 0
+    if mark is not None:
+        # mark = int(mark)
+        if mark >= 80:
+            points = 12
+        elif 75 <= mark < 80:
+            points = 11
+        elif 70 <= mark < 75:
+            points = 10
+        elif 65 <= mark < 70:
+            points = 9
+        elif 60 <= mark < 65:
+            points = 8
+        elif 55 <= mark < 60:
+            points = 7
+        elif 50 <= mark < 55:
+            points = 6
+        elif 45 <= mark < 50:
+            points = 5
+        elif 40 <= mark < 45:
+            points = 4
+        elif 35 <= mark < 40:
+            points = 3
+        elif 30 <= mark < 35:
+            points = 2
+        elif mark < 30:
+            points = 1
+
+    return points
+
+
+def getTotalOneRowLowerForms(result_id, subjects):
     cursor = db.cursor()
 
-    sql = """SELECT %s AS total FROM `exam_results` WHERE exam_result_id = %s""" % (subject_sum_string, result_id)
+    # to create dynamic string of all subjects in one row eg Eng, Kis, Mat, Bio.....
+    cols = ''
+
+    indexes = len(subjects) - 1  # -1 because first index is 0
+    for key, val in enumerate(subjects):
+        if key == indexes:  # To avoid adding + after the last subject
+            cols = cols + val
+        else:
+            cols = cols + val + ', '
+
+    sql = """SELECT %s FROM `exam_results` WHERE exam_result_id = %s""" % (cols, result_id)
 
     try:
         cursor.execute(sql)
 
-        data = [row[0] for row in cursor.fetchall()]
-        ret = data[0]
+        # data = [row[0] for row in cursor.fetchall()]
+        # ret = data[0]
+
+        points = 0
+        total = 0
+
+        for row in cursor:
+            for key, value in enumerate(subjects):
+                if row[key] is not None:
+                    total += row[key]
+                    points += getPointsF1nF2(row[key])
+
+        schDets = getSchoolDetails()
+        subjects_lower_forms = schDets['lower_subjects']
+
+        ret = {'total': total, 'points': points, 'mean': round((float(points)/subjects_lower_forms), 1)}
 
     except(MySQLdb.Error, MySQLdb.Warning) as e:
         # print e
@@ -300,6 +379,7 @@ def getTotalOneRowUpperForms(result_id, subjects):
     student_id = data['student_id']
 
     total = 0
+    points = 0
 
     # get compulsory subjects i.e. maths & languages
     # maths
@@ -307,12 +387,14 @@ def getTotalOneRowUpperForms(result_id, subjects):
     math_col_name = maths[0]['alias'].lower()
 
     total += marks[math_col_name]
+    points += getPointsF3nF4(marks[math_col_name])
 
     # languages
     languages = getSubjectsInGroup('Language')
     for lang in languages:
         lang_col_name = lang['alias'].lower()
         total += marks[lang_col_name]
+        points += getPointsF3nF4(marks[lang_col_name])
 
     #
     # OPTIONAL SUBJECTS
@@ -322,9 +404,9 @@ def getTotalOneRowUpperForms(result_id, subjects):
     compulsory_subjects = getCompulsorySciencesHumanities()
 
     # find the sort of choices student has e.g. 3 sciences 1 hum 1 tech / 3 sci 2 hum etc etc
-    sciences = []
-    humanities = []
-    technicals = []
+    sciences_aliases = []
+    humanities_aliases = []
+    technicals_aliases = []
 
     no_of_sciences = 0
     no_of_humanities = 0
@@ -333,15 +415,15 @@ def getTotalOneRowUpperForms(result_id, subjects):
     for key, value in enumerate(compulsory_subjects['group_names']):
         if value == 'Science':
             no_of_sciences += 1
-            sciences.append(compulsory_subjects['aliases'][key])
+            sciences_aliases.append(compulsory_subjects['aliases'][key])
 
         elif value == 'Humanity':
             no_of_humanities += 1
-            humanities.append(compulsory_subjects['aliases'][key])
+            humanities_aliases.append(compulsory_subjects['aliases'][key])
 
         elif value == 'Applied/Technical':
             no_of_technicals += 1
-            technicals.append(compulsory_subjects['aliases'][key])
+            technicals_aliases.append(compulsory_subjects['aliases'][key])
 
     #
     # get subjects the student takes
@@ -350,15 +432,15 @@ def getTotalOneRowUpperForms(result_id, subjects):
         for key, value in enumerate(subjects_taken['group_names']):
             if value == 'Science':
                 no_of_sciences += 1
-                sciences.append(subjects_taken['aliases'][key])
+                sciences_aliases.append(subjects_taken['aliases'][key])
 
             elif value == 'Humanity':
                 no_of_humanities += 1
-                humanities.append(subjects_taken['aliases'][key])
+                humanities_aliases.append(subjects_taken['aliases'][key])
 
             elif value == 'Applied/Technical':
                 no_of_technicals += 1
-                technicals.append(subjects_taken['aliases'][key])
+                technicals_aliases.append(subjects_taken['aliases'][key])
 
     # LOGIC OF DROPPING ONE SUBJECT
 
@@ -377,40 +459,72 @@ def getTotalOneRowUpperForms(result_id, subjects):
         # 3 SCIENCES 1 HUMANITY, 1 TECHNICAL
         if no_of_humanities == 1:  # First possibility
             # Add the humanity
-            total += marks[humanities[0]]
+            total += marks[humanities_aliases[0]]
+            points += getPointsF3nF4(marks[humanities_aliases[0]])
 
             # put the other four in an array in order to get the highest 3
-            marks_array = [marks[sciences[0]], marks[sciences[1]], marks[sciences[2]], marks[technicals[0]]]
+            marks_array = [marks[sciences_aliases[0]], marks[sciences_aliases[1]], marks[sciences_aliases[2]], marks[technicals_aliases[0]]]
+            points_array = [
+                getPointsF3nF4(marks[sciences_aliases[0]]),
+                getPointsF3nF4(marks[sciences_aliases[1]]),
+                getPointsF3nF4(marks[sciences_aliases[2]]),
+                getPointsF3nF4(marks[technicals_aliases[0]])
+            ]
 
             lowest_mark = min(marks_array)
+            lowest_point = min(points_array)
 
-            sum_of_top_three = sum(marks_array) - lowest_mark
-            total += sum_of_top_three
+            sum_of_top_three_marks = sum(marks_array) - lowest_mark
+            sum_of_top_three_points = sum(points_array) - lowest_point
+
+            total += sum_of_top_three_marks
+            points += sum_of_top_three_points
 
         # 3 SCIENCES 2 HUMANITIES NO TECHNICAL
         elif no_of_humanities == 2:  # Second possibility
             # put all the five in an array in order to get the highest 4
-            marks_array = [marks[sciences[0]], marks[sciences[1]], marks[sciences[2]], marks[humanities[0]], marks[humanities[1]]]
+            marks_array = [marks[sciences_aliases[0]], marks[sciences_aliases[1]], marks[sciences_aliases[2]], marks[humanities_aliases[0]], marks[humanities_aliases[1]]]
+            points_array = [
+                getPointsF3nF4(marks[sciences_aliases[0]]),
+                getPointsF3nF4(marks[sciences_aliases[1]]),
+                getPointsF3nF4(marks[sciences_aliases[2]]),
+                getPointsF3nF4(marks[humanities_aliases[0]]),
+                getPointsF3nF4(marks[humanities_aliases[1]])
+            ]
 
             lowest_mark = min(marks_array)
+            lowest_point = min(points_array)
 
-            sum_of_top_four = sum(marks_array) - lowest_mark
-            total += sum_of_top_four
+            sum_of_top_four_marks = sum(marks_array) - lowest_mark
+            sum_of_top_four_points = sum(points_array) - lowest_point
+
+            total += sum_of_top_four_marks
+            points += sum_of_top_four_points
 
     # 2 SCIENCES OPTION. 2 HUMANITIES 1 TECHNICAL
     else:  # Third possibility
         # Add the two sciences
-        total = total + marks[sciences[0]] + marks[sciences[1]]
+        total = total + marks[sciences_aliases[0]] + marks[sciences_aliases[1]]
+        points = points + getPointsF3nF4(marks[sciences_aliases[0]]) + getPointsF3nF4(marks[sciences_aliases[1]])
 
         # put the other three in an array in order to get the highest 2
-        marks_array = [marks[humanities[0]], marks[humanities[1]], marks[technicals[0]]]
+        marks_array = [marks[humanities_aliases[0]], marks[humanities_aliases[1]], marks[technicals_aliases[0]]]
+        points_array = [
+            getPointsF3nF4(marks[humanities_aliases[0]]),
+            getPointsF3nF4(marks[humanities_aliases[1]]),
+            getPointsF3nF4(marks[technicals_aliases[0]])
+        ]
 
         lowest_mark = min(marks_array)
+        lowest_points = min(points_array)
 
-        sum_of_top_two = sum(marks_array) - lowest_mark
-        total += sum_of_top_two
+        sum_of_top_two_marks = sum(marks_array) - lowest_mark
+        sum_of_top_two_points = sum(points_array) - lowest_points
 
-    return total
+        total += sum_of_top_two_marks
+        points += sum_of_top_two_points
+
+    return {'total': total, 'points': points, 'mean': round((float(points)/7), 1)}
 
 
 def getMarksAndStudentIDOneRow(result_id, subjects):  # returns the sum of all marks in that row
@@ -450,10 +564,10 @@ def getMarksAndStudentIDOneRow(result_id, subjects):  # returns the sum of all m
     return ret
 
 
-def updateTotalForOneRowExamResults(result_id, total):
+def updateTotalForOneRowExamResults(result_id, stats):
     cursor = db.cursor()
 
-    sql = """ UPDATE `exam_results` SET total = %s WHERE exam_result_id = %s """ % (total, result_id)
+    sql = """ UPDATE `exam_results` SET total = %s, points = %s, mean = %s WHERE exam_result_id = %s """ % (stats['total'], stats['points'], stats['mean'], result_id)
 
     try:
         cursor.execute(sql)

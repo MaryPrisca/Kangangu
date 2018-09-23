@@ -853,7 +853,9 @@ class ViewResults(wx.Panel):
                 columns_array.append(col)
 
             if self.parent.exam_data['subject_alias'] == "All":
+                points = ColumnDefn("POINTS", "left", 55, "points")
                 mean = ColumnDefn("MEAN", "left", 55, "student_mean")
+                columns_array.append(points)
                 columns_array.append(mean)
 
         self.resultsOLV.SetColumns(columns_array)

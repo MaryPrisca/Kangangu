@@ -123,3 +123,44 @@ def getClassDets(search=""):
         ret = False
 
     return ret
+
+
+def getNoOfStudentsInClass(class_id):
+    cursor = db.cursor()
+    sql = """SELECT COUNT(user_id) AS students 
+                FROM users u
+                JOIN classes c ON c.class_id = u.class_id AND c.deleted = 0
+                WHERE u.class_id = %s AND u.deleted = 0""" % class_id
+    try:
+        cursor.execute(sql)
+
+        data = [0 if row[0] < 1 else row[0] for row in cursor.fetchall()]
+
+        ret = data[0]
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        # ret = e
+        ret = False
+
+    return ret
+
+
+def getNoOfStudentsInForm(form):
+    cursor = db.cursor()
+    sql = """SELECT COUNT(user_id) AS students 
+                FROM users u
+                JOIN classes c ON c.class_id = u.class_id AND c.deleted = 0
+                WHERE c.form_name = %s AND u.deleted = 0""" % form
+
+    try:
+        cursor.execute(sql)
+
+        data = [0 if row[0] < 1 else row[0] for row in cursor.fetchall()]
+
+        ret = data[0]
+
+    except(MySQLdb.Error, MySQLdb.Warning) as e:
+        # ret = e
+        ret = False
+
+    return ret

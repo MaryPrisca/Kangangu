@@ -36,7 +36,39 @@ def getGradePlusMark(mark):
     return grade
 
 
-def getGrade(mark):
+def getGradeForm1n2(mark):
+    grade = ""
+    if mark is not None:
+        # mark = int(mark)
+        if mark >= 80:
+            grade = "A"
+        elif 75 <= mark < 80:
+            grade = "A-"
+        elif 70 <= mark < 75:
+            grade = "B+"
+        elif 65 <= mark < 70:
+            grade = "B"
+        elif 60 <= mark < 75:
+            grade = "B-"
+        elif 55 <= mark < 60:
+            grade = "C+"
+        elif 50 <= mark < 55:
+            grade = "C"
+        elif 45 <= mark < 50:
+            grade = "C-"
+        elif 40 <= mark < 45:
+            grade = "D+"
+        elif 35 <= mark < 40:
+            grade = "D"
+        elif 30 <= mark < 35:
+            grade = "D-"
+        elif mark < 30:
+            grade = "E"
+
+    return grade
+
+
+def getGradeForm3n4(mark):
     grade = ""
     if mark is not None:
         # mark = int(mark)

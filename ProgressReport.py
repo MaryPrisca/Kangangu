@@ -8,15 +8,20 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.platypus.flowables import HRFlowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+# Report lab graphs
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+
 # from CreatePDF import createReportCard
 
 from db.get_exams import getExamsInFormAndYear
-from db.get_exam_results import getResultsByStudentAndExamID
+from db.get_exam_results import getResultsByStudentAndExamID, getStudentTrendInExams
 from db.get_subjects import getActiveSubjectAliases
 
 ###########################################################################
@@ -135,9 +140,12 @@ class ProgressReport(wx.Panel):
                 'form_pos': 0,
                 'class_pos': 0,
                 'total': 0,
-                'mean_score': 0,
+                'points': 0,
+                'mean': 0,
                 'mean_grade': 0,
-                'subjectData': [oneSubjectResult]
+                'subjectData': [oneSubjectResult],
+                'students_in_class': 0,
+                'students_in_form': 0,
             }
 
         self.marks_panel = MarksPanel(self, results)
@@ -215,6 +223,7 @@ class ProgressReport(wx.Panel):
         results = getResultsByStudentAndExamID(self.exam_data, self.subjects_aliases, self.subjects_names, self.subjects_ids, self.compulsory)
 
         doc = SimpleDocTemplate("report_card.pdf", pagesize=letter, rightMargin=72, leftMargin=72, topMargin=8, bottomMargin=18)
+        width, height = letter
 
         # Register Helvetica bold font
         helvetica_bold_font = r"fonts/Helvetica Bold.ttf"
@@ -252,6 +261,7 @@ class ProgressReport(wx.Panel):
 
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
+        styles.add(ParagraphStyle(name='LeftMargin', leftIndent=72))
 
         ptext = '<font name ="Helvetica-Bold" size=10>%s</font>' % school_name
         Story.append(Paragraph(ptext, style=styles['Center']))
@@ -279,11 +289,9 @@ class ProgressReport(wx.Panel):
             data.append(result)
         data.append(["-", "", "", ""])
         data.append(["-", "", "", ""])
-        # data.append(["Total Points                                              107", "", "Mean                      10.8", ""])
-        data.append(["Mean                                              107", "", "Mean                      10.8", ""])
-        data.append(["sdsd", "", "", ""])
+        data.append(["Total Points                                          " + str(results['points']), "", "Mean                          " + str(results['mean']), ""])
+        data.append(["Grade                                                     -- ", "", "Stream Pos                      " + str(results['form_pos']), ""])
 
-        no_of_subject_rows = len(results['subjectData'])
         no_of_rows = len(results['subjectData']) + 3
 
         style = [
@@ -292,7 +300,7 @@ class ProgressReport(wx.Panel):
             ('LINEBELOW', (0, 0), (3, 0), 1, colors.black),  # Bold line after first row
             ('LINEBELOW', (0, 1), (3, 1), 0.75, colors.black),  # Bold line after second row
             ('LINEBELOW', (0, no_of_rows), (-1, no_of_rows), 1, colors.black),  # Bold line after the part of subject results
-            ('ALIGN', (1, 0), (-1, -1), 'CENTER'),  # Center text on second Row, starting from second column
+            # ('ALIGN', (1, 0), (-1, -1), 'CENTER'),  # Center text on second Row, starting from second column
             ('SPAN', (0, 0), (1, 0)),  # Combine the adm no + name cells
             ('SPAN', (2, 0), (3, 0)),  # Combine the class name + kcpe cells
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),  # Make first column Bold, -1 reps end of row/col
@@ -302,7 +310,11 @@ class ProgressReport(wx.Panel):
             ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
             ('SPAN', (0, no_of_rows+1), (1, no_of_rows+1)),  # The total points row
             ('SPAN', (2, no_of_rows+1), (3, no_of_rows+1)),  # The total points row
+            ('SPAN', (0, no_of_rows+2), (1, no_of_rows+2)),  # The grade n stream pos row points row
+            ('SPAN', (2, no_of_rows+2), (3, no_of_rows+2)),  # The grade n stream pos row row
             ('FONTNAME', (0, no_of_rows+1), (3, no_of_rows+1), 'Helvetica-Bold'),  # The total points row
+            ('FONTNAME', (0, no_of_rows+2), (3, no_of_rows+2), 'Helvetica-Bold'),  # The grade n stream pos row row
+            ('LINEBELOW', (0, no_of_rows+2), (-1, no_of_rows+2), 1, colors.black),  # Bold line after total points and grade rows
         ]
 
         table1 = Table(data)
@@ -310,7 +322,84 @@ class ProgressReport(wx.Panel):
 
         Story.append(table1)
 
+        Story.append(Spacer(1, 20))
+        ptext = '<font name ="Helvetica-Bold" size=9>%s</font>' % 'TREND ANALYSIS'
+        Story.append(Paragraph(ptext, styles["Center"]))
+
+        graph = self.createBarGraph()
+
+        Story.append(graph)
+
+        ptext = '<font name ="Helvetica-Bold" size=8>%s</font>' % "Teacher's Comment on Performance:"
+        Story.append(Paragraph(ptext, styles["LeftMargin"]))
+
+        lineDrawing = HRFlowable(width=width - 300, thickness=0.75, lineCap='round', color=colors.black, spaceBefore=1, spaceAfter=1, hAlign='CENTER', vAlign='BOTTOM', dash=None)
+
+        Story.append(lineDrawing)
+        Story.append(Spacer(1, 15))
+
+        Story.append(lineDrawing)
+        Story.append(Spacer(1, 15))
+
+        ptext = '<font name ="Helvetica-Bold" size=8>%s</font>' % "Principal/Deputy Principal:"
+        Story.append(Paragraph(ptext, styles["LeftMargin"]))
+
+        Story.append(lineDrawing)
+        Story.append(Spacer(1, 15))
+
+        Story.append(lineDrawing)
+        Story.append(Spacer(1, 10))
+
+        data = [
+            ['Report been read by:                      ', 'Date:                      ', 'Signature:                      ']
+        ]
+
+        style = [
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),  # Make row Bold
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ]
+
+        table2 = Table(data)
+        table2.setStyle(TableStyle(style))
+
+        Story.append(table2)
+
         doc.build(Story)
+
+    def createBarGraph(self):
+        """
+        Creates a bar graph in a PDF
+        """
+        d = Drawing(300, 250)
+        bar = VerticalBarChart()
+        bar.x = 90
+        bar.y = 130
+
+        BarData = []
+        CategoryLabels = []
+
+        result_data = getStudentTrendInExams(self.student['user_id'])
+
+        for rd in result_data:
+            BarData.append(float(rd['points']))
+            CategoryLabels.append(rd['label'])
+
+        bar.data = [BarData]
+        bar.categoryAxis.categoryNames = CategoryLabels
+
+        bar.valueAxis.valueMin = 0
+        bar.valueAxis.valueMax = 100
+        bar.valueAxis.valueStep = 20
+
+        bar.categoryAxis.labels.dx = -18
+        bar.categoryAxis.labels.dy = -30
+        bar.categoryAxis.labels.angle = 60
+
+        bar.bars[0].fillColor = colors.black
+
+        d.add(bar, '')
+
+        return d
 
 
 class SelectForm(wx.Panel):
@@ -437,74 +526,92 @@ class MarksPanel(wx.Panel):
         #
         #
         #
+        if data['exam_result_id']:
 
-        stats_sizer = wx.BoxSizer(wx.VERTICAL)
+            stats_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        top_stats_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            top_stats_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        mean_score_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            mean_score_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.mean_score_label = wx.StaticText(self, wx.ID_ANY, u"Mean Score:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.mean_score_label.Wrap(-1)
-        self.mean_score_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+            self.mean_score_label = wx.StaticText(self, wx.ID_ANY, u"Total Points:", wx.DefaultPosition, wx.DefaultSize, 0)
+            self.mean_score_label.Wrap(-1)
+            self.mean_score_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        mean_score_sizer.Add(self.mean_score_label, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 5)
+            mean_score_sizer.Add(self.mean_score_label, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 5)
 
-        self.mean_score = wx.StaticText(self, wx.ID_ANY, str(data['mean_score']), wx.DefaultPosition, wx.DefaultSize, 0)
-        self.mean_score.Wrap(-1)
-        mean_score_sizer.Add(self.mean_score, 0, wx.ALL, 5)
+            self.mean_score = wx.StaticText(self, wx.ID_ANY, str(data['points']), wx.DefaultPosition, wx.DefaultSize, 0)
+            self.mean_score.Wrap(-1)
+            mean_score_sizer.Add(self.mean_score, 0, wx.ALL, 5)
 
-        top_stats_sizer.Add(mean_score_sizer, 1, wx.EXPAND, 5)
+            top_stats_sizer.Add(mean_score_sizer, 1, wx.EXPAND, 5)
 
-        mean_grade_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            mean_grade_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.mean_grade_label = wx.StaticText(self, wx.ID_ANY, u"Mean Grade:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.mean_grade_label.Wrap(-1)
-        self.mean_grade_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+            self.mean_grade_label = wx.StaticText(self, wx.ID_ANY, u"Mean:", wx.DefaultPosition, wx.DefaultSize, 0)
+            self.mean_grade_label.Wrap(-1)
+            self.mean_grade_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        mean_grade_sizer.Add(self.mean_grade_label, 0, wx.ALL, 5)
+            mean_grade_sizer.Add(self.mean_grade_label, 0, wx.ALL, 5)
 
-        self.mean_grade = wx.StaticText(self, wx.ID_ANY, str(data['mean_grade']), wx.DefaultPosition, wx.DefaultSize, 0)
-        self.mean_grade.Wrap(-1)
-        mean_grade_sizer.Add(self.mean_grade, 0, wx.ALL, 5)
+            self.mean_grade = wx.StaticText(self, wx.ID_ANY, str(data['mean']), wx.DefaultPosition, wx.DefaultSize, 0)
+            self.mean_grade.Wrap(-1)
+            mean_grade_sizer.Add(self.mean_grade, 0, wx.ALL, 5)
 
-        top_stats_sizer.Add(mean_grade_sizer, 1, wx.EXPAND, 5)
+            top_stats_sizer.Add(mean_grade_sizer, 1, wx.EXPAND, 5)
 
-        stats_sizer.Add(top_stats_sizer, 1, wx.EXPAND, 5)
+            grade_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        bottom_stats_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.grade_label = wx.StaticText(self, wx.ID_ANY, u"Grade:", wx.DefaultPosition, wx.DefaultSize, 0)
+            self.grade_label.Wrap(-1)
+            self.grade_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        form_pos_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            grade_sizer.Add(self.grade_label, 0, wx.ALL, 5)
 
-        self.form_pos_label = wx.StaticText(self, wx.ID_ANY, u"Form Position:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.form_pos_label.Wrap(-1)
-        self.form_pos_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+            self.grade = wx.StaticText(self, wx.ID_ANY, str(data['mean_grade']), wx.DefaultPosition, wx.DefaultSize, 0)
+            self.grade.Wrap(-1)
+            grade_sizer.Add(self.grade, 0, wx.ALL, 5)
 
-        form_pos_sizer.Add(self.form_pos_label, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 5)
+            top_stats_sizer.Add(grade_sizer, 1, wx.EXPAND, 5)
 
-        self.form_pos = wx.StaticText(self, wx.ID_ANY, str(data['form_pos']), wx.DefaultPosition, wx.DefaultSize, 0)
-        self.form_pos.Wrap(-1)
-        form_pos_sizer.Add(self.form_pos, 0, wx.ALL, 5)
+            stats_sizer.Add(top_stats_sizer, 1, wx.EXPAND, 5)
 
-        bottom_stats_sizer.Add(form_pos_sizer, 1, wx.EXPAND, 5)
+            bottom_stats_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        class_pos_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            form_pos_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.class_pos_label = wx.StaticText(self, wx.ID_ANY, u"Class Position:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.class_pos_label.Wrap(-1)
-        self.class_pos_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+            self.form_pos_label = wx.StaticText(self, wx.ID_ANY, u"Stream Position:", wx.DefaultPosition, wx.DefaultSize, 0)
+            self.form_pos_label.Wrap(-1)
+            self.form_pos_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
 
-        class_pos_sizer.Add(self.class_pos_label, 0, wx.ALL, 5)
+            form_pos_sizer.Add(self.form_pos_label, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 5)
 
-        self.class_pos = wx.StaticText(self, wx.ID_ANY, str(data['class_pos']), wx.DefaultPosition, wx.DefaultSize, 0)
-        self.class_pos.Wrap(-1)
-        class_pos_sizer.Add(self.class_pos, 0, wx.ALL, 5)
+            self.form_pos = wx.StaticText(self, wx.ID_ANY, str(data['form_pos']) + "/" + str(data['students_in_form']), wx.DefaultPosition, wx.DefaultSize, 0)
+            self.form_pos.Wrap(-1)
+            form_pos_sizer.Add(self.form_pos, 0, wx.ALL, 5)
 
-        bottom_stats_sizer.Add(class_pos_sizer, 1, wx.EXPAND, 5)
+            bottom_stats_sizer.Add(form_pos_sizer, 1, wx.EXPAND, 5)
 
-        stats_sizer.Add(bottom_stats_sizer, 1, wx.EXPAND, 5)
+            if data['students_in_form'] != data['students_in_class']:  #If there's more than oe stream in form, show pos in class
+                class_pos_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        content_sizer.Add(stats_sizer, 0, wx.TOP | wx.EXPAND, 10)
+                self.class_pos_label = wx.StaticText(self, wx.ID_ANY, u"Class Position:", wx.DefaultPosition, wx.DefaultSize, 0)
+                self.class_pos_label.Wrap(-1)
+                self.class_pos_label.SetFont(wx.Font(wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString))
+
+                class_pos_sizer.Add(self.class_pos_label, 0, wx.ALL, 5)
+
+                self.class_pos = wx.StaticText(self, wx.ID_ANY, str(data['class_pos']) + "/" + str(data['students_in_class']), wx.DefaultPosition, wx.DefaultSize, 0)
+                self.class_pos.Wrap(-1)
+                class_pos_sizer.Add(self.class_pos, 0, wx.ALL, 5)
+
+                bottom_stats_sizer.Add(class_pos_sizer, 1, wx.EXPAND, 5)
+
+                bottom_stats_sizer.AddSpacer((0, 0), 1, wx.EXPAND, 5)
+
+            stats_sizer.Add(bottom_stats_sizer, 1, wx.EXPAND, 5)
+
+            content_sizer.Add(stats_sizer, 0, wx.TOP | wx.EXPAND, 10)
 
         #
         #
