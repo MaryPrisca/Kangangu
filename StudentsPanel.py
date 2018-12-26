@@ -128,6 +128,12 @@ class StudentsPanel(wx.Panel):
         self.view_students.Hide()
         self.student_dashboard.Hide()
         self.promote_students.Hide()
+
+        self.subject_selection.Destroy()
+
+        self.subject_selection = SubjectSelection(self)
+        self.container.Add(self.subject_selection, 1, wx.EXPAND)
+
         self.subject_selection.Show()
 
         self.Layout()

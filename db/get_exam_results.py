@@ -165,7 +165,7 @@ def getExamResults(data, columns):
                 'form': ('F '+str(row[10])) if 'Form' in row[9] else (str(row[10]) + str(row[9])[0]),
                 'reg_no': row[11],
                 'points': row[12],
-                'student_mean': row[13],
+                'student_mean': str(row[13]) + " " + getMeanGrade(row[13]),
             }
 
             all_marks = []
@@ -173,9 +173,10 @@ def getExamResults(data, columns):
                 # the 13 + i + 1 because the previous item in row before subjects start is 13, + 1 bcoz index starts at 0
                 # data[columns[i]] = getGradePlusMark(row[13 + i + 1])
                 if int(exam_data['form']) < 3:
-                    data[columns[i]] = str(row[13 + i + 1]) + " " + getGradeForm1n2(row[13 + i + 1])
+                    # data[columns[i]] = str(row[13 + i + 1]) + " " + getGradeForm1n2(row[13 + i + 1])
+                    data[columns[i]] = "" if row[13 + i + 1] is None else str(row[13 + i + 1]) + " " + getGradeForm1n2(row[13 + i + 1])
                 else:
-                    data[columns[i]] = str(row[13 + i + 1]) + " " + getGradeForm3n4(row[13 + i + 1])
+                    data[columns[i]] = "" if row[13 + i + 1] is None else str(row[13 + i + 1]) + " " + getGradeForm3n4(row[13 + i + 1])
 
                 # all_marks.append(row[13+i+1] if row[13+i+1] is not None else 0)
 
@@ -260,9 +261,11 @@ def getResultsByStudentAndExamID(exam_data, columns, subject_names, subject_ids,
             }
 
             if int(data['form']) < 3:
-                resultData['mean_grade'] = getGradeForm1n2(resultData['points'])
+                # resultData['mean_grade'] = getGradeForm1n2(resultData['points'])
+                resultData['mean_grade'] = getMeanGrade(resultData['mean'])
             else:
-                resultData['mean_grade'] = getGradeForm3n4(resultData['points'])
+                # resultData['mean_grade'] = getGradeForm3n4(resultData['points']/7)
+                resultData['mean_grade'] = getMeanGrade(resultData['mean'])
 
             for key, val in enumerate(columns):
                 subjectData = {
@@ -417,7 +420,7 @@ def getAllResultsForExam(data, columns):
             data['class_name'] = row[8]
             data['form'] = str(row[9]) + str(row[8])[0]
             data['points'] = row[10]
-            data['student_mean'] = row[11]
+            data['student_mean'] = str(row[11]) + " " + getMeanGrade(row[11])
 
             all_marks = []
             for i, val in enumerate(columns):  # adding columns dynamically

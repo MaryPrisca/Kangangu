@@ -2,6 +2,7 @@ import wx
 import wx.xrc
 
 from datetime import datetime
+import os
 
 # Reportlab Imports
 from reportlab.lib import colors
@@ -220,9 +221,26 @@ class ProgressReport(wx.Panel):
     #
     # --------------------------------------------
     def downloadReportCard(self, event):
+        # Get path that the report card should be saved to
+        path = os.path.join(os.environ['HOME'] + "\Downloads\\")
+        download_file_name = str(self.student['reg_no']) + "-Report Card.pdf"
+
+        full_name = path + download_file_name
+
+        if os.path.isfile(full_name):
+            expand = 0
+            while True:
+                expand += 1
+                new_file_name = full_name.split(".pdf")[0] + "(" + str(expand) + ").pdf"  # eg ..card(1).pdf
+                if os.path.isfile(new_file_name):
+                    continue
+                else:
+                    full_name = new_file_name
+                    break
+
         results = getResultsByStudentAndExamID(self.exam_data, self.subjects_aliases, self.subjects_names, self.subjects_ids, self.compulsory)
 
-        doc = SimpleDocTemplate("report_card.pdf", pagesize=letter, rightMargin=72, leftMargin=72, topMargin=8, bottomMargin=18)
+        doc = SimpleDocTemplate(full_name, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=8, bottomMargin=18)
         width, height = letter
 
         # Register Helvetica bold font
@@ -290,7 +308,7 @@ class ProgressReport(wx.Panel):
         data.append(["-", "", "", ""])
         data.append(["-", "", "", ""])
         data.append(["Total Points                                          " + str(results['points']), "", "Mean                          " + str(results['mean']), ""])
-        data.append(["Grade                                                     -- ", "", "Stream Pos                      " + str(results['form_pos']), ""])
+        data.append(["Grade                                                      "+results['mean_grade'], "", "Stream Pos                      " + str(results['form_pos']), ""])
 
         no_of_rows = len(results['subjectData']) + 3
 
@@ -366,6 +384,13 @@ class ProgressReport(wx.Panel):
 
         doc.build(Story)
 
+        dlg = wx.MessageDialog(None, "Report Card saved in downloads folder.", 'Success Message',
+                               wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    #
+    # --------------------------------------------
     def createBarGraph(self):
         """
         Creates a bar graph in a PDF
@@ -592,7 +617,7 @@ class MarksPanel(wx.Panel):
 
             bottom_stats_sizer.Add(form_pos_sizer, 1, wx.EXPAND, 5)
 
-            if data['students_in_form'] != data['students_in_class']:  #If there's more than oe stream in form, show pos in class
+            if data['students_in_form'] != data['students_in_class']:  #If there's more than one stream in form, show pos in class
                 class_pos_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
                 self.class_pos_label = wx.StaticText(self, wx.ID_ANY, u"Class Position:", wx.DefaultPosition, wx.DefaultSize, 0)

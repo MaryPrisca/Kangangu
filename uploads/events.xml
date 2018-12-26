@@ -1,0 +1,31 @@
+<database name="Kangangu">
+  <events>
+    <uploaded>0</uploaded>
+    <updated>0</updated>
+    <event_id>1</event_id>
+    <event_desc>This is it. This is it. This is it. This is it. This is it. This is it. This is it. This is it. This is it. This is it. </event_desc>
+    <deleted>0</deleted>
+    <event_name>Family Day</event_name>
+    <event_date>2018-02-14</event_date>
+  </events>
+  <events>
+    <uploaded>0</uploaded>
+    <updated>0</updated>
+    <event_id>2</event_id>
+    <event_desc>rbrfdf wefrdscd
+adsazf dfdf safgs
+adaef</event_desc>
+    <deleted>0</deleted>
+    <event_name>AGM Meeting</event_name>
+    <event_date>2019-01-01</event_date>
+  </events>
+  <events>
+    <uploaded>0</uploaded>
+    <updated>0</updated>
+    <event_id>3</event_id>
+    <event_desc>kjhgfd</event_desc>
+    <deleted>0</deleted>
+    <event_name>Academic Day</event_name>
+    <event_date>2018-11-23</event_date>
+  </events>
+</database>

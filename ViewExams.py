@@ -2,11 +2,22 @@ import wx
 import wx.xrc
 from ObjectListView import ObjectListView, ColumnDefn
 from datetime import datetime
+import os
 
 from db.get_exams import *
 from db.save_exam import editExam, deleteExam
 from db.get_subjects import getActiveSubjectAliases
 from db.get_exam_results import getExamResults
+
+# Reportlab Imports
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 # import sys
 # sys.path.insert(0, r'/F:/PythonApps/Kangangu')
@@ -608,6 +619,13 @@ class ViewResults(wx.Panel):
 
         title_sizer.Add(self.year_title, 0, wx.ALL, 5)
 
+        # Download Button
+        self.download_pdf_button = wx.BitmapButton(self, wx.ID_ANY,
+                                                   wx.Bitmap(u"images/download_pdf.bmp", wx.BITMAP_TYPE_ANY),
+                                                   wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW | wx.NO_BORDER)
+        title_sizer.Add(self.download_pdf_button, 0, wx.RIGHT | wx.LEFT, 10)
+        self.download_pdf_button.Bind(wx.EVT_BUTTON, self.downloadMarkSheet)
+
         mainSizer.Add(title_sizer, 0, wx.ALL | wx.EXPAND, 5)
 
         #
@@ -666,3 +684,147 @@ class ViewResults(wx.Panel):
         self.resultsOLV.SetColumns(columns_array)
 
         self.resultsOLV.SetObjects(self.results)
+
+    #
+    # ----------------------------------------------------------------------
+    def downloadMarkSheet(self, event):
+        # Set up the variables
+        logo = u"images\\appIcon-96x96.bmp"
+        school_name = "KANGANGU SECONDARY SCHOOL"
+        po_box = "P.O. BOX 183 - 01020 KENOL"
+        term = self.term
+        year = self.year
+        exam_name = self.exam_title
+        # exam_name = "END TERM" + " REPORT" + "     " + term + "     " + year
+        # exam_name = self.pdf_title
+        #
+        # if 'Form' in self.exam_data['class_name']:
+        #     exam_name = " " + self.exam_data['exam_name'] + " RESULTS"
+        # else:
+        #     if self.exam_data['class_id'] == 0:
+        #         exam_name = " " + self.exam_data['exam_name'] + " RESULTS"
+        #     else:
+        #         exam_name = str(self.exam_data['form']) + " " + self.exam_data['class_name'] + " " + self.exam_data[
+        #             'exam_name'] + " RESULTS"
+
+        file_name_exam_name = exam_name.title() + " " + term.title() + " " + year
+        exam_name = exam_name.upper() + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + term + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + year
+
+        #
+        #
+        #
+
+        # Get path that the report card should be saved to
+        path = os.path.join(os.environ['HOME'] + "\Downloads\\")
+        download_file_name = file_name_exam_name + " Marksheet.pdf"
+
+        full_name = path + download_file_name
+
+        if os.path.isfile(full_name):
+            expand = 0
+            while True:
+                expand += 1
+                new_file_name = full_name.split(".pdf")[0] + "(" + str(expand) + ").pdf"  # eg ..card(1).pdf
+                if os.path.isfile(new_file_name):
+                    continue
+                else:
+                    full_name = new_file_name
+                    break
+
+        #
+        #
+        #
+
+        subjects = []
+        if self.parent.exam_data['subject_alias'] != "":
+            if self.parent.exam_data['subject_alias'] == "All":
+                subjects = getActiveSubjectAliases()
+                subjects = subjects['aliases']
+            else:
+                subjects = [self.parent.exam_data['subject_alias']]
+
+        results = getExamResults(self.parent.exam_data, subjects)
+
+        #
+        # TABLE DATA
+        #
+
+        first_table_row = ['POS', 'ADM', 'STUDENT', 'CLASS']
+
+        for subject in subjects:
+            first_table_row.append(subject.upper())
+
+        if len(subjects) > 1:
+            first_table_row.append('MEAN')
+
+        tableData = [first_table_row]
+
+        for result in results:
+            row = [result['number'], result['reg_no'], result['names'], result['form']]
+
+            for subject in subjects:
+                row.append(result[subject])
+
+            if len(subjects) > 1:
+                row.append(result['student_mean'])
+
+            tableData.append(row)
+
+        #
+        #
+        #
+
+        doc = SimpleDocTemplate(full_name, pagesize=(11 * inch, 8.5 * inch), rightMargin=72, leftMargin=72, topMargin=8,
+                                bottomMargin=18)
+
+        # Register Helvetica bold font
+        helvetica_bold_font = r"F:/PythonApps/Kangangu/fonts/Helvetica Bold.ttf"
+        pdfmetrics.registerFont(TTFont("Helvetica-Bold", helvetica_bold_font))
+
+        # Register Helvetica normal font
+        helvetica_normal_font = r"F:/PythonApps/Kangangu/fonts/Helvetica-Normal.ttf"
+        pdfmetrics.registerFont(TTFont("Helvetica-Normal", helvetica_normal_font))
+
+        Story = []
+
+        im = Image(logo, 1 * inch, 1 * inch)  # two inches from the top and two inches from the left.
+        Story.append(im)
+
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
+        # bold_center = ParagraphStyle(name="myStyle", alignment="TA_CENTER", fontName="Helvetica-Bold")
+
+        ptext = '<font name ="Helvetica-Bold" size=14>%s</font>' % school_name
+        Story.append(Paragraph(ptext, style=styles['Center']))
+
+        Story.append(Spacer(1, 10))
+        ptext = '<font name ="Helvetica-Bold" size=12>%s</font>' % po_box
+        Story.append(Paragraph(ptext, styles["Center"]))
+
+        Story.append(Spacer(1, 10))
+        ptext = '<font name ="Helvetica-Bold" size=12>%s</font>' % exam_name
+        Story.append(Paragraph(ptext, styles["Center"]))
+        Story.append(Spacer(1, 15))
+
+        styleSheet = getSampleStyleSheet()
+
+        style = [
+            ('LINEABOVE', (0, 0), (-1, -1), 0.75, colors.black),
+            ('LINEAFTER', (0, 0), (-1, -1), 0.75, colors.black),
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
+            # ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Make first row Bold
+            ('LEFTPADDING', (0, 0), (-1, -1), 3),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+        ]
+        table = Table(tableData)
+        table.setStyle(TableStyle(style))
+
+        Story.append(table)
+
+        doc.build(Story)
+
+        dlg = wx.MessageDialog(None, "Marksheet saved in downloads folder.", 'Success Message',
+                               wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()

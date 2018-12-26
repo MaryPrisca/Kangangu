@@ -1,6 +1,7 @@
 import wx
 import wx.xrc
 from ObjectListView import ObjectListView, ColumnDefn
+import os
 
 from db.get_exam_results import *
 from db.get_classes import getFormClasses
@@ -866,7 +867,6 @@ class ViewResults(wx.Panel):
     # --------------------------------------------
     def downloadReportCard(self, event):
         # Set up the variables
-
         logo = u"images\\appIcon-96x96.bmp"
         school_name = "KANGANGU SECONDARY SCHOOL"
         po_box = "P.O. BOX 183 - 01020 KENOL"
@@ -883,12 +883,29 @@ class ViewResults(wx.Panel):
             else:
                 exam_name = str(self.exam_data['form']) + " " + self.exam_data['class_name'] + " " + self.exam_data['exam_name'] + " RESULTS"
 
+        file_name_exam_name = exam_name.title() + " " + term.title() + " " + year
         exam_name = exam_name.upper() + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + term + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + year
 
-        adm_no = "ADM " + "4612"
-        student_name = "MARY PRISCA WANGUI NGONJO"
-        class_name = "1J"
-        kcpe = "KCPE: " + "389"
+        #
+        #
+        #
+
+        # Get path that the report card should be saved to
+        path = os.path.join(os.environ['HOME'] + "\Downloads\\")
+        download_file_name = file_name_exam_name + " Marksheet.pdf"
+
+        full_name = path + download_file_name
+
+        if os.path.isfile(full_name):
+            expand = 0
+            while True:
+                expand += 1
+                new_file_name = full_name.split(".pdf")[0] + "(" + str(expand) + ").pdf"  # eg ..card(1).pdf
+                if os.path.isfile(new_file_name):
+                    continue
+                else:
+                    full_name = new_file_name
+                    break
 
         #
         #
@@ -933,7 +950,7 @@ class ViewResults(wx.Panel):
         #
         #
 
-        doc = SimpleDocTemplate("marksheet.pdf", pagesize=(11*inch, 8.5*inch), rightMargin=72, leftMargin=72, topMargin=8,
+        doc = SimpleDocTemplate(full_name, pagesize=(11*inch, 8.5*inch), rightMargin=72, leftMargin=72, topMargin=8,
                                 bottomMargin=18)
 
         # Register Helvetica bold font
@@ -982,4 +999,9 @@ class ViewResults(wx.Panel):
         Story.append(table)
 
         doc.build(Story)
+
+        dlg = wx.MessageDialog(None, "Marksheet saved in downloads folder.", 'Success Message',
+                               wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
 

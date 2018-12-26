@@ -41,7 +41,7 @@ class StudentPersonalDetails(wx.Panel):
         content_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.m_bitmap5 = wx.StaticBitmap(self, wx.ID_ANY,
-                                         wx.Bitmap(u"C:\\Users\\DELL\\Downloads\\person-icon.bmp", wx.BITMAP_TYPE_ANY),
+                                         wx.Bitmap(u"images\\person-icon.bmp", wx.BITMAP_TYPE_ANY),
                                          wx.DefaultPosition, wx.Size(-1, -1), 0)
         content_sizer.Add(self.m_bitmap5, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 10)
 

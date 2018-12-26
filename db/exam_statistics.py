@@ -100,6 +100,27 @@ def getGradeForm3n4(mark):
     return grade
 
 
+def getMeanGrade(points):
+    if points is "":
+        return ""
+    points = round(points)
+    dictionary = {
+        '12.0': 'A',
+        '11.0': 'A-',
+        '10.0': 'B+',
+        '9.0': 'B',
+        '8.0': 'B-',
+        '7.0': 'C+',
+        '6.0': 'C',
+        '5.0': 'C-',
+        '4.0': 'D+',
+        '3.0': 'D',
+        '2.0': 'D-',
+        '1.0': 'E',
+    }
+    return dictionary.get(str(points), '')
+
+
 def getStudentMean(marks_array, form):
     schDets = getSchoolDetails()
 

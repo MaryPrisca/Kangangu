@@ -1,5 +1,10 @@
 import wx
-# import wx.grid as gridlib
+
+import lxml.etree
+import lxml.builder
+
+import os
+from selenium import webdriver
 
 from StudentsPanel import StudentsPanel
 from TeachersPanel import TeachersPanel
@@ -7,6 +12,15 @@ from ClassesPanel import ClassesPanel
 from SubjectsPanel import SubjectsPanel
 from ExamsPanel import ExamsPanel
 from ProfilePanel import ProfilePanel
+from EventsPanel import EventsPanel
+
+from db.uploading_data import *
+
+try:
+    import httplib
+except:
+    import http.client as httplib
+
 
 # from db.get_logged_user import get_logged_in_user
 # import sys
@@ -139,8 +153,21 @@ class HomePage(wx.Frame):
 
         sidenav_buttons.Add(self.exams_button, 1, wx.EXPAND, 5)
 
+        self.m_staticline5 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        sidenav_buttons.Add(self.m_staticline5, 0, wx.EXPAND, 5)
+
+        self.events_button = wx.Button(self, wx.ID_ANY, u"Events", wx.DefaultPosition, wx.DefaultSize, wx.NO_BORDER)
+        self.events_button.SetFont(wx.Font(12, 70, 90, 90, False, wx.EmptyString))
+        self.events_button.SetForegroundColour(wx.Colour(204, 204, 204))
+        self.events_button.SetBackgroundColour(wx.Colour(48, 53, 62))
+
+        sidenav_buttons.Add(self.events_button, 1, wx.EXPAND, 5)
+
         self.m_staticline6 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
         sidenav_buttons.Add(self.m_staticline6, 0, wx.EXPAND, 5)
+
+        #
+        #
 
         self.profile_button = wx.Button(self, wx.ID_ANY, u"My Profile", wx.DefaultPosition, wx.DefaultSize,
                                         wx.NO_BORDER)
@@ -152,6 +179,21 @@ class HomePage(wx.Frame):
 
         self.m_staticline7 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
         sidenav_buttons.Add(self.m_staticline7, 0, wx.EXPAND, 5)
+
+        self.upload_button = wx.Button(self, wx.ID_ANY, u"Upload Data", wx.DefaultPosition, wx.DefaultSize,
+                                       wx.NO_BORDER)
+        self.upload_button.SetFont(wx.Font(12, 70, 90, 90, False, wx.EmptyString))
+        self.upload_button.SetForegroundColour(wx.Colour(204, 204, 204))
+        self.upload_button.SetBackgroundColour(wx.Colour(150, 53, 62))
+        self.upload_button.SetToolTipString(u"Click to sync local and online data")
+
+        sidenav_buttons.Add(self.upload_button, 1, wx.EXPAND, 5)
+
+        self.m_staticline8 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        sidenav_buttons.Add(self.m_staticline8, 0, wx.EXPAND, 5)
+
+        #
+        #
 
         self.m_staticText12 = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText12.Wrap(-1)
@@ -172,11 +214,14 @@ class HomePage(wx.Frame):
         self.subjects_panel = SubjectsPanel(self)
         self.exams_panel = ExamsPanel(self, self.userdata)
         self.profile_panel = ProfilePanel(self, self.userdata)
+        self.events_panel = EventsPanel(self)
+
         self.teachers_panel.Hide()
         self.classes_panel.Hide()
         self.subjects_panel.Hide()
         self.exams_panel.Hide()
         self.profile_panel.Hide()
+        self.events_panel.Hide()
 
         main_content.Add(self.students_panel, 1, wx.EXPAND)
         main_content.Add(self.teachers_panel, 1, wx.EXPAND)
@@ -184,6 +229,7 @@ class HomePage(wx.Frame):
         main_content.Add(self.subjects_panel, 1, wx.EXPAND)
         main_content.Add(self.exams_panel, 1, wx.EXPAND)
         main_content.Add(self.profile_panel, 1, wx.EXPAND)
+        main_content.Add(self.events_panel, 1, wx.EXPAND)
 
         content.Add(main_content, 7, wx.EXPAND, 5)
 
@@ -204,6 +250,8 @@ class HomePage(wx.Frame):
         self.subjects_button.Bind(wx.EVT_BUTTON, self.onSwitchPanels)
         self.exams_button.Bind(wx.EVT_BUTTON, self.onSwitchPanels)
         self.profile_button.Bind(wx.EVT_BUTTON, self.onSwitchPanels)
+        self.events_button.Bind(wx.EVT_BUTTON, self.onSwitchPanels)
+        self.upload_button.Bind(wx.EVT_BUTTON, self.getUploadData)
 
     def onSwitchPanels(self, event):
             self.students_panel.Hide()
@@ -212,6 +260,7 @@ class HomePage(wx.Frame):
             self.subjects_panel.Hide()
             self.exams_panel.Hide()
             self.profile_panel.Hide()
+            self.events_panel.Hide()
 
             """ shows the panel corresponding to the button pressed """
             obj = event.GetEventObject()
@@ -234,6 +283,9 @@ class HomePage(wx.Frame):
             elif label == "My Profile":
                 self.SetTitle("KANGANGU SECONDARY SCHOOL - MY PROFILE")
                 self.profile_panel.Show()
+            elif label == "Events":
+                self.SetTitle("KANGANGU SECONDARY SCHOOL - SCHOOL EVENTS")
+                self.events_panel.Show()
             self.Layout()
 
     def Logout(self, event):
@@ -248,6 +300,163 @@ class HomePage(wx.Frame):
             dlg.Close()
 
         dlg.Destroy()
+
+    def InternetConnection(self):
+        conn = httplib.HTTPConnection("www.google.com", timeout=5)
+        try:
+            conn.request("HEAD", "/")
+            conn.close()
+            return True
+        except:
+            conn.close()
+            return False
+
+    def getUploadData(self, event):
+        E = lxml.builder.ElementMaker()
+        DATABASE = E.database
+
+        # <exam_results>
+        #     <exam_results_id>1</exam_results_id>
+        #     <exam_id>1</exam_id>
+        #     <student_id>11</student_id>
+        #     .
+        #     .
+        #     .
+        # </exam_results>
+
+        #
+        # CREATING CODE LIKE THE ONE ABOVE FOR EACH TABLE DYNAMICALLY
+        # db_tables = ['classes', 'events', 'exams', 'exam_results', 'subjects', 'system_setup', 'users']
+        db_tables = ['classes']
+
+        # create string to append all xml file locations as will be used by selenium to upload to web app
+        file_paths = ''
+
+        # for table_name in db_tables:
+        #
+        #     data = getUploadData(table_name)
+        #
+        #     the_doc = DATABASE(
+        #         name="Kangangu"
+        #     )
+        #
+        #     for record in data:
+        #         r = TABLE(name=table_name)  # Initialize the table tag for the row.
+        #
+        #         for key, value in record.iteritems(): # for each 'column' in the dict create a column tag
+        #             col = column(str(value), name=key)
+        #
+        #             r.append(col)  # append the column tag to the table
+        #
+        #         the_doc.append(r)  # append the table tag to the database document
+        #
+        #     # Write to respective xml file for each table
+        #     with open('uploads/' + table_name + '.xml', 'wb') as doc:
+        #         doc.write(lxml.etree.tostring(the_doc, pretty_print=True))
+        #
+        #     file_paths = file_paths + os.getcwd() + '/uploads/'+table_name+'.xml \n'
+
+        for table_name in db_tables:
+
+            data = getUploadData(table_name)
+
+            the_doc = DATABASE(
+                name="Kangangu"
+            )
+
+            # Example: Creates <p key="value">text</p>
+            # the_doc.append(E("p", "text", key="value"))
+
+            for record in data:
+                # Create the first tag with the table name eg. <exam_results></exam_results>
+                one_row = E(table_name)
+
+                # Create the tags for the columns and append them to the row
+                for key, value in record.iteritems():
+                    # key is the column name, (tag in this case) eg. <exam_id>1</exam_id> exam_id is the key, 1 is value
+                    one_row.append(E(key, str(value)))
+
+                the_doc.append(one_row)
+
+            # Write to respective xml file for each table
+            with open('uploads/' + table_name + '.xml', 'wb') as doc:
+                doc.write(lxml.etree.tostring(the_doc, pretty_print=True))
+
+            file_paths = file_paths + os.getcwd() + '/uploads/'+table_name+'.xml \n'
+
+        #
+        #
+        # FILE UPLOAD
+        if self.InternetConnection():
+            dlg = wx.MessageDialog(None, "Uploading files...\nDo not close program or shut down for at least 5 minutes.\nClick okay to start the process.", 'File Upload Warning', wx.OK | wx.ICON_WARNING)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+            # Uploading files through selenium fails when files are large so upload is broken down into groups
+            upload_groups = [
+                {
+                    'tables': ['classes', 'events', 'exams'],
+                    'paths': os.getcwd() + '\uploads\classes.xml \n' + os.getcwd() + '\uploads\events.xml \n'+ os.getcwd() + '\uploads\exams.xml'
+                },
+                # {
+                #     'tables': ['exam_results', 'subjects'],
+                #     'paths': os.getcwd() + '\uploads\exam_results.xml \n' + os.getcwd() + '\uploads\subjects.xml'
+                # },
+                # {
+                #     'tables': ['system_setup', 'users'],
+                #     'paths': os.getcwd() + '\uploads\system_setup.xml \n' + os.getcwd() + '\uploads\users.xml'
+                # },
+            ]
+
+            # Pass the data to be uploaded
+            for group in upload_groups:
+                self.uploadData(group)
+
+            # Mark all those rows as uploaded
+            for table_name in db_tables:
+                markRowsAsUploaded(table_name)
+        else:
+            dlg = wx.MessageDialog(None, "File upload requires stable internet.\nTry again with internet connection",
+                                   'File Upload Warning.', wx.OK | wx.ICON_WARNING)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+    #
+    # ------------------------------------------------------
+    def uploadData(self, data):
+        # options = webdriver.ChromeOptions()
+        # options.add_argument('headless')
+        #
+        # # set the window size
+        # options.add_argument('window-size=1200x600')
+        #
+        # # your executable path is wherever you saved the chrome webdriver
+        # chromedriver = "uploads/chromedriver-v2.42.exe"
+        #
+        # # initialize the driver
+        # browser = webdriver.Chrome(executable_path=chromedriver, chrome_options=options)
+
+        geckodriver = "uploads/geckodriver.exe"
+
+        options = webdriver.FirefoxOptions()
+        options.add_argument('-headless')
+
+        browser = webdriver.Firefox(executable_path=geckodriver, firefox_options=options)
+
+        url = "http://127.0.0.1:8000/upload"
+        browser.get(url)
+
+        names_field = browser.find_element_by_name('name')
+        upload_field = browser.find_element_by_id('file')
+
+        table_names_string = ",".join(data['tables'])  # Comma separated string
+
+        names_field.send_keys(table_names_string)
+        upload_field.send_keys(data['paths'])
+
+        submit_button = browser.find_element_by_css_selector("input[type=\"submit\"]")
+        submit_button.click()
+
 
 # # Run the program
 # if __name__ == "__main__":
